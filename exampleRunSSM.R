@@ -1,12 +1,17 @@
 
-
+##### a faire dans la console de l utilisateur
 
 setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R and allvariables.xlsx
 {
   #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
   ICI<-environment() 
   setwd(modelfolder) #folder where the "model data" (i.e. list of variables) are
-  source("SSM.R", local=TRUE)
+  source("headersSSM.R", local=TRUE)
+  source("initialisationEnvironmenVariablesSSM.R", local=TRUE)
+  source("externalFilesReadingSSM.R", local=TRUE)
+  source("HousekeepingFunctionsSSM.R", local=TRUE)
+  source("functionsSSM.R", local=TRUE)
+  source("handlersSSM.R", local=TRUE)
   return(list(contains=mContains, # fonction qui liste les objets présents dans le modèle (contains) et les extrait (getglobal), 
               #doinside=evalICI,
               #getparam=getparam, #fonction qui renvoie les paramètres du modèle pour vérification (getparam), et qui les modifie (setparam), 
@@ -48,6 +53,7 @@ dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
               colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables", 
               linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
              symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
+
 mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"), 
              colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases", 
              linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
