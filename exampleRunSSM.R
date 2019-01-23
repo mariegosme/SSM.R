@@ -1,5 +1,6 @@
 
 ##### a faire dans la console de l utilisateur
+#Vive le Pacifique!
 
 setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R and allvariables.xlsx
 {
@@ -37,17 +38,17 @@ rownames(mycases)<-c("Meknes35degres", "Meknes45degres") #these will be the case
 parametersfirsttry<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
-  directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
+  directory="C:/Users/marrou/Dropbox/RechercheMC/D4DECLIC/modelisation/SSM.R", #directory where your input (with climates and soils files) and output folders are
   climateformat="standardSSM",
   soilformat="standardSSM"
 )
 
 #build the model
-mymodel<-setup("/Users/user/Documents/a_System/modelisation/SSM/traductionSSM_R/")
+mymodel<-setup("C:/Users/marrou/Dropbox/RechercheMC/D4DECLIC/modelisation/SSM.R")
 #set the simulation options
 mymodel$setoptions(parametersfirsttry)
 #run the model for 4 timesteps
-mymodel$run(4)
+mymodel$run(200)
 #plot the dynamics of some variables
 dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"), 
               colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables", 
