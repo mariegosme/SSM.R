@@ -21,6 +21,7 @@ fGetClimateDay<-function(date){ #returns a data.frame with the date, climate nam
 eReadInInputs<-function(){
   eReadClimate()
   eReadSoil()
+  eReadCrops()
 }
 
 eReadClimate<-function(){ 
@@ -60,3 +61,34 @@ eReadSoil<-function(){
   } else if (PARAMSIM$soilformat=="")  {
   } 
 } #end read soil
+
+eReadCrops<-function(){ 
+  if (PARAMSIM$cropformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
+    pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/crops.xlsx", sep=""))
+    availablecrops<-getSheetNames(pathtoExcel)
+    ALLCROPS<<-list()
+    for (crop in availablecrops) {
+      dfcrop<-read.xlsx(pathtoExcel, sheet=crop, colNames=TRUE, startRow =2) #first column = parameter name, second = units (sometimes), other columns: cultivars
+      rownames(dfcrop)<-dfcrop$name
+      for (cultivar in names(dfcrop)[-(1:2)]) {
+        pasflat<-is.na(as.numeric(dfcrop[,cultivar]))
+        flatparams<-as.list(as.numeric(dfcrop[!pasflat, cultivar])) ; names(flatparams)<-dfcrop[!pasflat, "name"]
+        complexparams<-dfcrop[, c("name", cultivar)]
+        stages<-unlist(strsplit(complexparams["stagelist", cultivar], split=','))
+        descriptionstages<-list()
+        for (sta in stages) {
+          texte<-gsub(pattern='"', replacement="'", x=complexparams[paste("description", sta, sep="_"),cultivar])
+          toto<-list(eval(parse(text=texte)))
+          names(toto)<-sta
+          descriptionstages<-c(descriptionstages, toto)
+        }
+        ALLCROPS[[crop]][[cultivar]]<<-c(flatparams, list(phenology=descriptionstages))
+      }
+
+      
+    }
+  } else stop("crop format should only standard SSM")
+} #end read crops
+
+
+

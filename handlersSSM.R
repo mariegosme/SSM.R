@@ -1,21 +1,13 @@
 #mXXXX: Model interface (e.g. mrun, mplot)
 
 mOnetimestep<-function(){
-  nbtimesteps<-length(ALLSIMULATEDDATA)
-  if(nbtimesteps==0) { #only the first time step: creates day with date = simustart
-    eReadInInputs()
-    d<-as.Date(PARAMSIM$simustart)
-    types<-PARAMSIM$types
-    cases<-rownames(PARAMSIM$cases)
-    ALLSIMULATEDDATA<<-list(fCreateDataFrame(
-      d=d, 
-      types=types,
-      rows=cases)
-    ) } else {
-      rCreateDay()
-    }
-  rUpdateClimate()
+  rCreateDay()
+
+  rWeatherDay()
   rUpdatePAR()
+
+  #at the end of the timestep, adds the new day at the end of the list of all variables
+  ALLSIMULATEDDATA <<- c(ALLSIMULATEDDATA, ALLDAYDATA)
   return()
 }
 
