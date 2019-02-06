@@ -39,7 +39,8 @@ parametersfirsttry<-list(
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
   directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
   climateformat="standardSSM",
-  soilformat="standardSSM"
+  soilformat="standardSSM",
+  cropsformat="standardSSM"
 )
 
 #build the model

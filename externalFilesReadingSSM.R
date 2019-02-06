@@ -21,6 +21,7 @@ fGetClimateDay<-function(date){ #returns a data.frame with the date, climate nam
 eReadInInputs<-function(){
   eReadClimate()
   eReadSoil()
+  eReadCrops()
 }
 
 eReadClimate<-function(){ 
@@ -58,5 +59,17 @@ eReadSoil<-function(){
       #to do: decide how to tracks soil parameters and variables for each layer
     }
   } else if (PARAMSIM$soilformat=="")  {
+  } 
+} #end read soil
+
+eReadCrops<-function(){ 
+  if (PARAMSIM$cropsformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
+    pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/crops.xlsx", sep=""))
+    cultivar<-getSheetNames(pathtoExcel)
+    ALLCROPS<<-data.frame()
+    for (sheet in cultivar) {
+      #to do: decide how to tracks soil parameters and variables for each layer
+    }
+  } else if (PARAMSIM$cropsformat=="")  {
   } 
 } #end read soil

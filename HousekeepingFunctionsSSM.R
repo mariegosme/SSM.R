@@ -7,13 +7,13 @@ fCreateDataFrame<-function(d, types, rows) {
 
 
 rCreateDay<-function() { 
-  #add a new day to ALLSIMULATEDDATA
+  #create frame of data of the day
   laststep<-length(ALLSIMULATEDDATA)
   print(paste("creating day", laststep+1))
-  ALLSIMULATEDDATA <<- c(ALLSIMULATEDDATA, list(fCreateDataFrame(
+  ALLDAYDATA <<- list(fCreateDataFrame(
     d=ALLSIMULATEDDATA[[laststep]][,"iDate"]+1, 
     types=PARAMSIM$types,
-    rows=rownames(PARAMSIM$cases))))
+    rows=rownames(PARAMSIM$cases)))
   return()
 }
 
@@ -25,4 +25,12 @@ rUpdateClimate<-function() {
   climatevar<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="climate",]
   climatevariables<-climatevar[,"name"]
   ALLSIMULATEDDATA[[step]][,climatevariables]<<-dfclimate[PARAMSIM$cases$climatename, climatevariables]
+}
+
+rUpdateDay<-function() { 
+  #add a new day to ALLSIMULATEDDATA
+  laststep<-length(ALLSIMULATEDDATA)
+  print(paste("creating day", laststep+1))
+  ALLSIMULATEDDATA <<- c(ALLSIMULATEDDATA, ALLDAYDATA)
+  return()
 }

@@ -24,12 +24,21 @@ soilformat="standardSSM"
 
 ##### creation of the list of days only the first time
 ALLSIMULATEDDATA<-list()
-
+ALLDAYDATA<-list()    #List of current daily data
 ##### definition of constants
 
 #### PARAMETERS
-ALLPARAMETERS<-list(pCoefPAR=0.48)
+ALLPARAMETERS<-list(pCoefPAR=0.48,
+                    pTbaseVernalization=-1,
+                    pTopt1Vernalization=0,
+                    pTop2Vernalization=8,
+                    pTlethalVernalization=12,
+                    pVDSAT=50
+)
+
+#### INITIALE VALUES
 
 #### initialisation of variable to store climate if read once at the beginning
 ALLCLIMATE<-list()
 ALLSOILS<-list()
+ALLCROPS<-list()
