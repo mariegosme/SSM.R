@@ -111,7 +111,20 @@ fComputeCrownTemperature<-function(sSnow,iTASMax,iTASMin){
   return((iTASMax + iTASMin) / 2)
 }
 
-
+fPhotoperiodFunction<-function(iDate,latitude){
+  doy=as.numeric(strftime(iDate, format = "%j"))
+  Pi = 3.141592654
+  RDN = Pi / 180
+  DEC = Sin(23.45 * RDN) * Cos(2 * Pi * (doy + 10) / 365)
+  DEC = Atn(DEC / Sqr(1 - DEC ^ 2)) * -1
+  DECL = DEC * 57.29578
+  SINLD = Sin(RDN * latitude) * Sin(DEC)
+  COSLD = Cos(RDN * latitude) * Cos(DEC)
+  AOB = SINLD / COSLD
+  AOB2 = Atn(AOB / Sqr(1 - AOB ^ 2))
+  DAYL = 12 * (1 + 2 * AOB2 / Pi)
+  return(DAYL + 0.9)
+}
 
 
 fComputeCoefVernalization<-function(VernalizationSensitivity,VDSAT,sVernalization){
