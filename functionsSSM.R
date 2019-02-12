@@ -6,22 +6,22 @@
 ### definition of functions (which return calculated variables)
 
 
-fComputePAR<-function(globalradiation, CoefPAR=ALLPARAMETERS$pCoefPAR) {
+fComputePAR<-function(globalradiation, CoefPAR) {
   return(CoefPAR*globalradiation)
 
 }
 
-fComputeTemp<-function(tasmax=ALLDAYDATA$iTASMax,tasmin=ALLDAYDATA$iTASMin) {
+fComputeTemp<-function(tasmax,tasmin) {
   return(cTemp = (tasmax+tasmin)/2)
 
 }
 
-fDelta_thermal_unit<-function(pTbasdev,pTopt1dev,cCoefTemp=1,cWaterStressFactorDevelopment=1) {
+fDelta_thermal_unit<-function(pTbasdev,pTopt1dev,cCoefTemp,cWaterStressFactorDevelopment) {
   return(cDeltaThermalUnit = (pTopt1dev - pTbasdev)*cCoefTemp*cWaterStressFactorDevelopment)
 
 }
 
-fBiologicalDay<-function(cCoefTemp=1,cCoefPhotoPeriod=1,cWaterStressFactorDevelopment=1,cCoefVernalization=1){
+fBiologicalDay<-function(cCoefTemp,cCoefPhotoPeriod,cWaterStressFactorDevelopment,cCoefVernalization){
 
   return(cBiologicalDay=cCoefTemp*cCoefPhotoPeriod*cWaterStressFactorDevelopment*cCoefVernalization)
 }
@@ -102,24 +102,19 @@ fComputeCorrectedPr<-function(iTASMax, iPr, cSnowMelt){
   return(ifelse(iTASMax<=1, 0, iPr + cSnowMelt )) #in cases where it s cold, it snows instead of raining so correctedPr=0, where it s hot, the snow melt is added to the rain
 }
 
-fComputeCrownTemperature<-function(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iTASMin=ALLDAYDATA$iTASMin){
+fComputeCrownTemperature<-function(sSnow,iTASMax,iTASMin){
 
-  if(sSnow > 15){
-    sSnow = 15
-  }
-  if(iTASMin < 0 & sSnow > 0){
-    iTASMin = 2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
-  }
-  if(iTASMax < 0 & sSnow > 0){
-    iTASMax = 2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
-  }
+  sSnow=ifelse(sSnow > 15,15,sSnow)
+
+  iTASMin=ifelse(iTASMin < 0 & sSnow > 0,2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2),iTASMin)
+  iTASMax=ifelse(iTASMax < 0 & sSnow > 0,2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2),iTASMax)
   return((iTASMax + iTASMin) / 2)
 }
 
 
 
 
-fComputeCoefVernalization<-function(VernalizationSensitivity=ALLCROPS$pVernalizationSensitivity,VDSAT=ALLPARAMETERS$pVDSAT,sVernalization=ALLDAYDATA$sVernalization){
+fComputeCoefVernalization<-function(VernalizationSensitivity,VDSAT,sVernalization){
   CoefVernalization = 1 - VernalizationSensitivity * (VDSAT - sVernalization)
   if(CoefVernalization > 1 ) CoefVernalization = 1
   if(CoefVernalization < 0 ) CoefVernalization = 0
