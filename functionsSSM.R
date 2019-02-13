@@ -16,8 +16,8 @@ fComputeTemp<-function(tasmax,tasmin) {
 
 }
 
-fDelta_thermal_unit<-function(pTbasdev,pTopt1dev,cCoefTemp,cWaterStressFactorDevelopment) {
-  return(cDeltaThermalUnit = (pTopt1dev - pTbasdev)*cCoefTemp*cWaterStressFactorDevelopment)
+fDeltaThermalUnit<-function(pTbasdev,pTopt1dev,cCoefTemp,cWaterStressFactorDevelopment) {
+  return((pTopt1dev - pTbasdev)*cCoefTemp*cWaterStressFactorDevelopment)
 
 }
 
@@ -51,7 +51,7 @@ fComputeDailyVernalization<-function(cTemp,pTbasdev,pTopt1dev,pTop2dev,pTlethald
 
 fDegreeDays<-function(cTemp, Tbase) return(max(Tbase, cTemp))
 
-fThermoCardinal<-function(cTemp, Tbase, Topt1, Topt2, Tlethal) { #icicici : truc debile juste pour tester
+fComputeCoefTemp<-function(cTemp, Tbase, Topt1, Topt2, Tlethal) { #icicici : truc debile juste pour tester
  return(fFunctionstep(x=cTemp, x1=Tbase, x2=Topt1, x3=Topt2, x4=Tlethal, y1=0, y2=1, y3=0))
 }
 
@@ -65,7 +65,101 @@ fFindNextStage<-function(crop, currentstage) { #we assume all cultivars of a cro
   return(df$nextstage)
 }
 
-rUdtatePhenology<-function() {
+
+
+
+fComputeSnowMelt<-function(iTASMax, iPr, sSnow) {
+  return(ifelse(iTASMax<=1, 0, min(sSnow, iTASMax + iPr * 0.4))) # icicici: unit problem: we expect mm, but we have degrees... this equation has no meaning!
+
+}
+
+fComputeCorrectedPr<-function(iTASMax, iPr, cSnowMelt){
+  return(ifelse(iTASMax<=1, 0, iPr + cSnowMelt )) #in cases where it s cold, it snows instead of raining so correctedPr=0, where it s hot, the snow melt is added to the rain
+}
+
+fComputeCrownTemperature<-function(sSnow,iTASMax,iTASMin){
+
+  sSnow=ifelse(sSnow > 15,15,sSnow)
+
+  iTASMin=ifelse(iTASMin < 0 & sSnow > 0,2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2),iTASMin)
+  iTASMax=ifelse(iTASMax < 0 & sSnow > 0,2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2),iTASMax)
+  return((iTASMax + iTASMin) / 2)
+}
+
+fPhotoperiodDuration<-function(iDate,latitude){
+  doy=as.numeric(strftime(iDate, format = "%j"))
+  Pi = 3.141592654
+  RDN = Pi / 180
+  DEC = sin(23.45 * RDN) * cos(2 * Pi * (doy + 10) / 365)
+  DEC = atan(DEC / sqrt(1 - DEC ^ 2)) * -1
+  DECL = DEC * 57.29578
+  SINLD = sin(RDN * latitude) * sin(DEC)
+  COSLD = cos(RDN * latitude) * cos(DEC)
+  AOB = SINLD / COSLD
+  AOB2 = atan(AOB / sqrt(1 - AOB ^ 2))
+  DAYL = 12 * (1 + 2 * AOB2 / Pi)
+  return(DAYL + 0.9)
+}
+
+fComputeCoefPhotoperiodCrops<-function(photoDuration,CriticalPhotoPerdiod,PhotoPeriodSensitivity){
+  ppfun = ifelse(photoDuration < CriticalPhotoPerdiod,1 - PhotoPeriodSensitivity * (cpp - photoDuration) ^ 2,1)
+  return(ifelse(ppfun< 0,0,ppfun)
+}
+
+fComputeCoefPhotoperiodMaize<-function(){
+}
+
+fComputeCoefPhotoperiodLegume<-function(){
+}
+
+fComputeCoefVernalization<-function(VernalizationSensitivity,VDSAT,sVernalization){
+  CoefVernalization = 1 - VernalizationSensitivity * (VDSAT - sVernalization)
+  ifelse(CoefVernalization > 1,1, CoefVernalization)
+  ifelse(CoefVernalization < 0,0,CoefVernalization)
+  return(CoefVernalization)
+}
+
+fComputeCoefWaterstress<-function(){        ####icicici à modifier pour prendre en compte le stress hydrique
+  return(1)
+}
+
+fComputeMatrixvalidity<-function(){         ####icicici à modifier : fonction qui créer une matrix True et False pour corriger les coef Verna, PP, Temp et stress en fonction des phases
+  return(1)
+}
+#### definition of procedures (which update state variables)
+
+rUpdatePAR<-function(){
+  print("updating PAR")
+
+  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
+  PAR<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, CoefPAR=ALLPARAMETERS$pCoefPAR)
+  ALLDAYDATA$cPAR<<-PAR
+}
+
+#####Weather module
+rWeatherDay<-function(){
+  print("Updating weather intput")
+
+  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
+  date<-ALLDAYDATA[1,"iDate"]
+  dfclimate<-fGetClimateDay(date=date)
+  climatevariables<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
+  ALLDAYDATA[,climatevariables]<<-dfclimate[PARAMSIM$cases$climatename, climatevariables]
+  ###To be full in
+  #Calculate sSnow evolution, cSnowMelt, CorrectedPr
+
+  ALLDAYDATA$cSnowMelt<<-fComputeSnowMelt(sSnow=ALLSIMULATEDDATA[[daybefore]]$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
+  ALLDAYDATA$cPrCorrected<<-fComputeCorrectedPr(cSnowMelt=ALLDAYDATA$cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
+  ALLDAYDATA$sSnow<<-ALLSIMULATEDDATA[[daybefore]]$sSnow + ALLDAYDATA$iPr -  ALLDAYDATA$cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
+  #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
+}
+
+#####phenology module
+rUdtatePhenology2<-function() {         ####A SUPPRIMER
+  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
+
+
+
   vectfonct<-character(0)
   vectincrement<-numeric(0)
   vectthreshold<-numeric(0)
@@ -92,109 +186,52 @@ rUdtatePhenology<-function() {
   ALLDAYDATA[changestage,"sGrowthStage"]<<-fFindNextStage(crop=ALLDAYDATA[changestage,"sCrop"], currentstage=ALLDAYDATA[changestage,"sGrowthStage"])
 }
 
-
-fComputeSnowMelt<-function(iTASMax, iPr, sSnow) {
-  return(ifelse(iTASMax<=1, 0, min(sSnow, iTASMax + iPr * 0.4))) # icicici: unit problem: we expect mm, but we have degrees... this equation has no meaning!
-
-}
-
-fComputeCorrectedPr<-function(iTASMax, iPr, cSnowMelt){
-  return(ifelse(iTASMax<=1, 0, iPr + cSnowMelt )) #in cases where it s cold, it snows instead of raining so correctedPr=0, where it s hot, the snow melt is added to the rain
-}
-
-fComputeCrownTemperature<-function(sSnow,iTASMax,iTASMin){
-
-  sSnow=ifelse(sSnow > 15,15,sSnow)
-
-  iTASMin=ifelse(iTASMin < 0 & sSnow > 0,2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2),iTASMin)
-  iTASMax=ifelse(iTASMax < 0 & sSnow > 0,2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2),iTASMax)
-  return((iTASMax + iTASMin) / 2)
-}
-
-fPhotoperiodFunction<-function(iDate,latitude){
-  doy=as.numeric(strftime(iDate, format = "%j"))
-  Pi = 3.141592654
-  RDN = Pi / 180
-  DEC = Sin(23.45 * RDN) * Cos(2 * Pi * (doy + 10) / 365)
-  DEC = Atn(DEC / Sqr(1 - DEC ^ 2)) * -1
-  DECL = DEC * 57.29578
-  SINLD = Sin(RDN * latitude) * Sin(DEC)
-  COSLD = Cos(RDN * latitude) * Cos(DEC)
-  AOB = SINLD / COSLD
-  AOB2 = Atn(AOB / Sqr(1 - AOB ^ 2))
-  DAYL = 12 * (1 + 2 * AOB2 / Pi)
-  return(DAYL + 0.9)
-}
-
-
-fComputeCoefVernalization<-function(VernalizationSensitivity,VDSAT,sVernalization){
-  CoefVernalization = 1 - VernalizationSensitivity * (VDSAT - sVernalization)
-  if(CoefVernalization > 1 ) CoefVernalization = 1
-  if(CoefVernalization < 0 ) CoefVernalization = 0
-  retunr(CoefVernalization)
-}
-
-#### definition of procedures (which update state variables)
-
-rUpdatePAR<-function(){
-  print("updating PAR")
-
-  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
-  PAR<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, CoefPAR=ALLPARAMETERS$pCoefPAR)
-  ALLDAYDATA$cPAR<<-PAR
-}
-
-rUpdateThermalUnite<-function(){
-  print("updating ThermalUnite")
-
-  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
-  sThermalUnite<-ALLSIMULATEDDATA[[daybefore]]$sThermalUnite + fDelta_thermal_unit(pTbasdev,pTopt1dev,Tempovar$cCoefTemp)
-  ALLDAYDATA$sThermalUnit<<-sThermalUnite
-}
-
-#####Weather module
-rWeatherDay<-function(){
-  print("Updating weather intput")
-
-  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
-  date<-ALLDAYDATA[1,"iDate"]
-  dfclimate<-fGetClimateDay(date=date)
-  climatevariables<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
-  ALLDAYDATA[,climatevariables]<<-dfclimate[PARAMSIM$cases$climatename, climatevariables]
-  ###To be full in
-  #Calculate sSnow evolution, cSnowMelt, CorrectedPr
-
-  ALLDAYDATA$cSnowMelt<<-fComputeSnowMelt(sSnow=ALLSIMULATEDDATA[[daybefore]]$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
-  ALLDAYDATA$cPrCorrected<<-fComputeCorrectedPr(cSnowMelt=ALLDAYDATA$cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
-  ALLDAYDATA$sSnow<<-ALLSIMULATEDDATA[[daybefore]]$sSnow + ALLDAYDATA$iPr -  ALLDAYDATA$cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
-  #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
-}
-
-
-#####Vernalization module
-rVernalizationDay<-function(){
+rUdtatePhenology<-function(){
   print("Daily vernalization coefficient")
 
   daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
 
+###Vernalization
+  cCrownTemp <- fComputeCrownTemperature(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iTASMin=ALLDAYDATA$iTASMin)
+  cDailyVernalization <- fComputeDailyVernalization(CrownTemp=cCrownTemp,TbaseVernalization=ALLCROPS$pTbaseVernalization,
+                                                                Topt1Vernalization=ALLCROPS$pTopt1Vernalization,
+                                                                Top2Vernalization=ALLCROPS$pTop2Vernalization,
+                                                                TlethalVernalization=ALLCROPS$pTlethalVernalization,
+                                                                pVDSAT=ALLCROPS$pVDSAT)
+  sVernalization <- ALLSIMULATEDDATA[[daybefore]]$sVernalization + cDailyVernalization
+  sVernalization <- ifelse(sVernalization < 10 & ALLDAYDATA$iTASMax > 30,sVernalization - 0.5 * (ALLDAYDATA$iTASMax - 30),sVernalization)
+  sVernalization <- ifelse(sVernalization < 0,0,sVernalization)
+  cCoefVernalization <- fComputeCoefVernalization(VernalizationSensitivity=ALLCROPS$pVernalizationSensitivity,VDSAT=ALLCROPS$pVDSAT,sVernalization=sVernalization)
+  cCoefVernalization <- fComputeMatrixvalidity()*cCoefVernalization          #To take account the period with the vernalization have an impact
 
-  ALLDAYDATA$cCrownTemp <<- fComputeCrownTemperature(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iTASMin=ALLDAYDATA$iTASMin)
-  ALLDAYDATA$cDailyVernalization <<- fComputeDailyVernalization(CrownTemp=ALLDAYDATA$cCrownTemp,
-                                                                TbaseVernalization=ALLPARAMETERS$pTbaseVernalization,
-                                                                Topt1Vernalization=ALLPARAMETERS$pTopt1Vernalization,
-                                                                Top2Vernalization=ALLPARAMETERS$pTop2Vernalization,
-                                                                TlethalVernalization=ALLPARAMETERS$pTlethalVernalization,
-                                                                pVDSAT=ALLPARAMETERS$pVDSAT)
-  ALLDAYDATA$sVernalization <<- ALLSIMULATEDDATA[[daybefore]]$sVernalization + ALLDAYDATA$cDailyVernalization
-  If (ALLDAYDATA$sVernalization < 10 & ALLDAYDATA$iTASMax > 30){
-    ALLDAYDATA$sVernalization = ALLDAYDATA$sVernalization - 0.5 * (ALLDAYDATA$iTASMax - 30)
-  }
-  If (ALLDAYDATA$sVernalization < 0){
-    ALLDAYDATA$sVernalization = 0
-  }
-  cCoefVernalization = 1
-  if(CBD >= bdBRV & CBD <= bdTRV){   ###A MODIFIER
-    cCoefVernalization = fComputeCoefVernalization(VernalizationSensitivity=ALLCROPS$pVernalizationSensitivity,VDSAT=ALLPARAMETERS$pVDSAT,sVernalization=ALLDAYDATA$sVernalization)
-  }
-  ALLDAYDATA$cCoefVernalization = cCoefVernalization
+###Waterstress
+  cCoefWaterstress<-fComputeCoefWaterstress()
+  cCoefWaterstress<-fComputeMatrixvalidity()*cCoefWaterstress                #To take account the period with the vernalization have an impact
+
+###temperature
+  cTemp<-fComputeTemp(tmax=ALLDAYDATA$iTASMax,tmin=ALLDAYDATA$iTASMin)
+  cCoefTemp<-fComputeCoefTemp(cTemp=cTemp,Tbase=ALLCROPS$pTbasedev,Topt1=ALLCROPS$pTopt1dev,Topt2=ALLCROPS$pTop2dev,Tlethal=ALLCROPS$pTlethaldev)
+
+###PhotoPeriod
+  cPhotoDuration<-fPhotoperiodDuration(iDate=ALLDAYDATA[1,"iDate"],latitude=)     #icicici AJOUT de la latitude
+  cCoefPhotoPeriod<-fComputeCoefPhotoperiodCrops(photoDuration=cPhotoDuration,CriticalPhotoPerdiod=ALLCROPS$pCriticalPhotoPerdiod,PhotoPeriodSensitivity=ALLCROPS$pPhotoPeriodSensitivity)
+  cCoefPhotoPeriod<-fComputeMatrixvalidity()*cCoefPhotoPeriod
+
+###Phenology rUpdate
+  cDeltaThermalUnit=fDeltaThermalUnit(pTbasdev=ALLCROPS$pTbasedev,pTopt1dev=ALLCROPS$pTopt1dev,cCoefTemp,cCoefWaterstress)
+  sThermalUnite<-ALLSIMULATEDDATA[[daybefore]]$sThermalUnite + cDeltaThermalUnit
+  cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cWaterStressFactorDevelopment,cCoefVernalization)           #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence)
+  sBiologicalDay<-ALLSIMULATEDDATA[[daybefore]]$sBiologicalDay+cBiologicalDay
+
+####stage changes
+  changestage<-sBiologicalDay>vectthreshold                                       #icicici Modifier vectthreshold
+
+  ALLDAYDATA[!changestage,"sBiologicalDay"]<<-sBiologicalDay[!changestage]
+  #ALLDAYDATA[changestage,"sCumulatedPhenoCounts"]<<-newcounts[changestage]-vectthreshold[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
+  ALLDAYDATA[changestage,"sBiologicalDay"]<<- 0 #if we changed stages, we start from 0
+  ALLDAYDATA[changestage,"sGrowthStage"]<<-fFindNextStage(crop=ALLDAYDATA[changestage,"sCrop"], currentstage=ALLDAYDATA[changestage,"sGrowthStage"])
+
+####Update ALLDAYDATA
+  ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","CoefVernalization","cCoefWaterstress","cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite","cBiologicalDay")]<<-data.frame(cCrownTemp,cDailyVernalization,sVernalization,CoefVernalization,cCoefWaterstress,cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,cBiologicalDay,sBiologicalDay)
+
 }
