@@ -148,10 +148,11 @@ rWeatherDay<-function(){
   ###To be full in
   #Calculate sSnow evolution, cSnowMelt, CorrectedPr
 
-  ALLDAYDATA$cSnowMelt<<-fComputeSnowMelt(sSnow=ALLSIMULATEDDATA[[daybefore]]$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
-  ALLDAYDATA$cPrCorrected<<-fComputeCorrectedPr(cSnowMelt=ALLDAYDATA$cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
-  ALLDAYDATA$sSnow<<-ALLSIMULATEDDATA[[daybefore]]$sSnow + ALLDAYDATA$iPr -  ALLDAYDATA$cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
+  cSnowMelt<-fComputeSnowMelt(sSnow=ALLSIMULATEDDATA[[daybefore]]$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
+  cPrCorrected<-fComputeCorrectedPr(cSnowMelt=ALLDAYDATA$cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
+  sSnow<-ALLSIMULATEDDATA[[daybefore]]$sSnow + ALLDAYDATA$iPr -  ALLDAYDATA$cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
   #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
+  ALLDAYDATA[,c("cSnowMelt","cPrCorrected","sSnow")]<<-data.frame(cSnowMelt,cPrCorrected,sSnow)
 }
 
 #####phenology module
@@ -190,6 +191,7 @@ rUdtatePhenology<-function(){
   print("Daily vernalization coefficient")
 
   daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
+  paramspheno<-ALLCROPS[[ ALLDAYDATA$sCrop ]][[ ALLDAYDATA$sCultivar ]][["phenology"]][[ALLDAYDATA$sGrowthStage]]
 
 ###Vernalization
   cCrownTemp <- fComputeCrownTemperature(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iTASMin=ALLDAYDATA$iTASMin)
@@ -213,18 +215,20 @@ rUdtatePhenology<-function(){
   cCoefTemp<-fComputeCoefTemp(cTemp=cTemp,Tbase=ALLCROPS$pTbasedev,Topt1=ALLCROPS$pTopt1dev,Topt2=ALLCROPS$pTop2dev,Tlethal=ALLCROPS$pTlethaldev)
 
 ###PhotoPeriod
-  cPhotoDuration<-fPhotoperiodDuration(iDate=ALLDAYDATA[1,"iDate"],latitude=)     #icicici AJOUT de la latitude
+  cPhotoDuration<-fPhotoperiodDuration(iDate=ALLDAYDATA[1,"iDate"],latitude=PARAMSIM$cases$lat)
   cCoefPhotoPeriod<-fComputeCoefPhotoperiodCrops(photoDuration=cPhotoDuration,CriticalPhotoPerdiod=ALLCROPS$pCriticalPhotoPerdiod,PhotoPeriodSensitivity=ALLCROPS$pPhotoPeriodSensitivity)
   cCoefPhotoPeriod<-fComputeMatrixvalidity()*cCoefPhotoPeriod
 
 ###Phenology rUpdate
   cDeltaThermalUnit=fDeltaThermalUnit(pTbasdev=ALLCROPS$pTbasedev,pTopt1dev=ALLCROPS$pTopt1dev,cCoefTemp,cCoefWaterstress)
+  #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence) (c'est pour blé et légume)
   sThermalUnite<-ALLSIMULATEDDATA[[daybefore]]$sThermalUnite + cDeltaThermalUnit
-  cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cWaterStressFactorDevelopment,cCoefVernalization)           #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence)
+  cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cWaterStressFactorDevelopment,cCoefVernalization)
+  #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence)
   sBiologicalDay<-ALLSIMULATEDDATA[[daybefore]]$sBiologicalDay+cBiologicalDay
 
 ####stage changes
-  changestage<-sBiologicalDay>vectthreshold                                       #icicici Modifier vectthreshold
+  changestage<-sBiologicalDay>paramspheno$threshold                                      #icicici Modifier vectthreshold
 
   ALLDAYDATA[!changestage,"sBiologicalDay"]<<-sBiologicalDay[!changestage]
   #ALLDAYDATA[changestage,"sCumulatedPhenoCounts"]<<-newcounts[changestage]-vectthreshold[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
