@@ -4,7 +4,7 @@ rm(list=ls())
 paramscrops<-list(wheat=list(
   name="wheat",
   thresholds=list(germination=10, croissance=30, floraison=5, maturation=10),
-  paramsLAI=list(filter="is.after('germination', 4) & is.before('floraison', paramscrops$wheat$thresholds$maturation-2)", #4 days after the beginning of germination and 2 days before the end of floraison
+  paramsLAI=list(filter="is.after('germination', 4) & is.before('floraison', paramscrops$wheat$thresholds$floraison-2)", #4 days after the beginning of germination and 2 days before the end of floraison
                  speed=2),
   paramsvernalisation=list(filter="is.before('floraison')", #during germination and croissance
                            effetverna=0.5)
@@ -48,7 +48,7 @@ applyfilters<-function(processname){
   }
   filtertexts<-sapply(paramscrops[possiblecrops], function(cr) return(cr[[processname]]$filter))
 
-  filters<-mapply(FUN=evaluatecrop, filtertexts, possiblecrops)
+  filters<-mapply(FUN=evaluatecrop, filtertexts, possiblecrops, SIMPLIFY=FALSE)
   allfilters<-as.data.frame(c(list(crop=ALLDAYDATA$crop, filters))) #so that the lengths are homogenized
   resultfilter<-rep(FALSE, nrow(ALLDAYDATA))
   for(crop in possiblecrops) {
@@ -61,7 +61,7 @@ fDeltaLAI<-function(speed) return(speed)
 
 rLAI<-function() {
   resultfilter<-applyfilters("paramsLAI")
-  speeds<-sapply(ALLDAYDATA$crop, function(cropname) return(paramscrops[[cropname]]$paramsLAI$speed)) #on recupere les parametres de LAI pour chaque culture (ici, un seul parametre: speed)
+  speeds<-mapply(function(cropname, cultivarname) return(paramscrops[[cropname]][[cultivarname]]$paramsLAI$speed), ALLDAYDATA$crop, ALLDAYDATA$cultivar, SIMPLIFY = TRUE, USE.NAMES=FALSE) #on recupere les parametres de LAI pour chaque culture (ici, un seul parametre: speed)
   ALLDAYDATA$LAI[resultfilter]<<-ALLDAYDATA$LAI[resultfilter]+fDeltaLAI(speeds)[resultfilter]
   return()
 }
@@ -79,8 +79,11 @@ rPheno<-function() {
   ALLDAYDATA$bd<<-ALLDAYDATA$bd+increment
 
   thresholds<-mapply(function(cropname, stage) return(paramscrops[[cropname]]$thresholds[[stage]]), ALLDAYDATA$crop, as.character(ALLDAYDATA$stage), SIMPLIFY = TRUE, USE.NAMES=FALSE) #on choope les
-  ALLDAYDATA$stage[ALLDAYDATA$bd>thresholds]<<-unlist(mapply(nextstage, ALLDAYDATA$crop[ALLDAYDATA$bd>thresholds], ALLDAYDATA$stage[ALLDAYDATA$bd>thresholds], SIMPLIFY = TRUE, USE.NAMES=FALSE))
-  ALLDAYDATA$bd[ALLDAYDATA$bd>thresholds]<<-0
+  changestage<-ALLDAYDATA$bd>thresholds
+  ALLDAYDATA$stage[changestage]<<-unlist(mapply(nextstage, ALLDAYDATA$crop[changestage], ALLDAYDATA$stage[changestage], SIMPLIFY = TRUE, USE.NAMES=FALSE))
+  # when the stage changed, we start the counter with the remaining of increment-threshold
+  ALLDAYDATA[changestage,"bd"]<<-ALLDAYDATA$bd[changestage]-thresholds[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
+  #ALLDAYDATA$bd[ALLDAYDATA$bd>thresholds]<<-0
   return()
 }
 
@@ -96,5 +99,14 @@ ALLDAYDATA
 #essaye
 rLAI()
 rPheno()
-str(ALLDAYDATA)
+#str(ALLDAYDATA)
 ALLDAYDATA
+ALLDAYDATA<-ALLDAYDATA[1,]
+
+str(filters)
+str(allfilters)
+str(resultfilter)
+
+
+
+rLAI(); rPheno(); ALLDAYDATA
