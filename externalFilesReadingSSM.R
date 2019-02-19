@@ -9,8 +9,8 @@ fGetClimateDay<-function(date){ #returns a data.frame with the date, climate nam
     rownames(selectday)<-selectday$climatename
     return(selectday)
   } else if (PARAMSIM$climateformat=="netCDF") {
-    #do something that returns a data.frame with colums 
-    #date, 
+    #do something that returns a data.frame with colums
+    #date,
     #optionnally one or more columns to define the cases (e.g. location, climate model etc...)
     #and all necessary climate variables (named as in the variable definition file)
     #and rownames should be climate names as used in the simulation options (PARAMSIM$case$climatename)
@@ -24,9 +24,9 @@ eReadInInputs<-function(){
   eReadCrops()
 }
 
-eReadClimate<-function(){ 
+eReadClimate<-function(){
   if (PARAMSIM$climateformat=="standardSSM") { #if climate read from excel, read file only once and load it in the workspace
-    climatevar<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="climate",]
+    climatevar<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input",]
     newnames<-climatevar$name ; names(newnames)<-climatevar$translationSSM
     pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/climates.xlsx", sep=""))
     locations<-getSheetNames(pathtoExcel)
@@ -47,10 +47,10 @@ eReadClimate<-function(){
     }
   } else if (PARAMSIM$climateformat=="netCDF")  {
     #do something, e.g. just open the metadata
-  } 
+  }
 } #end read climate
 
-eReadSoil<-function(){ 
+eReadSoil<-function(){
   if (PARAMSIM$soilformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
     pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/soils.xlsx", sep=""))
     locations<-getSheetNames(pathtoExcel)
@@ -59,10 +59,10 @@ eReadSoil<-function(){
       #to do: decide how to tracks soil parameters and variables for each layer
     }
   } else if (PARAMSIM$soilformat=="")  {
-  } 
+  }
 } #end read soil
 
-eReadCrops<-function(){ 
+eReadCrops<-function(){
   if (PARAMSIM$cropformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
     pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/crops.xlsx", sep=""))
     availablecrops<-getSheetNames(pathtoExcel)
@@ -70,7 +70,7 @@ eReadCrops<-function(){
     for (crop in availablecrops) {
       dfcrop<-read.xlsx(pathtoExcel, sheet=crop, colNames=TRUE, startRow =2) #first column = parameter name, second = units (sometimes), other columns: cultivars
       rownames(dfcrop)<-dfcrop$name
-      for (cultivar in names(dfcrop)[-(1:2)]) {
+      for (cultivar in names(dfcrop)[-(1:3)]) {
         pasflat<-is.na(as.numeric(dfcrop[,cultivar]))
         flatparams<-as.list(as.numeric(dfcrop[!pasflat, cultivar])) ; names(flatparams)<-dfcrop[!pasflat, "name"]
         complexparams<-dfcrop[, c("name", cultivar)]
@@ -85,10 +85,7 @@ eReadCrops<-function(){
         ALLCROPS[[crop]][[cultivar]]<<-c(flatparams, list(phenology=descriptionstages))
       }
 
-      
+
     }
   } else stop("crop format should only standard SSM")
 } #end read crops
-
-
-
