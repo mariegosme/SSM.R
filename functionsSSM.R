@@ -45,7 +45,7 @@ fFunctionstep<-function(x, x1,x2, x3, x4, y1, y2, y3) {
     return(toto)
 }
 
-fComputeDailyVernalization<-function(cTemp,pTbasdev,pTopt1dev,pTop2dev,pTlethaldev) {
+fComputeDailyVernalization<-function(cCrownTemp,TbaseVernalization,Topt1Vernalization,Top2Vernalization,TlethalVernalization) {
   return(fFunctionstep(x=cCrownTemp, x1=TbaseVernalization, x2=Topt1Vernalization, x3=Top2Vernalization, x4=TlethalVernalization, y1=0, y2=1, y3=0))
 }
 
@@ -55,21 +55,15 @@ fComputeCoefTemp<-function(cTemp, Tbase, Topt1, Topt2, Tlethal) { #icicici : tru
  return(fFunctionstep(x=cTemp, x1=Tbase, x2=Topt1, x3=Topt2, x4=Tlethal, y1=0, y2=1, y3=0))
 }
 
-fFindNextStage<-function(crop, currentstage) { #we assume all cultivars of a crop have the same stages
-  df<-data.frame(crop, currentstage)
-  df$nextstage<-NA
-  for (i in 1:nrow(df)) {
-    cropstages<-names(ALLCROPS[[df$crop[i]]][[1]][["phenology"]])
-    df$nextstage[i]<-cropstages[which(cropstages==df$currentstage[i])[1]+1]
-  }
-  return(df$nextstage)
+fFindNextStage<-function(crop, currentstage) {
+  possiblestages<-names(paramscrops[[crop]]$thresholds)
+  return(possiblestages[which(currentstage==possiblestages)+1])
 }
 
 
 
-
 fComputeSnowMelt<-function(iTASMax, iPr, sSnow) {
-  return(ifelse(iTASMax<=1, 0, min(sSnow, iTASMax + iPr * 0.4))) # icicici: unit problem: we expect mm, but we have degrees... this equation has no meaning!
+  return(ifelse(iTASMax<=1, 0, pmin(sSnow, iTASMax + iPr * 0.4))) # icicici: unit problem: we expect mm, but we have degrees... this equation has no meaning!
 
 }
 
@@ -102,8 +96,8 @@ fPhotoperiodDuration<-function(iDate,latitude){
 }
 
 fComputeCoefPhotoperiodCrops<-function(photoDuration,CriticalPhotoPerdiod,PhotoPeriodSensitivity){
-  ppfun = ifelse(photoDuration < CriticalPhotoPerdiod,1 - PhotoPeriodSensitivity * (cpp - photoDuration) ^ 2,1)
-  return(ifelse(ppfun< 0,0,ppfun)
+  ppfun = ifelse(photoDuration < CriticalPhotoPerdiod,1 - PhotoPeriodSensitivity * (CriticalPhotoPerdiod - photoDuration) ^ 2,1)
+  return(ifelse(ppfun< 0,0,ppfun))
 }
 
 fComputeCoefPhotoperiodMaize<-function(){
@@ -123,43 +117,10 @@ fComputeCoefWaterstress<-function(){        ####icicici à modifier pour prendre
   return(1)
 }
 
-fComputeMatrixvalidity<-function(){         ####icicici à modifier : fonction qui créer une matrix True et False pour corriger les coef Verna, PP, Temp et stress en fonction des phases
-  return(1)
-}
-#### definition of procedures (which update state variables)
-
-rUpdatePAR<-function(){
-  print("updating PAR")
-
-  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
-  PAR<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, CoefPAR=ALLPARAMETERS$pCoefPAR)
-  ALLDAYDATA$cPAR<<-PAR
-}
-
-
-#####Weather module
-rWeatherDay<-function(){
-  print("Updating weather intput")
-
-  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
-  date<-ALLDAYDATA[1,"iDate"]
-  dfclimate<-fGetClimateDay(date=date)
-  climatevariables<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
-  ALLDAYDATA[,climatevariables]<<-dfclimate[PARAMSIM$cases$climatename, climatevariables]
-  ###To be full in
-  #Calculate sSnow evolution, cSnowMelt, CorrectedPr
-
-  cSnowMelt<-fComputeSnowMelt(sSnow=ALLSIMULATEDDATA[[daybefore]]$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
-  cPrCorrected<-fComputeCorrectedPr(cSnowMelt=ALLDAYDATA$cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
-  sSnow<-ALLSIMULATEDDATA[[daybefore]]$sSnow + ALLDAYDATA$iPr -  ALLDAYDATA$cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
-  #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
-  ALLDAYDATA[,c("cSnowMelt","cPrCorrected","sSnow")]<<-data.frame(cSnowMelt,cPrCorrected,sSnow)
-}
-
 fComputeDecreaseLAIwithN<-function(DailyRateNfromLeave,SpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf){
     return(DailyRateNfromLeave / (SpecLeafNGreenLeaf - SpecLeafNSenescenceLeaf))
-  }
 }
+
 fComputeDecreaseLAIwithoutN<-function(){
 
 }
@@ -176,94 +137,138 @@ fHeatEffect<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracLeafDestruct
   return(cDecreaseLAI * heatf)
 }
 
-#####phenology module
-rUdtatePhenology2<-function() {         ####A SUPPRIMER
-  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
+#### definition of procedures (which update state variables)
 
+rUpdatePAR<-function(){
+  print("updating PAR")
 
-
-  vectfonct<-character(0)
-  vectincrement<-numeric(0)
-  vectthreshold<-numeric(0)
-  for (i in 1:nrow(ALLDAYDATA)) {#we have to do it line by line because we pick the crop parameters at different levels in the list
-    #find phenological function to apply and its parameters
-    paramspheno<-ALLCROPS[[ ALLDAYDATA$sCrop[i] ]][[ ALLDAYDATA$sCultivar[i] ]][["phenology"]][[ALLDAYDATA$sGrowthStage[i]]]
-    functiontoapply<-paramspheno$phenofunction
-    paramsfunction<-paramspheno$paramsFunctPheno[intersect(names(paramspheno$paramsFunctPheno),names(formals(functiontoapply)))]
-    #other arguments from the data at the current time step
-    otherarguments<-as.list(ALLDAYDATA[i,intersect(names(ALLDAYDATA),names(formals(functiontoapply))), drop=FALSE])
-    #apply the function
-    increment<-do.call(functiontoapply, args=c(paramsfunction, otherarguments))
-    #format the vectors of extracted information
-    vectfonct<-c(vectfonct, functiontoapply)
-    vectincrement<-c(vectincrement, increment)
-    vectthreshold<-c(vectthreshold, paramspheno$threshold)
-  }
-  #increment the count, see if stage changes, and update stage, and counter
-  newcounts<-ALLDAYDATA$sCumulatedPhenoCounts+vectincrement
-  changestage<-newcounts>vectthreshold
-  ALLDAYDATA[!changestage,"sCumulatedPhenoCounts"]<<-newcounts[!changestage]
-  #ALLDAYDATA[changestage,"sCumulatedPhenoCounts"]<<-newcounts[changestage]-vectthreshold[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
-  ALLDAYDATA[changestage,"sCumulatedPhenoCounts"]<<- 0 #if we changed stages, we start from 0
-  ALLDAYDATA[changestage,"sGrowthStage"]<<-fFindNextStage(crop=ALLDAYDATA[changestage,"sCrop"], currentstage=ALLDAYDATA[changestage,"sGrowthStage"])
+  daybefore<-length(ALLSIMULATEDDATA)
+  PAR<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, CoefPAR=ALLPARAMETERS$pCoefPAR)
+  ALLDAYDATA$cPAR<<-PAR
 }
+
+
+#####Weather module
+rWeatherDay<-function(){
+  print("Updating weather intput")
+
+  daybefore<-length(ALLSIMULATEDDATA)
+  Dateoftheday<-ALLDAYDATA[1,"iDate"]
+  dfclimate<-fGetClimateDay(date=Dateoftheday)
+  climatevariables<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
+  ALLDAYDATA[,climatevariables]<-dfclimate[PARAMSIM$cases$climatename, climatevariables]
+  ###To be full in
+  #Calculate sSnow evolution, cSnowMelt, CorrectedPr
+
+  cSnowMelt<-fComputeSnowMelt(sSnow=ALLSIMULATEDDATA[[daybefore]]$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
+  cPrCorrected<-fComputeCorrectedPr(cSnowMelt=cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
+  sSnow<-ALLSIMULATEDDATA[[daybefore]]$sSnow + ALLDAYDATA$iPr -  cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
+  #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
+  ALLDAYDATA[,c("cSnowMelt","cPrCorrected","sSnow")]<-data.frame(cSnowMelt,cPrCorrected,sSnow)
+}
+
+
+applyfilters<-function(processname){
+  daybefore<-length(ALLSIMULATEDDATA)
+  possiblecrops<- unique(ALLSIMULATEDDATA[[daybefore]]$sCrop)
+  cultivars<-paste(ALLSIMULATEDDATA[[daybefore]]$sCrop, ALLSIMULATEDDATA[[daybefore]]$sCultivar, sep="_")
+  evaluatecrop<-function(text, uniquecrop) {
+    possiblestages<-names(paramscrops[[uniquecrop]]$thresholds)
+    numstages<-1:length(possiblestages); names(numstages)<-possiblestages
+    is.before<-function(stage, bd=0, crop=uniquecrop) { #if bd is not provided, the stage is not included
+      currentstages<-numstages[ALLSIMULATEDDATA[[daybefore]]$sGrowthStage[ALLSIMULATEDDATA[[daybefore]]$sCrop==uniquecrop]]
+      currentbd<-ALLSIMULATEDDATA[[daybefore]]$sCumulatedPhenoCounts[ALLSIMULATEDDATA[[daybefore]]$sCrop==uniquecrop]
+      targetstage<-which(possiblestages==stage)
+      compare<-currentstages==targetstage & currentbd<=bd | currentstages<targetstage
+      result<-rep(NA, nrow(ALLDAYDATA))
+      result[ALLSIMULATEDDATA[[daybefore]]$sCrop==uniquecrop]<-compare
+      return(result)
+    }
+    is.after<-function(stage, bd=Inf) { #if bd is not provided, the stage is not included
+      currentstages<-numstages[ALLSIMULATEDDATA[[daybefore]]$sGrowthStage[ALLSIMULATEDDATA[[daybefore]]$sCrop==uniquecrop]]
+      currentbd<-ALLSIMULATEDDATA[[daybefore]]$sCumulatedPhenoCounts[ALLSIMULATEDDATA[[daybefore]]$sCrop==uniquecrop]
+      targetstage<-which(possiblestages==stage)
+      compare<-currentstages==targetstage & currentbd>=bd | currentstages>targetstage
+      result<-rep(NA, nrow(ALLDAYDATA))
+      result[ALLSIMULATEDDATA[[daybefore]]$sCrop==uniquecrop]<-compare
+      return(result)
+    }
+    result<-eval(parse(text=text))
+    return(result)
+  }
+  filtertexts<-sapply(paramscrops[possiblecrops], function(cr) return(cr[[processname]]$filter))
+
+  filters<-mapply(FUN=evaluatecrop, filtertexts, possiblecrops, SIMPLIFY=FALSE)
+  allfilters<-as.data.frame(c(list(crop=ALLSIMULATEDDATA[[daybefore]]$sCrop, filters))) #so that the lengths are homogenized
+  resultfilter<-rep(FALSE, nrow(ALLDAYDATA))
+  for(crop in possiblecrops) {
+    resultfilter[ALLSIMULATEDDATA[[daybefore]]$sCrop==crop]<-allfilters[[crop]][ALLSIMULATEDDATA[[daybefore]]$sCrop==crop]
+  }
+  return(resultfilter)
+}
+
+#####phenology module
 
 rUdtatePhenology<-function(){
   print("Daily vernalization coefficient")
 
-  daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
-  paramspheno<-ALLCROPS[[ ALLDAYDATA$sCrop ]][[ ALLDAYDATA$sCultivar ]][["phenology"]][[ALLDAYDATA$sGrowthStage]]
+  daybefore<-length(ALLSIMULATEDDATA)
+  #paramspheno<-ALLCROPS[[ ALLDAYDATA$sCrop ]][[ ALLDAYDATA$sCultivar ]][["phenology"]][[ALLDAYDATA$sGrowthStage]]
 
 ###Vernalization
   cCrownTemp <- fComputeCrownTemperature(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iTASMin=ALLDAYDATA$iTASMin)
-  cDailyVernalization <- fComputeDailyVernalization(CrownTemp=cCrownTemp,TbaseVernalization=ALLCROPS$pTbaseVernalization,
+  cDailyVernalization <- fComputeDailyVernalization(cCrownTemp=cCrownTemp,TbaseVernalization=ALLCROPS$pTbaseVernalization,
                                                                 Topt1Vernalization=ALLCROPS$pTopt1Vernalization,
                                                                 Top2Vernalization=ALLCROPS$pTop2Vernalization,
-                                                                TlethalVernalization=ALLCROPS$pTlethalVernalization,
-                                                                pVDSAT=ALLCROPS$pVDSAT)
+                                                                TlethalVernalization=ALLCROPS$pTlethalVernalization
+                                                              )
   sVernalization <- ALLSIMULATEDDATA[[daybefore]]$sVernalization + cDailyVernalization
   sVernalization <- ifelse(sVernalization < 10 & ALLDAYDATA$iTASMax > 30,sVernalization - 0.5 * (ALLDAYDATA$iTASMax - 30),sVernalization)
   sVernalization <- ifelse(sVernalization < 0,0,sVernalization)
-  cCoefVernalization <- fComputeCoefVernalization(VernalizationSensitivity=ALLCROPS$pVernalizationSensitivity,VDSAT=ALLCROPS$pVDSAT,sVernalization=sVernalization)
-  cCoefVernalization <- fComputeMatrixvalidity()*cCoefVernalization          #To take account the period with the vernalization have an impact
+  cCoefVernalization <- rep(1, nrow(ALLDAYDATA))
+  resultfilter<-applyfilters("vernalization") #on cree le filtre des TRUE FALSE de l application de la vernalisation
+  cCoefVernalization[resultfilter] <- fComputeCoefVernalization(VernalizationSensitivity=ALLCROPS$pVernalizationSensitivity,VDSAT=ALLCROPS$pVDSAT,sVernalization=sVernalization)[resultfilter]
 
 ###Waterstress
-  cCoefWaterstress<-fComputeCoefWaterstress()
-  cCoefWaterstress<-fComputeMatrixvalidity()*cCoefWaterstress                #To take account the period with the vernalization have an impact
+  cCoefWaterstress <- rep(1, nrow(ALLDAYDATA))
+  resultfilter<-applyfilters("waterstress") #on cree le filtre des TRUE FALSE de l application de la waterstress
+  cCoefWaterstress[resultfilter]<-fComputeCoefWaterstress()[resultfilter] #To take account the period with the vernalization have an impact
 
 ###temperature
-  cTemp<-fComputeTemp(tmax=ALLDAYDATA$iTASMax,tmin=ALLDAYDATA$iTASMin)
+  cTemp<-fComputeTemp(tasmax=ALLDAYDATA$iTASMax,tasmin=ALLDAYDATA$iTASMin)
   cCoefTemp<-fComputeCoefTemp(cTemp=cTemp,Tbase=ALLCROPS$pTbasedev,Topt1=ALLCROPS$pTopt1dev,Topt2=ALLCROPS$pTop2dev,Tlethal=ALLCROPS$pTlethaldev)
 
 ###PhotoPeriod
   cPhotoDuration<-fPhotoperiodDuration(iDate=ALLDAYDATA[1,"iDate"],latitude=PARAMSIM$cases$lat)
-  cCoefPhotoPeriod<-fComputeCoefPhotoperiodCrops(photoDuration=cPhotoDuration,CriticalPhotoPerdiod=ALLCROPS$pCriticalPhotoPerdiod,PhotoPeriodSensitivity=ALLCROPS$pPhotoPeriodSensitivity)
-  cCoefPhotoPeriod<-fComputeMatrixvalidity()*cCoefPhotoPeriod
+  cCoefPhotoPeriod <- rep(1, nrow(ALLDAYDATA))
+  resultfilter<-applyfilters("photoperiod") #on cree le filtre des TRUE FALSE de l application de la vernalisation
+  cCoefPhotoPeriod[resultfilter]<-fComputeCoefPhotoperiodCrops(photoDuration=cPhotoDuration,CriticalPhotoPerdiod=ALLCROPS$pCriticalPhotoPerdiod,PhotoPeriodSensitivity=ALLCROPS$pPhotoPeriodSensitivity)[resultfilter]  #icicici voir comment gérer plusieurs fonctions de photopériodisme en fonction des espèces
 
 ###Phenology rUpdate
   cDeltaThermalUnit=fDeltaThermalUnit(pTbasdev=ALLCROPS$pTbasedev,pTopt1dev=ALLCROPS$pTopt1dev,cCoefTemp,cCoefWaterstress)
   #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence) (c'est pour blé et légume)
   sThermalUnite<-ALLSIMULATEDDATA[[daybefore]]$sThermalUnite + cDeltaThermalUnit
-  cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cWaterStressFactorDevelopment,cCoefVernalization)
+  cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cCoefWaterstress,cCoefVernalization)
   #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence)
   sBiologicalDay<-ALLSIMULATEDDATA[[daybefore]]$sBiologicalDay+cBiologicalDay
 
 ####stage changes
-  changestage<-sBiologicalDay>paramspheno$threshold                                      #icicici Modifier vectthreshold
-
-  ALLDAYDATA[!changestage,"sBiologicalDay"]<<-sBiologicalDay[!changestage]
-  #ALLDAYDATA[changestage,"sCumulatedPhenoCounts"]<<-newcounts[changestage]-vectthreshold[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
-  ALLDAYDATA[changestage,"sBiologicalDay"]<<- 0 #if we changed stages, we start from 0
-  ALLDAYDATA[changestage,"sGrowthStage"]<<-fFindNextStage(crop=ALLDAYDATA[changestage,"sCrop"], currentstage=ALLDAYDATA[changestage,"sGrowthStage"])
+  thresholds<-mapply(function(cropname, stage) return(paramscrops[[cropname]]$thresholds[[stage]]), ALLSIMULATEDDATA[[daybefore]]$sCrop, as.character(ALLSIMULATEDDATA[[daybefore]]$sGrowthStage), SIMPLIFY = TRUE, USE.NAMES=FALSE) #on choope les
+  changestage<-sBiologicalDay>thresholds
+  sGrowthStage<-ALLSIMULATEDDATA[[daybefore]]$sGrowthStage
+  sGrowthStage[changestage]<-unlist(mapply(fFindNextStage, ALLSIMULATEDDATA[[daybefore]]$sCrop[changestage], ALLSIMULATEDDATA[[daybefore]]$sGrowthStage[changestage], SIMPLIFY = TRUE, USE.NAMES=FALSE))
+  # when the stage changed, we start the counter with the remaining of increment-threshold
+  sBiologicalDay[changestage]<-sBiologicalDay[changestage]-thresholds[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
 
 ####Update ALLDAYDATA
-  ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","CoefVernalization","cCoefWaterstress","cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite","cBiologicalDay")]<<-data.frame(cCrownTemp,cDailyVernalization,sVernalization,CoefVernalization,cCoefWaterstress,cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,cBiologicalDay,sBiologicalDay)
+  ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","cCoefVernalization","cCoefWaterstress","cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite","cBiologicalDay","sBiologicalDay","sGrowthStage")]<-data.frame(cCrownTemp,cDailyVernalization,sVernalization,cCoefVernalization,cCoefWaterstress,cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,cBiologicalDay,sBiologicalDay,sGrowthStage)
 
+  return()
 }
 
 #####LAI module
 rUdtateLAI<-function(){
-daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
+daybefore<-length(ALLSIMULATEDDATA)
 
 cGrowthLAI
 if(PARAMSIM$Neffect==T){
