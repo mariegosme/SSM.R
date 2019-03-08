@@ -208,36 +208,6 @@ applyfilters<-function(processname){
 }
 
 #####phenology module
-rUdtatePhenology2<-function() {         ####A SUPPRIMER
-  daybefore<-length(ALLSIMULATEDDATA)
-
-
-
-  vectfonct<-character(0)
-  vectincrement<-numeric(0)
-  vectthreshold<-numeric(0)
-  for (i in 1:nrow(ALLDAYDATA)) {#we have to do it line by line because we pick the crop parameters at different levels in the list
-    #find phenological function to apply and its parameters
-    paramspheno<-ALLCROPS[[ ALLDAYDATA$sCrop[i] ]][[ ALLDAYDATA$sCultivar[i] ]][["phenology"]][[ALLDAYDATA$sGrowthStage[i]]]
-    functiontoapply<-paramspheno$phenofunction
-    paramsfunction<-paramspheno$paramsFunctPheno[intersect(names(paramspheno$paramsFunctPheno),names(formals(functiontoapply)))]
-    #other arguments from the data at the current time step
-    otherarguments<-as.list(ALLDAYDATA[i,intersect(names(ALLDAYDATA),names(formals(functiontoapply))), drop=FALSE])
-    #apply the function
-    increment<-do.call(functiontoapply, args=c(paramsfunction, otherarguments))
-    #format the vectors of extracted information
-    vectfonct<-c(vectfonct, functiontoapply)
-    vectincrement<-c(vectincrement, increment)
-    vectthreshold<-c(vectthreshold, paramspheno$threshold)
-  }
-  #increment the count, see if stage changes, and update stage, and counter
-  newcounts<-ALLDAYDATA$sCumulatedPhenoCounts+vectincrement
-  changestage<-newcounts>vectthreshold
-  ALLDAYDATA[!changestage,"sCumulatedPhenoCounts"]<<-newcounts[!changestage]
-  #ALLDAYDATA[changestage,"sCumulatedPhenoCounts"]<<-newcounts[changestage]-vectthreshold[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
-  ALLDAYDATA[changestage,"sCumulatedPhenoCounts"]<<- 0 #if we changed stages, we start from 0
-  ALLDAYDATA[changestage,"sGrowthStage"]<<-fFindNextStage(crop=ALLDAYDATA[changestage,"sCrop"], currentstage=ALLDAYDATA[changestage,"sGrowthStage"])
-}
 
 rUdtatePhenology<-function(){
   print("Daily vernalization coefficient")
