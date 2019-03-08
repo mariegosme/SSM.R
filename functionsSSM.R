@@ -136,6 +136,7 @@ rUpdatePAR<-function(){
   ALLDAYDATA$cPAR<<-PAR
 }
 
+
 #####Weather module
 rWeatherDay<-function(){
   print("Updating weather intput")
@@ -153,6 +154,26 @@ rWeatherDay<-function(){
   sSnow<-ALLSIMULATEDDATA[[daybefore]]$sSnow + ALLDAYDATA$iPr -  ALLDAYDATA$cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
   #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
   ALLDAYDATA[,c("cSnowMelt","cPrCorrected","sSnow")]<<-data.frame(cSnowMelt,cPrCorrected,sSnow)
+}
+
+fComputeDecreaseLAIwithN<-function(DailyRateNfromLeave,SpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf){
+    return(DailyRateNfromLeave / (SpecLeafNGreenLeaf - SpecLeafNSenescenceLeaf))
+  }
+}
+fComputeDecreaseLAIwithoutN<-function(){
+
+}
+fFrostEffect<-function(LAI,tasmin,FreezeThresholdTemp,FreezeFracLeafDestruction){
+  frstf = Abs(tasmin - FreezeThresholdTemp) * FreezeFracLeafDestruction
+  ifelse(frstf < 0,0,frstf)
+  ifelse(frstf > 1,1,frstf)
+  return(LAI * frstf)
+}
+
+fHeatEffect<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracLeafDestruction){
+  heatf = 1 + (tasmax - HeatThresholdTemp) * HeatFracLeafDestruction              #Semenov-Sirius
+  ifelse(heatf < 1,1,heatf)
+  return(cDecreaseLAI * heatf)
 }
 
 #####phenology module
@@ -238,4 +259,29 @@ rUdtatePhenology<-function(){
 ####Update ALLDAYDATA
   ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","CoefVernalization","cCoefWaterstress","cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite","cBiologicalDay")]<<-data.frame(cCrownTemp,cDailyVernalization,sVernalization,CoefVernalization,cCoefWaterstress,cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,cBiologicalDay,sBiologicalDay)
 
+}
+
+#####LAI module
+rUdtateLAI<-function(){
+daybefore<-length(ALLSIMULATEDDATA)-1 #-1 because there is an element for day 0
+
+cGrowthLAI
+if(PARAMSIM$Neffect==T){
+  cDecreaseLAI<-fComputeDecreaseLAIwithN(DailyRateNfromLeave=ALLSIMULATEDDATA[[daybefore]]$cDailyRateNfromLeave,SpecLeafNGreenLeaf=ALLCROPS$pSpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf=ALLCROPS$pSpecLeafNSenescenceLeaf)
+}else{
+  cDecreaseLAI<-fComputeDecreaseLAIwithoutN(DailyRateNfromLeave=ALLSIMULATEDDATA[[daybefore]]$cDailyRateNfromLeave,SpecLeafNGreenLeaf=ALLCROPS$pSpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf=ALLCROPS$pSpecLeafNSenescenceLeaf)
+}
+####icicici Ajout condition sur le stade développement
+fFrostEffect(LAI=ALLSIMULATEDDATA[[daybefore]]$sLAI,tasmin=ALLDAYDATA$iTASMin,FreezeThresholdTemp=ALLCROPS$pFreezeThresholdTemp,FreezeFracLeafDestruction=ALLCROPS$pFreezeFracLeafDestruction)
+fHeatEffect(cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax,HeatThresholdTemp=ALLCROPS$pHeatThresholdTemp,HeatFracLeafDestruction=ALLCROPS$pHeatFracLeafDestruction)
+
+
+sLAI = ALLSIMULATEDDATA[[daybefore]]$sLAI+cGrowthLAI-cDecreaseLAI         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
+####TEST CONDITION DE MORTALITE LIE sLAI      icicici à modifier
+#If CBD > bdBSG And CBD < bdTSG And LAI < 0.05 Then
+#   CBD = bdTSG
+#   MAT = 1          ' GW & HM Correction 17/07/2018
+#   MATYP = 2        'pre-mature due to low LAI
+#End If
+sLAI=ifelse(sLAI<0,0,sLAI)                                                #Delete negative value and to limit to 0
 }

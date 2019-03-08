@@ -4,7 +4,7 @@
 setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R and allvariables.xlsx
 {
   #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
-  ICI<-environment() 
+  ICI<-environment()
   setwd(modelfolder) #folder where the "model data" (i.e. list of variables) are
   source("headersSSM.R", local=TRUE)
   source("initialisationEnvironmenVariablesSSM.R", local=TRUE)
@@ -12,19 +12,19 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
   source("HousekeepingFunctionsSSM.R", local=TRUE)
   source("functionsSSM.R", local=TRUE)
   source("handlersSSM.R", local=TRUE)
-  return(list(contains=mContains, # fonction qui liste les objets présents dans le modèle (contains) et les extrait (getglobal), 
+  return(list(contains=mContains, # fonction qui liste les objets présents dans le modèle (contains) et les extrait (getglobal),
               #doinside=evalICI,
-              #getparam=getparam, #fonction qui renvoie les paramètres du modèle pour vérification (getparam), et qui les modifie (setparam), 
-              #setparam=print("reverifier setparam, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #setparam, 
+              #getparam=getparam, #fonction qui renvoie les paramètres du modèle pour vérification (getparam), et qui les modifie (setparam),
+              #setparam=print("reverifier setparam, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #setparam,
               setoptions=mCompletePARAMSIM,
-              getglobal=mGetGlobal, 
-              setglobal=mSetGlobal, 
-              #setoptions=setoptions, #fonction qui règle les options d'affichage et de mémorisation (setoptions), 
-              #restart=print("reverifier restart, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #restart, #fonction qui remet le modele à 0 (restart), 
-              run=mRun,  #fonction qui lance la simu pour n pas de temps (run), 
-              #map=cartesorties, 
+              getglobal=mGetGlobal,
+              setglobal=mSetGlobal,
+              #setoptions=setoptions, #fonction qui règle les options d'affichage et de mémorisation (setoptions),
+              #restart=print("reverifier restart, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #restart, #fonction qui remet le modele à 0 (restart),
+              run=mRun,  #fonction qui lance la simu pour n pas de temps (run),
+              #map=cartesorties,
               plot=mPlotDynamics#,#fonction qui plote la dynamique d'une ou plusieurs variables enregistréées (plot)
-              #summary=resume #fonction qui résume l état du modèle: t actuel, ... (summary), 
+              #summary=resume #fonction qui résume l état du modèle: t actuel, ... (summary),
   ))
 }
 
@@ -40,6 +40,7 @@ parametersfirsttry<-list(
   directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
   climateformat="standardSSM",
   soilformat="standardSSM"
+  Neffect=TRUE
 )
 
 #build the model
@@ -49,13 +50,11 @@ mymodel$setoptions(parametersfirsttry)
 #run the model for 4 timesteps
 mymodel$run(4)
 #plot the dynamics of some variables
-dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"), 
-              colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables", 
+dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+              colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
               linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
              symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
 
-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"), 
-             colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases", 
+mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+             colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases",
              linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
-
-  
