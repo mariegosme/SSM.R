@@ -113,7 +113,7 @@ fComputeCoefVernalization<-function(VernalizationSensitivity,VDSAT,sVernalizatio
   return(CoefVernalization)
 }
 
-fComputeCoefWaterstress<-function(){        ####icicici à modifier pour prendre en compte le stress hydrique
+fComputeCoefWaterstressDevelopment<-function(){        ####icicici à modifier pour prendre en compte le stress hydrique
   return(1)
 }
 
@@ -126,27 +126,15 @@ fComputeDecreaseLAIwithoutN<-function(){
 }
 fFrostEffect<-function(LAI,tasmin,FreezeThresholdTemp,FreezeFracLeafDestruction){
   frstf = Abs(tasmin - FreezeThresholdTemp) * FreezeFracLeafDestruction
-  ifelse(frstf < 0,0,frstf)
-  ifelse(frstf > 1,1,frstf)
+  frstf= max(min(frstf,1),0)
   return(LAI * frstf)
 }
 
 fHeatEffect<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracLeafDestruction){
   heatf = 1 + (tasmax - HeatThresholdTemp) * HeatFracLeafDestruction              #Semenov-Sirius
-  ifelse(heatf < 1,1,heatf)
+  heatf = min(1,heatf)
   return(cDecreaseLAI * heatf)
 }
-
-#### definition of procedures (which update state variables)
-
-rUpdatePAR<-function(){
-  print("updating PAR")
-
-  daybefore<-length(ALLSIMULATEDDATA)
-  PAR<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, CoefPAR=ALLPARAMETERS$pCoefPAR)
-  ALLDAYDATA$cPAR<<-PAR
-}
-
 
 #####Weather module
 rWeatherDay<-function(){
@@ -230,9 +218,9 @@ rUdtatePhenology<-function(){
   cCoefVernalization[resultfilter] <- fComputeCoefVernalization(VernalizationSensitivity=ALLCROPS$pVernalizationSensitivity,VDSAT=ALLCROPS$pVDSAT,sVernalization=sVernalization)[resultfilter]
 
 ###Waterstress
-  cCoefWaterstress <- rep(1, nrow(ALLDAYDATA))
+  cCoefWaterstressDevelopment <- rep(1, nrow(ALLDAYDATA))
   resultfilter<-applyfilters("waterstress") #on cree le filtre des TRUE FALSE de l application de la waterstress
-  cCoefWaterstress[resultfilter]<-fComputeCoefWaterstress()[resultfilter] #To take account the period with the vernalization have an impact
+  cCoefWaterstressDevelopment[resultfilter]<-fComputeCoefWaterstressDevelopment()[resultfilter] #To take account the period with the vernalization have an impact
 
 ###temperature
   cTemp<-fComputeTemp(tasmax=ALLDAYDATA$iTASMax,tasmin=ALLDAYDATA$iTASMin)
@@ -248,7 +236,7 @@ rUdtatePhenology<-function(){
   cDeltaThermalUnit=fDeltaThermalUnit(pTbasdev=ALLCROPS$pTbasedev,pTopt1dev=ALLCROPS$pTopt1dev,cCoefTemp,cCoefWaterstress)
   #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence) (c'est pour blé et légume)
   sThermalUnite<-ALLSIMULATEDDATA[[daybefore]]$sThermalUnite + cDeltaThermalUnit
-  cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cCoefWaterstress,cCoefVernalization)
+  cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cCoefWaterstressDevelopment,cCoefVernalization)
   #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence)
   sBiologicalDay<-ALLSIMULATEDDATA[[daybefore]]$sBiologicalDay+cBiologicalDay
 
@@ -261,32 +249,71 @@ rUdtatePhenology<-function(){
   sBiologicalDay[changestage]<-sBiologicalDay[changestage]-thresholds[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
 
 ####Update ALLDAYDATA
-  ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","cCoefVernalization","cCoefWaterstress","cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite","cBiologicalDay","sBiologicalDay","sGrowthStage")]<-data.frame(cCrownTemp,cDailyVernalization,sVernalization,cCoefVernalization,cCoefWaterstress,cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,cBiologicalDay,sBiologicalDay,sGrowthStage)
+  ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","cCoefVernalization","cCoefWaterstressDevelopment","cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite","cBiologicalDay","sBiologicalDay","sGrowthStage")]<-data.frame(cCrownTemp,cDailyVernalization,sVernalization,cCoefVernalization,cCoefWaterstressDevelopment,cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,cBiologicalDay,sBiologicalDay,sGrowthStage)
 
   return()
 }
 
 #####LAI module
 rUdtateLAI<-function(){
-daybefore<-length(ALLSIMULATEDDATA)
+  daybefore<-length(ALLSIMULATEDDATA)
 
-cGrowthLAI
-if(PARAMSIM$Neffect==T){
-  cDecreaseLAI<-fComputeDecreaseLAIwithN(DailyRateNfromLeave=ALLSIMULATEDDATA[[daybefore]]$cDailyRateNfromLeave,SpecLeafNGreenLeaf=ALLCROPS$pSpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf=ALLCROPS$pSpecLeafNSenescenceLeaf)
-}else{
-  cDecreaseLAI<-fComputeDecreaseLAIwithoutN(DailyRateNfromLeave=ALLSIMULATEDDATA[[daybefore]]$cDailyRateNfromLeave,SpecLeafNGreenLeaf=ALLCROPS$pSpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf=ALLCROPS$pSpecLeafNSenescenceLeaf)
+  ###LAI Growing (similar with and without N contribution)
+  #LAIMainstem
+  a <- ALLDAYDATA$sThermalUnite / paramscrops$wheat$LAI_Mainstem$pPhyllochron #icicici modifier l'appel des paramètres de la culture
+  sMainstemNodeNumber <- ALLSIMULATEDDATA[[daybefore]]$sMainstemNodeNumber  + a
+  cPlantLeafArea <- pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ pExpPlantLeafNumberNode
+  LAIMainstem <- ((cPlantLeafArea - ALLSIMULATEDDATA[[daybefore]]$cPlantLeafArea) * paramsITK$wheat$pPlantdensity / 10000) * ALLSIMULATEDDATA[[daybefore]]$cCoefWaterstressLeaf
+  #LAISecondary
+  LAISecondary <- ALLSIMULATEDDATA[[daybefore]]$cDailyLeafWeight * paramscrops$wheat$LAI_Secondary$pSpecificLeafArea
+
+  #LAI Total Growing
+  cGrowthLAI <- rep(0, nrow(ALLDAYDATA))
+  alaimainstem<-applyfilters("LAI_Mainstem")
+  alaisecondary<-applyfilters("LAI_Secondary")
+  cGrowthLAI<-cGrowthLAI+alaimainstem * LAIMainstem + alaiend * fComputeLAISecondary
+
+  ###LAI Decrease
+  if(PARAMSIM$Neffect==T){
+    cDecreaseLAI<-fComputeDecreaseLAIwithN(DailyRateNfromLeave=ALLSIMULATEDDATA[[daybefore]]$cDailyRateNfromLeave,SpecLeafNGreenLeaf=paramscrops$wheat$LAI_Senescence$pSpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf=paramscrops$wheat$LAI_Senescence$pSpecLeafNSenescenceLeaf)
+  }else{
+    cDecreaseLAI<-fComputeDecreaseLAIwithoutN()
+
+  #icicici écrire la procédure et la fonction de décroissance sans azote
+  #  If CBD < bdBLS Then
+  #     DLAI = 0
+  #     BLSLAI = LAI             'Saving LAI at BLS
+  #  ElseIf CBD >= bdBLS Then
+  #     DLAI = bd / (bdMAT - bdBLS) * BLSLAI
+  #  End If
+
+  }
+
+  frost<-fFrostEffect(LAI=ALLSIMULATEDDATA[[daybefore]]$sLAI,tasmin=ALLDAYDATA$iTASMin,FreezeThresholdTemp=paramscrops$wheat$LAI_Senescence$pFreezeThresholdTemp,FreezeFracLeafDestruction=paramscrops$wheat$LAI_Senescence$pFreezeFracLeafDestruction)
+  heat<-fHeatEffect(cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax,HeatThresholdTemp=paramscrops$wheat$pHeatThresholdTemp,HeatFracLeafDestruction=paramscrops$wheat$pHeatFracLeafDestruction)
+  cDecreaseLAI<-max(frost,heat)   ####heat LAI corresponds to cDecreaseLAI if no heat effect and cDreaseLAI corresponds to heat if hot effet. Take effect of frozen if it is more important that cDea
+
+  sLAI = ALLSIMULATEDDATA[[daybefore]]$sLAI+cGrowthLAI-cDecreaseLAI         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
+
+  ####Mortality test with low LAI CONDITION
+  alaicond<-applyfilters("DM_SeedGrowing")
+  cEndCropCycle=ifelse((sLAI< 0.05 & alaicond==TRUE),"pre-mature due to low LAI",NA)
+  sLAI=ifelse(sLAI<0,0,sLAI)
+
+  ALLDAYDATA[,c("sMainstemNodeNumber","cPlantLeafArea","cGrowthLAI","cDecreaseLAI","sLAI","cEndCropCycle")]<-data.frame(sMainstemNodeNumber,cPlantLeafArea,cGrowthLAI,cDecreaseLAI,sLAI,cEndCropCycle)
+                                                  #Delete negative value and to limit to 0
 }
-####icicici Ajout condition sur le stade développement
-fFrostEffect(LAI=ALLSIMULATEDDATA[[daybefore]]$sLAI,tasmin=ALLDAYDATA$iTASMin,FreezeThresholdTemp=ALLCROPS$pFreezeThresholdTemp,FreezeFracLeafDestruction=ALLCROPS$pFreezeFracLeafDestruction)
-fHeatEffect(cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax,HeatThresholdTemp=ALLCROPS$pHeatThresholdTemp,HeatFracLeafDestruction=ALLCROPS$pHeatFracLeafDestruction)
 
+rUdtateDMProduction<-function(){
 
-sLAI = ALLSIMULATEDDATA[[daybefore]]$sLAI+cGrowthLAI-cDecreaseLAI         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
-####TEST CONDITION DE MORTALITE LIE sLAI      icicici à modifier
-#If CBD > bdBSG And CBD < bdTSG And LAI < 0.05 Then
-#   CBD = bdTSG
-#   MAT = 1          ' GW & HM Correction 17/07/2018
-#   MATYP = 2        'pre-mature due to low LAI
-#End If
-sLAI=ifelse(sLAI<0,0,sLAI)                                                #Delete negative value and to limit to 0
+  cCoefRadiationEffeiency <- rep(0, nrow(ALLDAYDATA))                             #Radiation effiency is null when the plant doens't produce leaf
+  resultfilter<-applyfilters("DMProduction") #on cree le filtre des TRUE FALSE de l application de la vernalisation
+  cCoefRadiationEffiency[resultfilter]=fComputeCoefTemp(cTemp=ALLDAYDATA$cTemp,Tbase=paramscrops$wheat$DMProduction$pTbasRUE,Topt1=paramscrops$wheat$DMProduction$pTopt1RUE,Topt2=paramscrops$wheat$DMProduction$pTopt2RUE,Tlethal=paramscrops$wheat$DMProduction$plethalRUE)[resultfilter]
+  cRadiationUseEffiency = pRadEffiencyOptimal * cCoefRadiationEffiency * cCoefWaterstressDryMatter
+  cPAR<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, CoefPAR=ALLPARAMETERS$pCoefPAR)
+  aFINT= 1 - exp(-KPAR * ALLDAYDATA$sLAI)
+  cDryMatterProduction = cPAR * aFINT * cRadiationUseEffiency
+
+  ALLDAYDATA[,c("cCoefRadiationEffeiency","cRadiationUseEffiency","cPAR","cDryMatterProduction")]<-data.frame(cCoefRadiationEffeiency,cRadiationUseEffiency,cPAR,cDryMatterProduction)
+
 }
