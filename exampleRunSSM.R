@@ -62,13 +62,20 @@ mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
 
 
 paramscrops<-list(wheat=list(
-               name="wheat",
-               thresholds=list(germination=6,emergence=5,tillering=8,stemElongation=6,Booting=6,earing=15,anthesis=43,maturation=8,senescence=Inf),
-               paramsLAI=list(filter="is.after('germination', 4) & is.before('floraison', paramscrops$wheat$thresholds$floraison-2)", #4 days after the beginning of germination and 2 days before the end of floraison
-                              speed=2),
-               vernalisation=list(filter="is.after('emergencen', 0) & is.before('tillering',0)"),
-               photoperiod=list(filter="is.after('emergence', 0) & is.before('tillering', 0)"),
-               waterstress=list(filter="is.after('emergence', 0) & is.before('senescence', 10)")
-
-
+              name="wheat",
+              thresholds=list(germination=6,emergence=5,tillering=8,stemElongation=6,Booting=6,earing=15,anthesis=43,maturation=8,senescence=Inf),
+              vernalisation=list(filter="is.after('emergencen', 0) & is.before('tillering',0)"),
+              photoperiod=list(filter="is.after('emergence', 0) & is.before('tillering', 0)"),
+              waterstress=list(filter="is.after('emergence', 0) & is.before('senescence', paramscrops$wheat$thresholds$senescence+10)"),
+              LAI_Senescence=list(pHeatFracLeafDestruction = 0.1 ,pHeatThresholdTemp = 30,pFreezeThresholdTemp = -5,pFreezeFracLeafDestruction =0.01,pSpecLeafNGreenLeaf = 1.8,pSpecLeafNSenescenceLeaf = 0.4)
+              LAI_Mainstem=list(filter="is.after('germination', 0) & is.before('Booting', 0)",pPhyllochron = 118, pcoefPlantLeafNumberNode=1,pExpPlantLeafNumberNode=2.5),
+              LAI_Secondary=list(filter="is.after('Booting', 0) & is.before('earing', paramscrops$wheat$thresholds$earing+5)",pSpecificLeafArea=0.02),
+              DMDistribution_SeedGrowing=list(filter="is.after('earing', paramscrops$wheat$thresholds$earing+5) & is.before('anthesis', paramscrops$wheat$thresholds$anthesis-1.5)"),
+              DMProduction = list(filter="is.after('germination') & is.before('anthesis', paramscrops$wheat$thresholds$anthesis-1.5)",pRadEffiencyOptimal=2.2,KPAR = 0.65,pTbasRUE = 0, pTopt1RUE=15,pTopt2RUE=22,plethalRUE=35)
              ))
+
+
+paramsITK<-list(wheat=list(
+              name="wheat",
+              pPlantdensity = 300
+            ))
