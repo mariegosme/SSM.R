@@ -62,7 +62,7 @@ eReadSoil<-function(){
   }
 } #end read soil
 
-eReadCrops<-function(){
+eReadCrops_OLD<-function(){
   if (PARAMSIM$cropformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
     pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/crops.xlsx", sep=""))
     availablecrops<-getSheetNames(pathtoExcel)
@@ -89,3 +89,49 @@ eReadCrops<-function(){
     }
   } else stop("crop format should only standard SSM")
 } #end read crops
+
+#' Reads in Excel crop parameter file (example crops2.xlsx)
+#'
+#' @param xlsxfile path to the excel file of crop parameters
+#' @param allvariablesfile path to the allvariables.xlsx file, with the translations of parameter names fromSSM to SSM.R
+#' @return returns a list of parameters
+#' @examples eReadExcelCropParameters(xlsxfile="exampleinputs/crops2.xlsx",
+#'   allvariablesfile="allvariables.xlsx"
+#' )
+eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
+  if (!require(openxlsx)) {warning("function readExcelCropParameters needs packege openxlsx"); return(list())}
+  #read in translations of parameter names from SSM to SSM.R
+  trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
+  trad<-trad[trad$typeinthemodel=="CropParameter",]
+  modules<-unique(trad$module[!is.na(trad$module)]); names(modules)<-modules
+  readmodule<-function(module, data, trad, numerocolonne){
+    toto<-trad[!is.na(trad$module) & trad$module==module,]
+    nomsSSM<-toto$translationSSM ; names(nomsSSM)<-toto$name
+    paramsSSM<-lapply(nomsSSM, function(param) return(data[param,numerocolonne]))
+    types<-toto$typeR ; names(types)<-toto$name
+    paramsSSM[types[names(paramsSSM)]=="numeric"]<-as.numeric(paramsSSM[types[names(paramsSSM)]=="numeric"])
+    paramsSSMR<-list()
+    if (length(data[paste(module, "filter", sep="."), numerocolonne])>0) paramsSSMR<-list(filter=data[paste(module, "filter", sep="."), numerocolonne])
+    return(c(paramsSSMR, paramsSSM))
+  }
+  paramscrops<-list()
+  onglets<-getSheetNames(xlsxfile)
+  for(sheet in onglets) {
+    data<-read.xlsx(xlsxfile, sheet=sheet, rowNames=TRUE)
+    for (i in 2:ncol(data)) {
+      paramsmanuels<-list(
+        name=paste(colnames(data)[i], data["name",i], sep="."),
+        thresholds=data["thresholds", i],
+        waterstress=list(filter=data["waterstress.filter", i])
+      )
+      paramsautomatiques<-lapply(modules, readmodule, data=data, trad=trad, numerocolonne=i)
+      lu<-list(c(paramsmanuels, paramsautomatiques))
+      names(lu)<-lu[[1]]$name
+      paramscrops<-c(paramscrops, lu)
+    }
+  }
+  return(paramscrops)
+}
+
+
+
