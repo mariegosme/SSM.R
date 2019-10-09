@@ -196,6 +196,9 @@ rWaterBudget<-function(){
   #input rain+melted snow
   rain<-ALLDAYDATA[,"cPrCorrected"]
   
+  #drainage
+  DRAIN = FLOUT(PARAMSSOILS$pDrainLayer) #icicicici coder la generation de flout. (attention au premier pas de temps)
+  
   #compute runoff
   runof<-fComputeRunoff(vectorrain=rain,
                         vectorCurveNumber=fExtractSoilParameter("pSoilCurveNumber"), 
@@ -228,10 +231,11 @@ rWaterBudget<-function(){
   DYSE[conditionstageII]<-DYSE[conditionstageII]+1 
  
   #plant transpiration
-  VPTMIN<- 0.6108 * Exp(17.27 * ALLDAYDATA["iTASMin"] / (ALLDAYDATA["iTASMin"] + 237.3))
-  VPTMAX<- 0.6108 * Exp(17.27 * ALLDAYDATA["iTASMax"] / (ALLDAYDATA["iTASMax"] + 237.3))
-  VPD = VPDF * (VPTMAX - VPTMIN) #warning: in SSM.R, VPDF has been moved from location-specific parameters to soil parameters
-  TR = DDMP * VPD / TEC         #VPD in kPa, TEC in Pa
+  VPTMIN<- 0.6108 * exp(17.27 * ALLDAYDATA["iTASMin"] / (ALLDAYDATA["iTASMin"] + 237.3))
+  VPTMAX<- 0.6108 * exp(17.27 * ALLDAYDATA["iTASMax"] / (ALLDAYDATA["iTASMax"] + 237.3))
+  VPD <- PARAMSSOILS$pVPDcoef * (VPTMAX - VPTMIN) #warning: in SSM.R, VPDF (and latitude) has been moved from location-specific parameters to soil parameters, to avoid having a file just for locations
+  currentcropcult<-paste(ALLDAYDATA[,"sCrop"], ALLDAYDATA[,"sCultivar"], sep=".")
+  TR <- ALLDAYDATA$cDryMatterProduction * VPD / PARAMSCROPS[[currentcropcult]]$pTranspirationEfficiencyLinkedToCO2 #VPD in kPa, TEC in Pa
 
   #compute water uptake
   rlyer<-mapply(fFindRLYER,
@@ -250,7 +254,7 @@ rWaterBudget<-function(){
 
 
 
-PARAMSSOILS<-list(pNLayer=c(2,2,3), pDrainLayer=c(2,2,3), pSoilAlbedo=c(0.12, 0.13,0.15), U=NA, pSoilCurveNumber=c(60,70,80), 
+PARAMSSOILS<-list(pNLayer=c(2,2,3), pDrainLayer=c(2,2,3), pSoilAlbedo=c(0.12, 0.13,0.15), U=NA, pSoilCurveNumber=c(60,70,80), pVPDcoef=c(0.65, 0.65, 0.65),
                   paramlayers=list(data.frame(layer=1:2, pLayerThickness=c(300,700), pSaturation=c(0.36, 0.40), pFieldCapacity=c(0.24, 0.25), pWiltingPoint=c(0.1, 0.12), pSoilDryness=c(0.03, 0.04)),
                                    data.frame(layer=1:2, pLayerThickness=c(200,800), pSaturation=c(0.36, 0.40), pFieldCapacity=c(0.24, 0.25), pWiltingPoint=c(0.1, 0.14), pSoilDryness=c(0.04, 0.04)),
                                    data.frame(layer=1:3, pLayerThickness=c(300,200,400), pSaturation=c(0.36, 0.40, 0.38), pFieldCapacity=c(0.24, 0.25, 0.22), pWiltingPoint=c(0.1, 0.12, 0.09), pSoilDryness=c(0.03, 0.04, 0.035))
