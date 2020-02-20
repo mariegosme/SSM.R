@@ -5,17 +5,19 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
 {
   #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
   ICI<-environment()
-  setwd(modelfolder) #folder where the "model data" (i.e. list of variables) are
+  setwd(modelfolder) #folder where the "model data" (e.g. list of variables and function definition files) are
   source("headersSSM.R", local=TRUE)
   source("initialisationEnvironmenVariablesSSM.R", local=TRUE)
   source("externalFilesReadingSSM.R", local=TRUE)
   source("HousekeepingFunctionsSSM.R", local=TRUE)
   source("functionsSSM.R", local=TRUE)
   source("handlersSSM.R", local=TRUE)
+  eReadInInputs() #read in inputs (first version: all possible soils, climates and crops are read at model setup... probably not the most eficient way to do it)
   return(list(contains=mContains, # fonction qui liste les objets présents dans le modèle (contains) et les extrait (getglobal),
               #doinside=evalICI,
               #getparam=getparam, #fonction qui renvoie les paramètres du modèle pour vérification (getparam), et qui les modifie (setparam),
               #setparam=print("reverifier setparam, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #setparam,
+              GetAllForDebuggingPurposes=mGetAllForDebuggingPurposes,
               setoptions=mCompletePARAMSIM,
               getglobal=mGetGlobal,
               setglobal=mSetGlobal,
@@ -37,17 +39,20 @@ rownames(mycases)<-c("Meknes35degres", "Meknes45degres") #these will be the case
 PARAMSIM<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
-  directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
+  #directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
+  directory="/Users/user/Documents/b_maison/congeMat/D4DECLIC/runSSM",#directory where your input (with climates and soils files) and output folders are
   climateformat="standardSSM",
   cropformat="standardSSM",
   soilformat="standardSSM",
+  managformat="standardSSM",
   Neffect=TRUE
 )
 
 #build the model
-mymodel<-setup("/Users/user/Documents/a_System/modelisation/SSM/traductionSSM_R/")
+#mymodel<-setup("/Users/user/Documents/a_System/modelisation/SSM/traductionSSM_R/")
+mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 #set the simulation options
-mymodel$setoptions(parametersfirsttry)
+mymodel$setoptions(PARAMSIM)
 #run the model for 4 timesteps
 mymodel$run(4)
 #plot the dynamics of some variables

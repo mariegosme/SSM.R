@@ -1,13 +1,18 @@
 #mXXXX: Model interface (e.g. mrun, mplot)
 
 mOnetimestep<-function(){
-  rCreateDay()
+  rCreateDay() #creates ALLDAYDATA with the values initialised at their default values, except stat variables that are initialised at their value from the day before
 
   rWeatherDay()
-  rUpdatePAR()
-
+  #rUpdatePAR() not coded, and I don't know what is was supposed to be, maybe it was to update PAR depending on tree interception once the agroforestry module would be added?
+  rUpdateManagement() #for now, just keeps the crops and cultivars as the day before
+  rUpdatePhenology()
+  rUpdateLAI()
+  rUpdateDMProduction()
+  #rUpdateDMDistribution() not codd yet
+  
   #at the end of the timestep, adds the new day at the end of the list of all variables
-  ALLSIMULATEDDATA <<- c(ALLSIMULATEDDATA, ALLDAYDATA)
+  ALLSIMULATEDDATA <<- c(ALLSIMULATEDDATA, list(ALLDAYDATA))
   return()
 }
 
@@ -65,6 +70,12 @@ mContains<-function(details=FALSE)
   ici<-environment()
   if (details) toto<-ls.str(envir=parent.env(ici)) else toto<-ls(envir=parent.env(ici))
   return(toto)
+}
+
+mGetAllForDebuggingPurposes<-function(){
+  ici<-environment()
+  toto<-ls(envir=parent.env(ici))
+  for (i in toto) assign(i, get(i, envir=parent.env(ici)), envir = .GlobalEnv)
 }
 
 mGetGlobal<-function(objectname) return(get(objectname))
