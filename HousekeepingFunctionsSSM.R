@@ -12,7 +12,7 @@ applyfilters<-function(processname){
       if(!stage %in% possiblestages) stop(stage," used in ", processname, " filter for cultivar ", uniquecrop, " is not in the list of stages for that cultivar")
       whichcases<- (paste(ALLSIMULATEDDATA[[daybefore]]$sCrop, ALLSIMULATEDDATA[[daybefore]]$sCultivar, sep=".")==uniquecrop)
       currentstages<-numstages[ALLSIMULATEDDATA[[daybefore]]$sGrowthStage[whichcases]]
-      currentbd<-ALLSIMULATEDDATA[[daybefore]]$sCumulatedPhenoCounts[whichcases]
+      currentbd<-ALLSIMULATEDDATA[[daybefore]]$sBiologicalDay[whichcases]
       targetstage<-which(possiblestages==stage)
       compare<-currentstages==targetstage & currentbd<=bd | currentstages<targetstage
       result<-rep(FALSE, nrow(ALLDAYDATA))
@@ -23,7 +23,7 @@ applyfilters<-function(processname){
       if(!stage %in% possiblestages) stop(stage," used in ", processname, " filter for cultivar ", uniquecrop, " is not in the list of stages for that cultivar")
       whichcases<- (paste(ALLSIMULATEDDATA[[daybefore]]$sCrop, ALLSIMULATEDDATA[[daybefore]]$sCultivar, sep=".")==uniquecrop)
       currentstages<-numstages[ALLSIMULATEDDATA[[daybefore]]$sGrowthStage[whichcases]]
-      currentbd<-ALLSIMULATEDDATA[[daybefore]]$sCumulatedPhenoCounts[whichcases]
+      currentbd<-ALLSIMULATEDDATA[[daybefore]]$sBiologicalDay[whichcases]
       targetstage<-which(possiblestages==stage)
       compare<-currentstages==targetstage & currentbd>=bd | currentstages>targetstage
       result<-rep(FALSE, nrow(ALLDAYDATA))

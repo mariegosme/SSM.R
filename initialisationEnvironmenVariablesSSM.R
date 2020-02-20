@@ -19,7 +19,7 @@ df$sLastHarvest<- (-Inf)
 df$sCrop<-"WHEAT"
 df$sCultivar<-c("durum wheat", "toto")
 df$sGrowthStage<-"germination"
-df$sCumulatedPhenoCounts<-0
+df$sBiologicalDay<-0
 df$sPlantdensity<-280
 
 ALLSIMULATEDDATA<-list(df) #list of data.frames from the previous timesteps (here: day 0)
