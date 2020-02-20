@@ -210,7 +210,7 @@ rUpdatePhenology<-function(){
   cCoefPhotoPeriod[resultfilter]<-fComputeCoefPhotoperiodCrops(photoDuration=cPhotoDuration,CriticalPhotoPerdiod=ALLCROPS$pCriticalPhotoPerdiod,PhotoPeriodSensitivity=ALLCROPS$pPhotoPeriodSensitivity)[resultfilter]  #icicici voir comment gérer plusieurs fonctions de photopériodisme en fonction des espèces
 
 ###Phenology rUpdate
-  cDeltaThermalUnit=fDeltaThermalUnit(pTbasdev=ALLDAYDATA$pTbasedev,pTopt1dev=ALLDAYDATA$pTopt1dev,cCoefTemp,cCoefWaterstressDevelopment)
+  cDeltaThermalUnit<-fDeltaThermalUnit(pTbasdev=ALLDAYDATA$pTbasedev,pTopt1dev=ALLDAYDATA$pTopt1dev,cCoefTemp,cCoefWaterstressDevelopment)
   #icicici Ajouter la condition If FTSW(1) <= 0 Then bd = 0 (avant émergence) (c'est pour blé et légume)
   sThermalUnite<-ALLSIMULATEDDATA[[daybefore]]$sThermalUnite + cDeltaThermalUnit
   cBiologicalDay<-fBiologicalDay(cCoefTemp,cCoefPhotoPeriod,cCoefWaterstressDevelopment,cCoefVernalization)
@@ -229,7 +229,7 @@ rUpdatePhenology<-function(){
 ####Update ALLDAYDATA
   ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","cCoefVernalization","cCoefWaterstressDevelopment",
                 "cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite",
-                "cBiologicalDay","sBiologicalDay","sGrowthStage")]<-data.frame(
+                "cBiologicalDay","sBiologicalDay","sGrowthStage")]<<-data.frame(
                   cCrownTemp,cDailyVernalization,sVernalization,cCoefVernalization,cCoefWaterstressDevelopment,
                   cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,
                   cBiologicalDay,sBiologicalDay,sGrowthStage)
@@ -248,7 +248,11 @@ rUpdateLAI<-function(){
   sMainstemNodeNumber <- ALLSIMULATEDDATA[[daybefore]]$sMainstemNodeNumber  + a
   cPlantLeafArea <- ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
   #icicicic in the following line of code, we dont follow our rules about computed/state variables: we use computed values (cPlantLeafArea and cCoefWaterstressLeaf) from last time step : normally only state variables are carried on from one day to the next... check if it's possible to do differently
-  LAIMainstem <- ((cPlantLeafArea - ALLSIMULATEDDATA[[daybefore]]$cPlantLeafArea) * ALLDAYDATA$sPlantdensity / 10000) * ALLSIMULATEDDATA[[daybefore]]$cCoefWaterstressLeaf
+  #so it poses a problem at initialization because computed values are initialized as NA
+  LAIMainstem <- ((
+    (cPlantLeafArea - ALLSIMULATEDDATA[[daybefore]]$cPlantLeafArea) * ALLDAYDATA$sPlantdensity / 10000) 
+    * ALLSIMULATEDDATA[[daybefore]]$cCoefWaterstressLeaf
+  )
   #LAISecondary
   LAISecondary <- ALLSIMULATEDDATA[[daybefore]]$cDailyLeafWeight * ALLDAYDATA$pSpecificLeafArea
 

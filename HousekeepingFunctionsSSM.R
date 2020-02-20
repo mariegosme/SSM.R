@@ -42,6 +42,36 @@ applyfilters<-function(processname){
   return(resultfilter)
 }
 
+
+#creation of day 0 
+rCreateDay0<-function() {
+  print("initializing the simulation (with wheat because sowing hasnt been coded yet" )
+  if(is.null(PARAMSIM$simustart)) stop("you didn't define a starting date, use $setoptions to do it")
+  ##### creation of day 0 (before start of simulation)
+  types<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"]
+  names(types)<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "name"]
+  ##warning: this lapply works only for numeric and character!!!!!!
+  if (sum( !types %in% c("numeric", "character"))>0) stop("all variables should be either numeric or character, check variables", paste(names(types)[!types %in% c("numeric", "character")], collapse=","))
+  df<-cbind(data.frame(iDate=PARAMSIM$simustart-1),
+            as.data.frame(lapply(types, FUN=function(x) return(do.call(x, list(nrow(PARAMSIM$cases)))))))
+  rownames(df)<-rownames(PARAMSIM$cases)
+  #we start without crop (sowing in the future, harvest in the past)
+  df$sLastSowing<-Inf 
+  df$sLastHarvest<- (-Inf)
+  
+  #icicici : actually we initialize with a crop everywhere because crop management hasnt been coded yet
+  df$sLastSowing<-0 
+  df$sLastHarvest<- (-Inf)
+  df$sCrop<-"WHEAT"
+  df$sCultivar<-c("durum wheat", "toto")
+  df$sGrowthStage<-"germination"
+  df$sBiologicalDay<-0
+  df$sPlantdensity<-280
+  ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)
+  return()
+}
+
+
 # creates a new data.frame at the beginning of the day
 rCreateDay<-function() { 
   #create frame of data of the day 
@@ -55,6 +85,7 @@ rCreateDay<-function() {
   rownames(df)<-rownames(PARAMSIM$cases)
   #initialize state variables to the state at preceding timestep
   df[,substr(x=colnames(df), start=1, stop=1)=="s"]<-ALLSIMULATEDDATA[[daybefore]][,substr(x=colnames(df), start=1, stop=1)=="s"]
+  print(str(df))
   ALLDAYDATA<<-df
   return()
 }

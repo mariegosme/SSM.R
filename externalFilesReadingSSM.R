@@ -103,7 +103,7 @@ eReadCrops_OLD<-function(){
 #' @param xlsxfile path to the excel file of crop parameters
 #' @param allvariablesfile path to the allvariables.xlsx file, with the translations of parameter names fromSSM to SSM.R (necessary because we use the SSM format, with row names different from SSM.R names)
 #' @return returns a list of parameters (one element per species.cultivar). parameters are lists (one element per module as defined in allvariables.xlsx)
-#' @examples eReadExcelCropParameters(xlsxfile="exampleinputs/crops2.xlsx",
+#' @examples eReadExcelCropParameters(xlsxfile="inputs/crops.xlsx",
 #'   allvariablesfile="allvariables.xlsx"
 #' )
 eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
@@ -111,7 +111,7 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
   #read in translations of parameter names from SSM to SSM.R
   trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
   trad<-trad[trad$typeinthemodel=="CropParameter",]
-  modules<-c(unique(trad$module[!is.na(trad$module)]), "LAI_Mainstem", "LAI_Secondary", "DM_SeedGrowing") ; names(modules)<-modules
+  modules<-c(unique(trad$module[!is.na(trad$module)]), "DM_SeedGrowing") ; names(modules)<-modules
   readmodule<-function(module, data, trad, numerocolonne){
     toto<-trad[!is.na(trad$module) & trad$module==module,]
     nomsSSM<-toto$translationSSM ; names(nomsSSM)<-toto$name

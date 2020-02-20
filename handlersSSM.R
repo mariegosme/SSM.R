@@ -18,6 +18,10 @@ mOnetimestep<-function(){
 
 mRun<-function(howlong=1)
 {
+  if(length(ALLSIMULATEDDATA)==0) {
+    eReadInInputs() #read in inputs (icicici first version: all possible soils, climates and crops are read at model initialisation, probably not the most eficient way to do it)
+    rCreateDay0()
+  }
   replicate(howlong, mOnetimestep())
   return(paste("the model ran for", howlong, "time steps"))
 }

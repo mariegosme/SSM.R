@@ -60,6 +60,10 @@ dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
               colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
               linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
              symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
+dynamiques<-mymodel$plot(c("sBiologicalDay", "cBiologicalDay", "sLAI"),
+                         colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
+                         linetypes=c(sBiologicalDay=1, cBiologicalDay=1, sLAI=2), whatlinetypes="variables",
+                         symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
 
 mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
              colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases",
