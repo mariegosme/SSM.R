@@ -11,7 +11,7 @@ ALLDAYDATA<-data.frame() #data.frame (row = case, column = variable) of current 
 GENERALPARAMETERS<-read.xlsx("allvariables.xlsx", sheet="generalPhysicalParameters", colNames=TRUE) #general parameters
 rownames(GENERALPARAMETERS)<-GENERALPARAMETERS$name
 #### initialisation of variable to store climate if read once at the beginning
-ALLCLIMATE<-list()
+ALLCLIMATES<-list()
 ALLSOILS<-list()
 ALLCROPS<-list()
 ALLMANAGEMENTS<-list()

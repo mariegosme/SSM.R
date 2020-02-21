@@ -192,7 +192,7 @@ rUpdatePhenology<-function(){
   sVernalization[sVernalization < 0] <- 0
   cCoefVernalization <- rep(1, nrow(ALLDAYDATA))
   resultfilter<-applyfilters("vernalisation") #on cree le filtre des TRUE FALSE de l application de la vernalisation
-  cCoefVernalization[resultfilter] <- fComputeCoefVernalization(VernalizationSensitivity=ALLCROPS$pVernalizationSensitivity,VDSAT=ALLCROPS$pVDSAT,sVernalization=sVernalization)[resultfilter]
+  cCoefVernalization[resultfilter] <- fComputeCoefVernalization(VernalizationSensitivity=ALLDAYDATA$pVernalizationSensitivity,VDSAT=ALLDAYDATA$pVDSAT,sVernalization=sVernalization)[resultfilter]
 
 ###Waterstress
   cCoefWaterstressDevelopment <- rep(1, nrow(ALLDAYDATA))

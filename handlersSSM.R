@@ -89,6 +89,7 @@ mSetGlobal<-function(objectname, value) return(assign(objectname, value))
 mCompletePARAMSIM<-function(listofthings){
   duplicated<-intersect(names(listofthings), names(PARAMSIM))
   if (length(duplicated)>0){ warning(paste(paste(duplicated, collapse=", "), "were already present in PARAMSIM, they haven't been modified. To modify existing parameters, use changeParam"))}
+  #NB changeParam is not coded yet, but it will have to have more checks than complePARAMSIM to check that changing some simulation parameter won't break the model (e.g. same number of cases)
   PARAMSIM<<-c(PARAMSIM, listofthings[setdiff(names(listofthings), names(PARAMSIM))])
 }
 

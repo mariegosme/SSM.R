@@ -8,7 +8,7 @@ applyfilters<-function(processname){
   evaluatecrop<-function(text, uniquecrop) {
     possiblestages<-names(ALLCROPS[[uniquecrop]]$thresholds)
     numstages<-1:length(possiblestages); names(numstages)<-possiblestages
-    is.before<-function(stage, bd=0, crop=uniquecrop) { #if bd is not provided, the stage is not included
+    is.before<-function(stage, bd=-Inf, crop=uniquecrop) { #if bd is not provided, the stage is not included
       if(!stage %in% possiblestages) stop(stage," used in ", processname, " filter for cultivar ", uniquecrop, " is not in the list of stages for that cultivar")
       whichcases<- (paste(ALLSIMULATEDDATA[[daybefore]]$sCrop, ALLSIMULATEDDATA[[daybefore]]$sCultivar, sep=".")==uniquecrop)
       currentstages<-numstages[ALLSIMULATEDDATA[[daybefore]]$sGrowthStage[whichcases]]
@@ -85,7 +85,6 @@ rCreateDay<-function() {
   rownames(df)<-rownames(PARAMSIM$cases)
   #initialize state variables to the state at preceding timestep
   df[,substr(x=colnames(df), start=1, stop=1)=="s"]<-ALLSIMULATEDDATA[[daybefore]][,substr(x=colnames(df), start=1, stop=1)=="s"]
-  print(str(df))
   ALLDAYDATA<<-df
   return()
 }

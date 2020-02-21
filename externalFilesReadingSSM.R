@@ -5,7 +5,7 @@
 
 fGetClimateDay<-function(date){ #returns a data.frame with the date, climate name and climate variables in columns, and possibly several rows, named by the climate name
   if (PARAMSIM$climateformat %in% c("standardSSM")) {
-    selectday<-ALLCLIMATE[ALLCLIMATE$date==date,]
+    selectday<-ALLCLIMATES[ALLCLIMATES$date==date,]
     rownames(selectday)<-selectday$climatename
     return(selectday)
   } else if (PARAMSIM$climateformat=="netCDF") {
@@ -31,7 +31,7 @@ eReadClimate<-function(){
     newnames<-climatevar$name ; names(newnames)<-climatevar$translationSSM
     pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/climates.xlsx", sep=""))
     locations<-getSheetNames(pathtoExcel)
-    ALLCLIMATE<<-data.frame()
+    ALLCLIMATES<<-data.frame()
     for (sheet in locations) {
       onesheet<-read.xlsx(pathtoExcel, sheet=sheet, colNames=TRUE, startRow =10)
       #transforms year-DOY into date
@@ -44,7 +44,7 @@ eReadClimate<-function(){
       missingvariable<-setdiff(newnames, names(onesheet))
       if (length(missingvariable)>0) warning(paste("Sheet", sheet, "in file", pathtoExcel, "misses variables", paste(missingvariable, collapse=",")))
       onesheet$climatename<-sheet
-      ALLCLIMATE<<-rbind(ALLCLIMATE, onesheet)
+      ALLCLIMATES<<-rbind(ALLCLIMATES, onesheet)
     }
   } else if (PARAMSIM$climateformat=="netCDF")  {
     stop("netCDF format not yet supported for climate")
@@ -111,7 +111,8 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
   #read in translations of parameter names from SSM to SSM.R
   trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
   trad<-trad[trad$typeinthemodel=="CropParameter",]
-  modules<-c(unique(trad$module[!is.na(trad$module)]), "DM_SeedGrowing") ; names(modules)<-modules
+  modules<-c(unique(trad$module[!is.na(trad$module)]), "LAI_Secondary", "DM_SeedGrowing") #don't forget to add modules that don't have specific parameters in allvariables, but that have a filter
+  names(modules)<-modules
   readmodule<-function(module, data, trad, numerocolonne){
     toto<-trad[!is.na(trad$module) & trad$module==module,]
     nomsSSM<-toto$translationSSM ; names(nomsSSM)<-toto$name

@@ -12,7 +12,6 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
   source("HousekeepingFunctionsSSM.R", local=TRUE)
   source("functionsSSM.R", local=TRUE)
   source("handlersSSM.R", local=TRUE)
-  eReadInInputs() #read in inputs (first version: all possible soils, climates and crops are read at model setup... probably not the most eficient way to do it)
   return(list(contains=mContains, # fonction qui liste les objets présents dans le modèle (contains) et les extrait (getglobal),
               #doinside=evalICI,
               #getparam=getparam, #fonction qui renvoie les paramètres du modèle pour vérification (getparam), et qui les modifie (setparam),
@@ -35,8 +34,9 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
 mycases<-data.frame(climatename="Ain Hamra - Meknes", soilname="325_-35", lat=c(35, 45), long=-5)
 #climatename: one of the sheet names of file climates (if climate in standard SSM format)
 #soilname: one of the sheet names of file soils (if in standard SSM format)
+#to do: define crop rotation and management (once management procedure is completed)
 rownames(mycases)<-c("Meknes35degres", "Meknes45degres") #these will be the cases names used in the plots, outputs etc...
-PARAMSIM<-list(
+paramsim<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
   #directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
@@ -52,7 +52,7 @@ PARAMSIM<-list(
 #mymodel<-setup("/Users/user/Documents/a_System/modelisation/SSM/traductionSSM_R/")
 mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 #set the simulation options
-mymodel$setoptions(PARAMSIM)
+mymodel$setoptions(paramsim)
 #run the model for 4 timesteps
 mymodel$run(4)
 #plot the dynamics of some variables
@@ -61,7 +61,7 @@ dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
               linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
              symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
 dynamiques<-mymodel$plot(c("sBiologicalDay", "cBiologicalDay", "sLAI"),
-                         colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
+                         colors=c(sBiologicalDay="blue", cBiologicalDay="red", sLAI="black"), whatcolors="variables",
                          linetypes=c(sBiologicalDay=1, cBiologicalDay=1, sLAI=2), whatlinetypes="variables",
                          symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
 
@@ -70,21 +70,3 @@ mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
              linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
 
 
-paramscrops<-list(wheat=list(
-              name="wheat",
-              thresholds=list(germination=6,emergence=5,tillering=8,stemElongation=6,Booting=6,earing=15,anthesis=43,maturation=8,senescence=Inf),
-              vernalisation=list(filter="is.after('emergencen', 0) & is.before('tillering',0)"),
-              photoperiod=list(filter="is.after('emergence', 0) & is.before('tillering', 0)"),
-              waterstress=list(filter="is.after('emergence', 0) & is.before('senescence', paramscrops$wheat$thresholds$senescence+10)"),
-              LAI_Senescence=list(pHeatFracLeafDestruction = 0.1 ,pHeatThresholdTemp = 30,pFreezeThresholdTemp = -5,pFreezeFracLeafDestruction =0.01,pSpecLeafNGreenLeaf = 1.8,pSpecLeafNSenescenceLeaf = 0.4)
-              LAI_Mainstem=list(filter="is.after('germination', 0) & is.before('Booting', 0)",pPhyllochron = 118, pcoefPlantLeafNumberNode=1,pExpPlantLeafNumberNode=2.5),
-              LAI_Secondary=list(filter="is.after('Booting', 0) & is.before('earing', paramscrops$wheat$thresholds$earing+5)",pSpecificLeafArea=0.02),
-              DMDistribution_SeedGrowing=list(filter="is.after('earing', paramscrops$wheat$thresholds$earing+5) & is.before('anthesis', paramscrops$wheat$thresholds$anthesis-1.5)"),
-              DMProduction = list(filter="is.after('germination') & is.before('anthesis', paramscrops$wheat$thresholds$anthesis-1.5)",pRadEffiencyOptimal=2.2,KPAR = 0.65,pTbasRUE = 0, pTopt1RUE=15,pTopt2RUE=22,plethalRUE=35)
-             ))
-
-
-paramsITK<-list(wheat=list(
-              name="wheat",
-              pPlantdensity = 300
-            ))
