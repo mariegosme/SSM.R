@@ -26,6 +26,8 @@ mRun<-function(howlong=1)
   return(paste("the model ran for", howlong, "time steps"))
 }
 
+
+
 mPlotDynamics<-function(variablestoplot, 
                         colors=NULL, symbols=NULL, linetypes=NULL, 
                         whatcolors=c("cases", "variables"), whatsymbols=c("cases", "variables"), whatlinetypes=c("cases", "variables"),
@@ -37,7 +39,11 @@ mPlotDynamics<-function(variablestoplot,
   names(variablestoplot)<-variablestoplot
   if(length(ALLSIMULATEDDATA)==0) stop("You cannot plot a model that hasn't been run for at least 1 time step") 
   #extracts the dynamics of each variable
-  dynamics<-lapply(variablestoplot, function(v) as.matrix(as.data.frame(lapply(ALLSIMULATEDDATA, function(x) x[,v, drop=FALSE]))))
+  dynamics<-lapply(variablestoplot, function(v) {
+    if (is.numeric(ALLSIMULATEDDATA[[1]][,v])) return(
+      as.matrix(as.data.frame(lapply(ALLSIMULATEDDATA, function(x) x[,v, drop=FALSE])))
+    ) else stop("variablestoplot should not contain character variables")
+  })
   #dynamics is a list (one element for each variable) of matrices (rows= cases, columns=timesteps)
   if (is.null(ylim)) ylim<-range(unlist(dynamics), na.rm=TRUE)
   dates<-sapply(ALLSIMULATEDDATA, function(x) x[1,"iDate"])

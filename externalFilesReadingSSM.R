@@ -111,7 +111,7 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
   #read in translations of parameter names from SSM to SSM.R
   trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
   trad<-trad[trad$typeinthemodel=="CropParameter",]
-  modules<-c(unique(trad$module[!is.na(trad$module)]), "LAI_Secondary", "DM_SeedGrowing") #don't forget to add modules that don't have specific parameters in allvariables, but that have a filter
+  modules<-c(unique(trad$module[!is.na(trad$module)]), "LAI_Secondary", "DMDistribution_SeedGrowing") #don't forget to add modules that don't have specific parameters in allvariables, but that have a filter
   names(modules)<-modules
   readmodule<-function(module, data, trad, numerocolonne){
     toto<-trad[!is.na(trad$module) & trad$module==module,]

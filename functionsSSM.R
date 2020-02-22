@@ -57,11 +57,6 @@ fComputeCoefTemp<-function(cTemp, Tbase, Topt1, Topt2, Tlethal) { #icicici : tru
  return(fFunctionstep(x=cTemp, x1=Tbase, x2=Topt1, x3=Topt2, x4=Tlethal, y1=0, y2=1, y3=0))
 }
 
-fFindNextStage<-function(crop, currentstage) {
-  possiblestages<-names(ALLCROPS[[crop]]$thresholds)
-  return(possiblestages[which(currentstage==possiblestages)+1])
-}
-
 fComputeSnowMelt<-function(iTASMax, iPr, sSnow) {
   return(ifelse(iTASMax<=1, 0, pmin(sSnow, iTASMax + iPr * 0.4))) # icicici: unit problem: we expect mm, but we have degrees... this equation has no meaning!
 
@@ -96,8 +91,8 @@ fPhotoperiodDuration<-function(iDate,latitude){
 }
 
 fComputeCoefPhotoperiodCrops<-function(photoDuration,CriticalPhotoPerdiod,PhotoPeriodSensitivity){
-  ppfun = ifelse(photoDuration < CriticalPhotoPerdiod,1 - PhotoPeriodSensitivity * (CriticalPhotoPerdiod - photoDuration) ^ 2,1)
-  return(ifelse(ppfun< 0,0,ppfun))
+  ppfun <- ifelse(photoDuration < CriticalPhotoPerdiod, pmax(0, 1 - PhotoPeriodSensitivity * (CriticalPhotoPerdiod - photoDuration) ^ 2),1)
+  return(ppfun)
 }
 
 fComputeCoefPhotoperiodMaize<-function(){
@@ -113,8 +108,8 @@ fComputeCoefVernalization<-function(VernalizationSensitivity,VDSAT,sVernalizatio
   return(CoefVernalization)
 }
 
-fComputeCoefWaterstressDevelopment<-function(){        ####icicici à modifier pour prendre en compte le stress hydrique
-  return(1)
+fComputeCoefWaterstressDevelopment<-function(watercontent){        ####icicici à modifier pour prendre en compte le stress hydrique
+  return(rep(1, length(watercontent)))
 }
 
 fComputeDecreaseLAIwithN<-function(DailyRateNfromLeave,SpecLeafNGreenLeaf,SpecLeafNSenescenceLeaf){
@@ -197,7 +192,8 @@ rUpdatePhenology<-function(){
 ###Waterstress
   cCoefWaterstressDevelopment <- rep(1, nrow(ALLDAYDATA))
   resultfilter<-applyfilters("waterstress") #on cree le filtre des TRUE FALSE de l application de la waterstress
-  cCoefWaterstressDevelopment[resultfilter]<-fComputeCoefWaterstressDevelopment()[resultfilter] #To take account the period with the vernalization have an impact
+  #icicicic : fComputeCoefWaterstressDevelopment is not coded, watercontent should not be only at the surface.... to be changed when water module is coded
+  cCoefWaterstressDevelopment[resultfilter]<-fComputeCoefWaterstressDevelopment(watercontent=ALLDAYDATA$sWater.1)[resultfilter] #To take account the period when waterstress has an impact
 
 ###temperature
   cTemp<-fComputeTemp(tasmax=ALLDAYDATA$iTASMax,tasmin=ALLDAYDATA$iTASMin)
@@ -207,7 +203,8 @@ rUpdatePhenology<-function(){
   cPhotoDuration<-fPhotoperiodDuration(iDate=ALLDAYDATA[1,"iDate"],latitude=PARAMSIM$cases$lat)
   cCoefPhotoPeriod <- rep(1, nrow(ALLDAYDATA))
   resultfilter<-applyfilters("photoperiod") #on cree le filtre des TRUE FALSE de l application de la photoperiode
-  cCoefPhotoPeriod[resultfilter]<-fComputeCoefPhotoperiodCrops(photoDuration=cPhotoDuration,CriticalPhotoPerdiod=ALLCROPS$pCriticalPhotoPerdiod,PhotoPeriodSensitivity=ALLCROPS$pPhotoPeriodSensitivity)[resultfilter]  #icicici voir comment gérer plusieurs fonctions de photopériodisme en fonction des espèces
+  #icicici voir comment gérer plusieurs fonctions de photopériodisme en fonction des espèces
+  cCoefPhotoPeriod[resultfilter]<-fComputeCoefPhotoperiodCrops(photoDuration=cPhotoDuration,CriticalPhotoPerdiod=ALLDAYDATA$pCriticalPhotoPerdiod,PhotoPeriodSensitivity=ALLDAYDATA$pPhotoPeriodSensitivity)[resultfilter]  
 
 ###Phenology rUpdate
   cDeltaThermalUnit<-fDeltaThermalUnit(pTbasdev=ALLDAYDATA$pTbasedev,pTopt1dev=ALLDAYDATA$pTopt1dev,cCoefTemp,cCoefWaterstressDevelopment)
@@ -222,17 +219,22 @@ rUpdatePhenology<-function(){
   thresholds<-mapply(function(cropname, stage) return(ALLCROPS[[cropname]]$thresholds[[stage]]), cultivars, as.character(ALLSIMULATEDDATA[[daybefore]]$sGrowthStage), SIMPLIFY = TRUE, USE.NAMES=FALSE) #on choope les
   changestage<-sBiologicalDay>thresholds
   sGrowthStage<-ALLSIMULATEDDATA[[daybefore]]$sGrowthStage
-  sGrowthStage[changestage]<-unlist(mapply(fFindNextStage, ALLSIMULATEDDATA[[daybefore]]$sCrop[changestage], ALLSIMULATEDDATA[[daybefore]]$sGrowthStage[changestage], SIMPLIFY = TRUE, USE.NAMES=FALSE))
+  sGrowthStageNumber<-ALLSIMULATEDDATA[[daybefore]]$sGrowthStageNumber
+  sGrowthStageNumber[changestage]<-sGrowthStageNumber[changestage]+1
+  #find the corresponding stage name
+  stagenames<-unlist(unname(lapply(ALLCROPS, function(x) {toto<-names(x$thresholds) ; names(toto)<-paste(x$name, 1:length(x$thresholds)) ; return(toto)})))
+  sGrowthStage[changestage]<-stagenames[paste(paste(ALLSIMULATEDDATA[[daybefore]]$sCrop[changestage], ALLSIMULATEDDATA[[daybefore]]$sCultivar[changestage], sep="."),
+                                              sGrowthStageNumber[changestage])]
   # when the stage changed, we start the counter with the remaining of increment-threshold
   sBiologicalDay[changestage]<-sBiologicalDay[changestage]-thresholds[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
 
 ####Update ALLDAYDATA
   ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","cCoefVernalization","cCoefWaterstressDevelopment",
                 "cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite",
-                "cBiologicalDay","sBiologicalDay","sGrowthStage")]<<-data.frame(
+                "cBiologicalDay","sBiologicalDay","sGrowthStage","sGrowthStageNumber")]<<-data.frame(
                   cCrownTemp,cDailyVernalization,sVernalization,cCoefVernalization,cCoefWaterstressDevelopment,
                   cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnite,
-                  cBiologicalDay,sBiologicalDay,sGrowthStage)
+                  cBiologicalDay,sBiologicalDay,sGrowthStage,sGrowthStageNumber)
 
   return()
 }
@@ -288,12 +290,12 @@ rUpdateLAI<-function(){
                     HeatFracLeafDestruction=ALLDAYDATA$pHeatFracLeafDestruction)
   cDecreaseLAI<-max(frost,heat)   ####heat LAI corresponds to cDecreaseLAI if no heat effect and cDreaseLAI corresponds to heat if hot effet. Take effect of frozen if it is more important that cDea
 
-  sLAI = ALLSIMULATEDDATA[[daybefore]]$sLAI+cGrowthLAI-cDecreaseLAI         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
+  sLAI <- ALLSIMULATEDDATA[[daybefore]]$sLAI+cGrowthLAI-cDecreaseLAI         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
 
   ####Mortality test with low LAI CONDITION
-  alaicond<-applyfilters("DM_SeedGrowing")
-  cEndCropCycle=ifelse((sLAI< 0.05 & alaicond==TRUE),"pre-mature due to low LAI",NA)
-  sLAI=ifelse(sLAI<0,0,sLAI)
+  alaicond<-applyfilters("DMDistribution_SeedGrowing")
+  cEndCropCycle<-ifelse((sLAI< 0.05 & alaicond==TRUE),"pre-mature due to low LAI",NA)
+  sLAI<-ifelse(sLAI<0,0,sLAI)
 
   ALLDAYDATA[,c("sMainstemNodeNumber","cPlantLeafArea","cGrowthLAI","cDecreaseLAI","sLAI","cEndCropCycle")]<<-data.frame(sMainstemNodeNumber,cPlantLeafArea,cGrowthLAI,cDecreaseLAI,sLAI,cEndCropCycle)
                                                   #Delete negative value and to limit to 0

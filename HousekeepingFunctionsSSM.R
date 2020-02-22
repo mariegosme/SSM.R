@@ -39,6 +39,7 @@ applyfilters<-function(processname){
   })
   filters<-mapply(FUN=evaluatecrop, filtertexts, possiblecrops, SIMPLIFY=FALSE)
   resultfilter<-mapply(FUN=any, filters)
+  if(any(is.na(resultfilter))) stop("Error in applyfilter for process", processname, ": it returned NAs")
   return(resultfilter)
 }
 
@@ -65,8 +66,11 @@ rCreateDay0<-function() {
   df$sCrop<-"WHEAT"
   df$sCultivar<-c("durum wheat", "toto")
   df$sGrowthStage<-"germination"
+  df$sGrowthStageNumber<-1
   df$sBiologicalDay<-0
   df$sPlantdensity<-280
+  
+  
   ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)
   return()
 }
