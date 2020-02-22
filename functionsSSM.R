@@ -34,10 +34,11 @@ fFunctionstep<-function(x, x1,x2, x3, x4, y1, y2, y3) {
 #                  SOIT avec x=1 chiffre et les params=vecteurs (ou un chiffre)
 #                  SOIT avec x et les éventuels params multiples de même longueur
   toto<-y1 + (x-x1)*(y1-y2)/(x1-x2)
-  toto[x<x1]<-y1
-  toto[x>x2 & x<=x3]<-y2
-  toto[x>x3 & x<x4]<-y2 + (x-x3)*(y3-y2)/(x4-x3)
-  toto[x>=x4]<-y3
+  toto[!is.na(x1) & x<x1]<-y1
+  toto[!is.na(x2) & !is.na(x3) & x>x2 & x<=x3]<-y2
+  toto[!is.na(x3) & !is.na(x4) & x>x3 & x<x4]<-y2 + (x-x3)*(y3-y2)/(x4-x3)
+  toto[!is.na(x4) & x>=x4]<-y3
+  toto[is.na(x1) | is.na(x2) | is.na(x3) | is.na(x3)]<-NA
   #autrepossibilite avec ifelse
   #toto<-ifelse(x<=x1, y1,
   #  ifelse(x>x1 & x<=x2), y1 + (x-x1)*(y1-y2)/(x1-x2),
@@ -47,8 +48,8 @@ fFunctionstep<-function(x, x1,x2, x3, x4, y1, y2, y3) {
     return(toto)
 }
 
-fComputeDailyVernalization<-function(cCrownTemp,TbaseVernalization,Topt1Vernalization,Top2Vernalization,TlethalVernalization) {
-  return(fFunctionstep(x=cCrownTemp, x1=TbaseVernalization, x2=Topt1Vernalization, x3=Top2Vernalization, x4=TlethalVernalization, y1=0, y2=1, y3=0))
+fComputeDailyVernalization<-function(cCrownTemp,TbaseVernalization,Topt1Vernalization,Topt2Vernalization,TlethalVernalization) {
+  return(fFunctionstep(x=cCrownTemp, x1=TbaseVernalization, x2=Topt1Vernalization, x3=Topt2Vernalization, x4=TlethalVernalization, y1=0, y2=1, y3=0))
 }
 
 fDegreeDays<-function(cTemp, Tbase) return(max(Tbase, cTemp))
@@ -173,13 +174,12 @@ rUpdatePhenology<-function(){
   #print("Updating phenology")
 
   daybefore<-length(ALLSIMULATEDDATA)
-  #paramspheno<-ALLCROPS[[ ALLDAYDATA$sCrop ]][[ ALLDAYDATA$sCultivar ]][["phenology"]][[ALLDAYDATA$sGrowthStage]]
-
+  
 ###Vernalization
   cCrownTemp <- fComputeCrownTemperature(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iTASMin=ALLDAYDATA$iTASMin)
   cDailyVernalization <- fComputeDailyVernalization(cCrownTemp=cCrownTemp,TbaseVernalization=ALLDAYDATA$pTbaseVernalization,
                                                                 Topt1Vernalization=ALLDAYDATA$pTopt1Vernalization,
-                                                                Top2Vernalization=ALLDAYDATA$pTopt2Vernalization,
+                                                                Topt2Vernalization=ALLDAYDATA$pTopt2Vernalization,
                                                                 TlethalVernalization=ALLDAYDATA$pTlethalVernalization
                                                               )
   sVernalization <- ALLSIMULATEDDATA[[daybefore]]$sVernalization + cDailyVernalization
@@ -216,18 +216,24 @@ rUpdatePhenology<-function(){
 
 ####stage changes
   cultivars<-paste(ALLSIMULATEDDATA[[daybefore]]$sCrop,ALLSIMULATEDDATA[[daybefore]]$sCultivar, sep=".")
-  thresholds<-mapply(function(cropname, stage) return(ALLCROPS[[cropname]]$thresholds[[stage]]), cultivars, as.character(ALLSIMULATEDDATA[[daybefore]]$sGrowthStage), SIMPLIFY = TRUE, USE.NAMES=FALSE) #on choope les
+  thresholds<-mapply(function(cropname, stage) return(ALLCROPS[cropname,"thresholds"][[1]][stage]),
+                     cultivars, 
+                     as.character(ALLSIMULATEDDATA[[daybefore]]$sGrowthStage), SIMPLIFY = TRUE, USE.NAMES=FALSE
+                     )
   changestage<-sBiologicalDay>thresholds
   sGrowthStage<-ALLSIMULATEDDATA[[daybefore]]$sGrowthStage
   sGrowthStageNumber<-ALLSIMULATEDDATA[[daybefore]]$sGrowthStageNumber
-  sGrowthStageNumber[changestage]<-sGrowthStageNumber[changestage]+1
-  #find the corresponding stage name
-  stagenames<-unlist(unname(lapply(ALLCROPS, function(x) {toto<-names(x$thresholds) ; names(toto)<-paste(x$name, 1:length(x$thresholds)) ; return(toto)})))
-  sGrowthStage[changestage]<-stagenames[paste(paste(ALLSIMULATEDDATA[[daybefore]]$sCrop[changestage], ALLSIMULATEDDATA[[daybefore]]$sCultivar[changestage], sep="."),
-                                              sGrowthStageNumber[changestage])]
-  # when the stage changed, we start the counter with the remaining of increment-threshold
-  sBiologicalDay[changestage]<-sBiologicalDay[changestage]-thresholds[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
-
+  if(any(changestage)) {
+    sGrowthStageNumber[changestage]<-sGrowthStageNumber[changestage]+1
+    #find the corresponding stage name
+    sGrowthStage[changestage]<-mapply(function(thresh, num) return(names(thresh)[num]),
+                                      ALLCROPS[cultivars[changestage], "thresholds"], 
+                                      ALLSIMULATEDDATA[[daybefore]]$sGrowthStageNumber[changestage]
+    )
+    # when the stage changed, we start the counter with the remaining of increment-threshold
+    sBiologicalDay[changestage]<-sBiologicalDay[changestage]-thresholds[changestage] #if we changed stages, we start not from 0 but from the "extra units accuulated during the timestep
+  }
+  
 ####Update ALLDAYDATA
   ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","cCoefVernalization","cCoefWaterstressDevelopment",
                 "cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnite",

@@ -6,7 +6,7 @@ applyfilters<-function(processname){
   cultivars<-paste(ALLSIMULATEDDATA[[daybefore]]$sCrop, ALLSIMULATEDDATA[[daybefore]]$sCultivar, sep=".")
   possiblecrops<- unique(cultivars)
   evaluatecrop<-function(text, uniquecrop) {
-    possiblestages<-names(ALLCROPS[[uniquecrop]]$thresholds)
+    possiblestages<-names(ALLCROPS[uniquecrop,"thresholds"][[1]])
     numstages<-1:length(possiblestages); names(numstages)<-possiblestages
     is.before<-function(stage, bd=-Inf, crop=uniquecrop) { #if bd is not provided, the stage is not included
       if(!stage %in% possiblestages) stop(stage," used in ", processname, " filter for cultivar ", uniquecrop, " is not in the list of stages for that cultivar")
@@ -33,10 +33,11 @@ applyfilters<-function(processname){
     result<-unname(eval(parse(text=text)))
     return(result)
   }
-  filtertexts<-sapply(ALLCROPS[possiblecrops], function(cr) {
-    if(! processname %in% names(cr)) stop("process ", processname, " is not in the filter parameters of cultivar ", cr$name)
-    return(cr[[processname]]$filter)
-  })
+ filtertexts<-ALLCROPS[possiblecrops, paste(processname, "filter", sep=".")]
+ if (any(is.null(filtertexts))) stop(
+   "process ", processname, " is not in the filter parameters of cultivars ", paste(
+     possiblecrops[is.null(filtertexts)], collapse=", "
+ ))
   filters<-mapply(FUN=evaluatecrop, filtertexts, possiblecrops, SIMPLIFY=FALSE)
   resultfilter<-mapply(FUN=any, filters)
   if(any(is.na(resultfilter))) stop("Error in applyfilter for process", processname, ": it returned NAs")
@@ -63,8 +64,8 @@ rCreateDay0<-function() {
   #icicici : actually we initialize with a crop everywhere because crop management hasnt been coded yet
   df$sLastSowing<-0 
   df$sLastHarvest<- (-Inf)
-  df$sCrop<-"WHEAT"
-  df$sCultivar<-c("durum wheat", "toto")
+  df$sCrop<-"WHEAT" #c("WHEAT", "Chickpea") #written as in the first line in the excel file
+  df$sCultivar<-c("Ble_Dur_1", "Ble_Tendre_1") #c("durum wheat", "Ghab2")
   df$sGrowthStage<-"germination"
   df$sGrowthStageNumber<-1
   df$sBiologicalDay<-0
@@ -98,14 +99,10 @@ rSetParamsFromCrops<-function(){
   df<-ALLDAYDATA[,VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel =="CropParameter", "name"]]
   cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
   possiblecrops<-unique(cultivars)
-  for (c in possiblecrops) {
-    for (modu in unique(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel =="CropParameter", "module"])) {
-      paramnames<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel =="CropParameter" & VARIABLEDEFINITIONS$module==modu, "name"]
-      missing<-setdiff(paramnames, names(ALLCROPS[[c]][[modu]]))
-      if(length(missing)>0) stop("the following parameters are mising from crop parameters for ", c, ": ", paste(missing, collapse=", "))
-      df[cultivars==c, paramnames]<-ALLCROPS[[c]][[modu]][paramnames]
-    }
-  }
+  missing<-setdiff(names(df), names(ALLCROPS))
+  if(length(missing)>0) warning("the following parameters are mising from crop parameters: ", paste(missing, collapse=", "))
+  paramstobechanged<-intersect(names(df), names(ALLCROPS))
+  df[, paramstobechanged]<-ALLCROPS[cultivars, paramstobechanged]
   ALLDAYDATA[,names(df)]<<-df
   return()
 }
