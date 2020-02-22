@@ -55,22 +55,17 @@ mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 mymodel$setoptions(paramsim)
 #run the model for 4 timesteps
 mymodel$run(100)
-dynamiques<-mymodel$plot("sGrowthStageNumber")
-dynamiques<-mymodel$plot("sBiologicalDay")
-
 
 #plot the dynamics of some variables
+dynamiques<-mymodel$plot("sGrowthStageNumber")
+dynamiques<-mymodel$plot("sBiologicalDay")
 dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
               colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
               linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
              symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
-dynamiques<-mymodel$plot(c("sBiologicalDay", "cBiologicalDay", "sGrowthStageNumber"),
-                         colors=c(sBiologicalDay="blue", cBiologicalDay="red", sLAI="black"), whatcolors="variables",
-                         linetypes=c(sBiologicalDay=1, cBiologicalDay=1, sLAI=2), whatlinetypes="variables",
-                         symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
 
-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
-             colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases",
-             linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
+#mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+#             colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases",
+#             linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
 
 

@@ -134,7 +134,7 @@ fHeatEffect<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracLeafDestruct
 
 #####Weather module
 rWeatherDay<-function(){
-  print("Updating weather intput")
+  #print("Updating weather intput")
 
   daybefore<-length(ALLSIMULATEDDATA)
   Dateoftheday<-ALLDAYDATA[1,"iDate"]
@@ -155,7 +155,7 @@ rWeatherDay<-function(){
 
 #### Management module (for now, just keeps the crop, cultivar and crop parameters at their previous values)
 rUpdateManagement<-function(){
-  print("Updating crops according to crop management")
+  #print("Updating crops according to crop management")
   daybefore<-length(ALLSIMULATEDDATA)
   #whosows
   #whoharvests
@@ -170,7 +170,7 @@ rUpdateManagement<-function(){
 #####phenology module
 
 rUpdatePhenology<-function(){
-  print("Updating phenology")
+  #print("Updating phenology")
 
   daybefore<-length(ALLSIMULATEDDATA)
   #paramspheno<-ALLCROPS[[ ALLDAYDATA$sCrop ]][[ ALLDAYDATA$sCultivar ]][["phenology"]][[ALLDAYDATA$sGrowthStage]]
@@ -241,7 +241,7 @@ rUpdatePhenology<-function(){
 
 #####LAI module
 rUpdateLAI<-function(){
-  print("Updating LAI")
+  #print("Updating LAI")
   daybefore<-length(ALLSIMULATEDDATA)
 
   ###LAI Growing (similar with and without N contribution)
@@ -302,7 +302,7 @@ rUpdateLAI<-function(){
 }
 
 rUpdateDMProduction<-function(){
-  print("Updating DMProduction")
+  #print("Updating DMProduction")
   cCoefRadiationEfficiency <- rep(0, nrow(ALLDAYDATA))                             #Radiation effiency is null when the plant doens't produce leaf
   resultfilter<-applyfilters("DMProduction") #on cree le filtre des TRUE FALSE de l application de la vernalisation
   cCoefRadiationEfficiency[resultfilter]=fComputeCoefTemp(cTemp=ALLDAYDATA$cTemp,Tbase=ALLDAYDATA$pTbasRUE,
