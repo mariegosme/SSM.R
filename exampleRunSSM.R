@@ -31,11 +31,11 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
 
 
 # prepare cases (these will be the rows of ALLSIMULATEDDATA:
-mycases<-data.frame(climatename="Ain Hamra - Meknes", soilname="325_-35", lat=c(35, 45), long=-5)
+mycases<-data.frame(climatename="Ain Hamra - Meknes", soilname="325_-35", lat=c(35, 35, 45), long=-5)
 #climatename: one of the sheet names of file climates (if climate in standard SSM format)
 #soilname: one of the sheet names of file soils (if in standard SSM format)
 #to do: define crop rotation and management (once management procedure is completed)
-rownames(mycases)<-c("Meknes35degres", "Meknes45degres") #these will be the cases names used in the plots, outputs etc...
+rownames(mycases)<-c("Meknes35degresWheat", "Meknes35degresMaize", "Meknes35degresChickpea") #these will be the cases names used in the plots, outputs etc...
 paramsim<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
@@ -53,12 +53,51 @@ paramsim<-list(
 mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 #set the simulation options
 mymodel$setoptions(paramsim)
-#run the model for 4 timesteps
-mymodel$run(100)
+#run the model for 100 timesteps
+mymodel$run(200)
 
 #plot the dynamics of some variables
-dynamiques<-mymodel$plot("sGrowthStageNumber")
-dynamiques<-mymodel$plot("sBiologicalDay")
+dynamiques<-mymodel$plot("sGrowthStageNumber", 
+                         col=c(Meknes35degresWheat="lightgreen", 
+                                  Meknes35degresMaize="cornflowerblue", 
+                                  Meknes35degresChickpea="purple"),
+                         whatcol="cases", lty=1, pch="") 
+dynamiques<-mymodel$plot("sBiologicalDay", 
+                         col=c(Meknes35degresWheat="lightgreen", 
+                               Meknes35degresMaize="cornflowerblue", 
+                               Meknes35degresChickpea="purple"),
+                         whatcol="cases", lty=1, pch="") 
+dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
+                         casestoplot=c("Meknes35degresWheat"),
+                         col=c(cCoefPhotoPeriod="orange", 
+                                  cCoefTemp="blue", 
+                                  cCoefWaterstressDevelopment="red",
+                                  cBiologicalDay="black"),
+                         whatcol="variables")
+#conc: photoperiod stops wheat growth
+dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
+                         casestoplot=c("Meknes35degresWheat"),
+                         col=c("red", "blue", "green", "orange"),
+                         whatcol="variables", lty=1, pch="")
+#because fComputeCoefPhotoperiodWheat with the current wheat parameters starts being more than 0 at 11.6 h of daylength :
+#plot(seq(0,24, by=0.2), mymodel$getglobal("fComputeCoefPhotoperiodWheat")(seq(0,24, by=0.2), CriticalPhotoPeriod=14, PhotoPeriodSensitivity=0.17), type="l")
+#and in novembre, the daylength is already below 11.6
+#plot(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), 
+#    mymodel$getglobal("fPhotoperiodDuration")(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), lat=35), type="l")
+#abline(h=11.6) ; abline(v=as.Date("2019-11-01"))
+
+dynamiques<-mymodel$plot("sDurationStage", 
+                         col=c(Meknes35degresWheat="lightgreen", 
+                               Meknes35degresMaize="cornflowerblue", 
+                               Meknes35degresChickpea="purple"),
+                         whatcol="cases", lty=1, pch="") 
+
+
+dynamiques<-mymodel$plot("sBiologicalDay", 
+                         colors=c(Meknes35degresWheat="lightgreen", 
+                                  Meknes35degresMaize="cornflowerblue", 
+                                  Meknes35degresChickpea="purple"),
+                         whatcolors="cases")
 dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
               colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
               linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",

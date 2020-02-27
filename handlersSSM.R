@@ -28,52 +28,86 @@ mRun<-function(howlong=1)
 
 
 
-mPlotDynamics<-function(variablestoplot, 
-                        colors=NULL, symbols=NULL, linetypes=NULL, 
-                        whatcolors=c("cases", "variables"), whatsymbols=c("cases", "variables"), whatlinetypes=c("cases", "variables"),
-                        ylim=NULL, xlim=NULL,...)  {
-  #variablestoplot: vector of variable names from ALLSIMULATEDDATA
-  #colors: named vector of colors, named according to the names of cases or variables, depending on the value of whatcolors, or one color for all points
-  #symbols: named vector of symbols, named according to the names of cases or variables, depending on the value of whatsymbols, or one symbol for all points
-  #linetypes: named vector of linetypes, named according to the names of cases or variables, depending on the value of whatlinetypes, or one type for all lines
-  names(variablestoplot)<-variablestoplot
+mPlotDynamics<-function(variablestoplot=NULL, casestoplot=NULL,
+                        col=NULL, pch=NULL, lty=NULL, 
+                        whatcol=c("cases", "variables"), whatpch=c("cases", "variables"), whatlty=c("cases", "variables"),
+                       ...)  {
+  #variablestoplot: vector of variable names from ALLSIMULATEDDATA (by default all even if it doesnt look good)
+  #casestoplot: vector of cases (i.e. rownames of the data.frames in ALLSIMULATEDDATA)  (by default all cases)
+  #col: named vector of col, named according to the names of cases or variables, depending on the value of whatcol, or one color for all points
+  #pch: named vector of pch, named according to the names of cases or variables, depending on the value of whatpch, or one symbol for all points
+  #lty: named vector of lty, named according to the names of cases or variables, depending on the value of whatlty, or one type for all lines
   if(length(ALLSIMULATEDDATA)==0) stop("You cannot plot a model that hasn't been run for at least 1 time step") 
+  if(is.null(variablestoplot)) variablestoplot<-names(ALLSIMULATEDDATA[[1]])
+  if(is.null(casestoplot)) casestoplot<-rownames(ALLSIMULATEDDATA[[1]])
+  names(variablestoplot)<-variablestoplot
+  names(casestoplot)<-casestoplot
   #extracts the dynamics of each variable
-  dynamics<-lapply(variablestoplot, function(v) {
+  dynamics<-lapply(variablestoplot, function(v, cases=TRUE) {
     if (is.numeric(ALLSIMULATEDDATA[[1]][,v])) return(
-      as.matrix(as.data.frame(lapply(ALLSIMULATEDDATA, function(x) x[,v, drop=FALSE])))
+      as.matrix(as.data.frame(lapply(ALLSIMULATEDDATA, function(x) x[cases,v, drop=FALSE])))
     ) else stop("variablestoplot should not contain character variables")
-  })
-  #dynamics is a list (one element for each variable) of matrices (rows= cases, columns=timesteps)
-  if (is.null(ylim)) ylim<-range(unlist(dynamics), na.rm=TRUE)
-  dates<-sapply(ALLSIMULATEDDATA, function(x) x[1,"iDate"])
-  if (is.null(xlim)) xlim<-range(dates, na.rm=TRUE)
-  y<-0 
-  Date<-as.Date("1978-08-13")
-  plot(Date, y, xlim=xlim, ylim=ylim, type="n", ...)
-  for (v in variablestoplot) for (i in 1:nrow(dynamics[[1]])) {
+  }, cases=casestoplot)
+  #dynamics is a list (one element for each variable) of matrices (rows= cases to plot, columns=timesteps)
+  
+  if (is.null(col)) { #col not provided but whatcol provided: generate col, whatcol not provided: all black
+    if (whatcol=="cases") {col<-matrix(rep(rainbow(start=0, end=5/6,n=nrow(dynamics[[1]])), times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot } else 
+      if (whatcol=="variables") {col<-matrix(rep(rainbow(start=0, end=5/6, n=length(dynamics)), each=length(casestoplot)), ncol=length(variablestoplot))  ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot  } else 
+      {col<-matrix(rep("black", length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot }
+  } else #col provided
+    if (length(col)==1) { col<-matrix(rep(col, length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot  } else #col provided and length>1
+      if (whatcol=="cases") {
+        if (is.null(names(col))) {if (length(col)==length(casestoplot)) names(col)<-casestoplot else stop("if you don't give names to col, the length of col should be the same as the length of casestoplot") }
+        col<-matrix(rep(col[casestoplot], times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot
+      } else 
+        if (whatcol=="variables") {
+          if (is.null(names(col))) {if (length(col)==length(variablestoplot)) names(col)<-variablestoplot else stop("if you don't give names to col, the length of col should be the same as the length of variablestoplot") }
+          col<-matrix(rep(col[variablestoplot], each=length(casestoplot)), ncol=length(variablestoplot)) ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot
+        } else stop('if col is of length>1, whatcol should be either "cases" or "variables"')
+  if (is.null(pch)) { #pch not provided but whatpch provided: generate pch, whatpch not provided: circle
+    if (whatpch=="cases") {pch<-matrix(rep(rainbow(start=0, end=5/6,n=nrow(dynamics[[1]])), times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(pch)<-variablestoplot ; rownames(pch)<-casestoplot } else 
+      if (whatpch=="variables") {pch<-matrix(rep(rainbow(start=0, end=5/6, n=length(dynamics)), each=length(casestoplot)), ncol=length(variablestoplot))  ; colnames(pch)<-variablestoplot ; rownames(pch)<-casestoplot  } else 
+      {pch<-matrix(rep(1, length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(pch)<-variablestoplot ; rownames(pch)<-casestoplot }
+  } else #pch provided
+    if (length(pch)==1) { pch<-matrix(rep(pch, length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(pch)<-variablestoplot ; rownames(pch)<-casestoplot  } else #pch provided and length>1
+      if (whatpch=="cases") {
+        if (is.null(names(pch))) {if (length(pch)==length(casestoplot)) names(pch)<-casestoplot else stop("if you don't give names to pch, the length of pch should be the same as the length of casestoplot") }
+        pch<-matrix(rep(pch[casestoplot], times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(pch)<-variablestoplot ; rownames(pch)<-casestoplot
+      } else 
+        if (whatpch=="variables") {
+          if (is.null(names(pch))) {if (length(pch)==length(variablestoplot)) names(pch)<-variablestoplot else stop("if you don't give names to pch, the length of pch should be the same as the length of variablestoplot") }
+          pch<-matrix(rep(pch[variablestoplot], each=length(casestoplot)), ncol=length(variablestoplot)) ; colnames(pch)<-variablestoplot ; rownames(pch)<-casestoplot
+        } else stop('if pch is of length>1, whatpch should be either "cases" or "variables"')
+  if (is.null(lty)) { #lty not provided but whatlty provided: generate lty, whatlty not provided: all normal line
+    if (whatlty=="cases") {lty<-matrix(rep(rainbow(start=0, end=5/6,n=nrow(dynamics[[1]])), times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(lty)<-variablestoplot ; rownames(lty)<-casestoplot } else 
+      if (whatlty=="variables") {lty<-matrix(rep(rainbow(start=0, end=5/6, n=length(dynamics)), each=length(casestoplot)), ncol=length(variablestoplot))  ; colnames(lty)<-variablestoplot ; rownames(lty)<-casestoplot  } else 
+      {lty<-matrix(rep(1, length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(lty)<-variablestoplot ; rownames(lty)<-casestoplot }
+  } else #lty provided
+    if (length(lty)==1) { lty<-matrix(rep(lty, length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(lty)<-variablestoplot ; rownames(lty)<-casestoplot  } else #lty provided and length>1
+      if (whatlty=="cases") {
+        if (is.null(names(lty))) {if (length(lty)==length(casestoplot)) names(lty)<-casestoplot else stop("if you don't give names to lty, the length of lty should be the same as the length of casestoplot") }
+        lty<-matrix(rep(lty[casestoplot], times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(lty)<-variablestoplot ; rownames(lty)<-casestoplot
+      } else 
+        if (whatlty=="variables") {
+          if (is.null(names(lty))) {if (length(lty)==length(variablestoplot)) names(lty)<-variablestoplot else stop("if you don't give names to lty, the length of lty should be the same as the length of variablestoplot") }
+          lty<-matrix(rep(lty[variablestoplot], each=length(casestoplot)), ncol=length(variablestoplot)) ; colnames(lty)<-variablestoplot ; rownames(lty)<-casestoplot
+        } else stop('if lty is of length>1, whatlty should be either "cases" or "variables"')
+  #now col, symboles and lty are matrices with cases as rows and variables as columns
+  y<-range(unlist(dynamics), na.rm=TRUE)
+  dates<-do.call("c", lapply(ALLSIMULATEDDATA, function(x) x[1,"iDate"]))
+  Date<-range(dates, na.rm=TRUE)
+  plot(Date, y, type="n", ...)
+  for (v in variablestoplot) for (i in casestoplot) {
     y<-dynamics[[v]][i,,drop=FALSE]
-    if (is.null(colors)) { orderedcolors<-1 } else 
-      if (length(colors)==1) { orderedcolors<-colors } else 
-        if (whatcolors=="cases") { orderedcolors<-colors[rownames(y)] } else 
-          if (whatcolors=="variables") { orderedcolors<-colors[v] } else warning("if colors is of length>1, whatcolors should be either cases or variables")
-    if (is.null(symbols)) { orderedsymbols<-1 } else 
-      if (length(symbols)==1) { orderedsymbols<-symbols } else 
-        if (whatsymbols=="cases") { orderedsymbols<-symbols[rownames(y)] } else 
-          if (whatsymbols=="variables") { orderedsymbols<-symbols[v] } else warning("if symbols is of length>1, whatsymbols should be either cases or variables")
-    if (is.null(linetypes)) { orderedlinetypes<-1 } else 
-      if (length(linetypes)==1) { orderedlinetypes<-linetypes } else 
-        if (whatlinetypes=="cases") { orderedlinetypes<-linetypes[rownames(y)] } else 
-          if (whatlinetypes=="variables") { orderedlinetypes<-linetypes[v] } else warning("if linetypes is of length>1, whatlinetypes should be either cases or variables")
-    lines(dates, y, col=orderedcolors, lty=orderedlinetypes)
-    points(dates, y, col=orderedcolors, pch=orderedsymbols)
+    lines(dates, y, col=col[i,v], lty=lty[i,v])
+    points(dates, y, col=col[i,v], pch=pch[i,v])
   }
   return(dynamics)
 }
-#example: mPlotDynamics("iRSDS") ; mPlotDynamics(c("iTASMin", "iTASMax"), colors=c(iTASMin="blue", iTASMax="red"), whatcolors="variables")
+#example: mPlotDynamics("iRSDS") ; mPlotDynamics(c("iTASMin", "iTASMax"), col=c(iTASMin="blue", iTASMax="red"), whatcol="variables")
 #mPlotDynamics(c("iTASMin", "iTASMax", "iRSDS"), 
-#              colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables", 
-#              linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
+#              col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables", 
+#              lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables")
 
 mContains<-function(details=FALSE) 
 {

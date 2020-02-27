@@ -70,33 +70,33 @@ eReadCrop<-function(){
                            allvariablesfile="allvariables.xlsx")
 }#end read crops
 
-eReadCrops_OLD<-function(){
-  if (PARAMSIM$cropformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
-    pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/crops.xlsx", sep=""))
-    availablecrops<-getSheetNames(pathtoExcel)
-    ALLCROPS<<-list()
-    for (crop in availablecrops) {
-      dfcrop<-read.xlsx(pathtoExcel, sheet=crop, colNames=TRUE, startRow =2) #first column = parameter name, second = units (sometimes), other columns: cultivars
-      rownames(dfcrop)<-dfcrop$name
-      for (cultivar in names(dfcrop)[-(1:3)]) {
-        pasflat<-is.na(as.numeric(dfcrop[,cultivar]))
-        flatparams<-as.list(as.numeric(dfcrop[!pasflat, cultivar])) ; names(flatparams)<-dfcrop[!pasflat, "name"]
-        complexparams<-dfcrop[, c("name", cultivar)]
-        stages<-unlist(strsplit(complexparams["stagelist", cultivar], split=','))
-        descriptionstages<-list()
-        for (sta in stages) {
-          texte<-gsub(pattern='"', replacement="'", x=complexparams[paste("description", sta, sep="_"),cultivar])
-          toto<-list(eval(parse(text=texte)))
-          names(toto)<-sta
-          descriptionstages<-c(descriptionstages, toto)
-        }
-        ALLCROPS[[crop]][[cultivar]]<<-c(flatparams, list(phenology=descriptionstages))
-      }
-
-
-    }
-  } else stop("crop format should only standard SSM")
-} #end read crops
+# eReadCrops_OLD<-function(){
+#   if (PARAMSIM$cropformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
+#     pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/crops.xlsx", sep=""))
+#     availablecrops<-getSheetNames(pathtoExcel)
+#     ALLCROPS<<-list()
+#     for (crop in availablecrops) {
+#       dfcrop<-read.xlsx(pathtoExcel, sheet=crop, colNames=TRUE, startRow =2) #first column = parameter name, second = units (sometimes), other columns: cultivars
+#       rownames(dfcrop)<-dfcrop$name
+#       for (cultivar in names(dfcrop)[-(1:3)]) {
+#         pasflat<-is.na(as.numeric(dfcrop[,cultivar]))
+#         flatparams<-as.list(as.numeric(dfcrop[!pasflat, cultivar])) ; names(flatparams)<-dfcrop[!pasflat, "name"]
+#         complexparams<-dfcrop[, c("name", cultivar)]
+#         stages<-unlist(strsplit(complexparams["stagelist", cultivar], split=','))
+#         descriptionstages<-list()
+#         for (sta in stages) {
+#           texte<-gsub(pattern='"', replacement="'", x=complexparams[paste("description", sta, sep="_"),cultivar])
+#           toto<-list(eval(parse(text=texte)))
+#           names(toto)<-sta
+#           descriptionstages<-c(descriptionstages, toto)
+#         }
+#         ALLCROPS[[crop]][[cultivar]]<<-c(flatparams, list(phenology=descriptionstages))
+#       }
+# 
+# 
+#     }
+#   } else stop("crop format should only standard SSM")
+# } #end read crops
 
 #' Reads in Excel crop parameter file in the same format as crops in SSM, except with extra lines at the end for filters (example crops2.xlsx)
 #'
@@ -106,41 +106,41 @@ eReadCrops_OLD<-function(){
 #' @examples eReadExcelCropParameters_severalsheets(xlsxfile="inputs/crops.xlsx",
 #'   allvariablesfile="allvariables.xlsx"
 #' )
-eReadExcelCropParameters_severalsheets<-function(xlsxfile, allvariablesfile){
-  if (!require(openxlsx)) {warning("function readExcelCropParameters needs package openxlsx"); return(list())}
-  #read in translations of parameter names from SSM to SSM.R
-  trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
-  trad<-trad[trad$typeinthemodel=="CropParameter",]
-  modules<-c(unique(trad$module[!is.na(trad$module)]), "LAI_Secondary", "DMDistribution_SeedGrowing") #don't forget to add modules that don't have specific parameters in allvariables, but that have a filter
-  names(modules)<-modules
-  readmodule<-function(module, data, trad, numerocolonne){
-    toto<-trad[!is.na(trad$module) & trad$module==module,]
-    nomsSSM<-toto$translationSSM ; names(nomsSSM)<-toto$name
-    paramsSSM<-lapply(nomsSSM, function(param) return(data[param,numerocolonne]))
-    types<-toto$typeR ; names(types)<-toto$name
-    paramsSSM[types[names(paramsSSM)]=="numeric"]<-as.numeric(paramsSSM[types[names(paramsSSM)]=="numeric"])
-    paramsSSMR<-list()
-    if (length(data[paste(module, "filter", sep="."), numerocolonne])>0) paramsSSMR<-list(filter=gsub(pattern= "&amp;", replacement="&", fixed=TRUE, x=data[paste(module, "filter", sep="."), numerocolonne]))
-    return(c(paramsSSMR, paramsSSM))
-  }
-  paramscrops<-list()
-  onglets<-getSheetNames(xlsxfile)
-  for(sheet in onglets) {
-    data<-read.xlsx(xlsxfile, sheet=sheet, rowNames=TRUE)
-    for (i in 2:ncol(data)) {
-      paramsmanuels<-list(
-        name=paste(colnames(data)[i], data["name",i], sep="."),
-        thresholds=eval(parse(text=data["thresholds", i])),
-        waterstress=list(filter=data["waterstress.filter", i])
-      )
-      paramsautomatiques<-lapply(modules, readmodule, data=data, trad=trad, numerocolonne=i)
-      lu<-list(c(paramsmanuels, paramsautomatiques))
-      names(lu)<-lu[[1]]$name
-      paramscrops<-c(paramscrops, lu)
-    }
-  }
-  return(paramscrops)
-}
+# eReadExcelCropParameters_severalsheets<-function(xlsxfile, allvariablesfile){
+#   if (!require(openxlsx)) {warning("function readExcelCropParameters needs package openxlsx"); return(list())}
+#   #read in translations of parameter names from SSM to SSM.R
+#   trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
+#   trad<-trad[trad$typeinthemodel=="CropParameter",]
+#   modules<-c(unique(trad$module[!is.na(trad$module)]), "LAI_Secondary", "DMDistribution_SeedGrowing") #don't forget to add modules that don't have specific parameters in allvariables, but that have a filter
+#   names(modules)<-modules
+#   readmodule<-function(module, data, trad, numerocolonne){
+#     toto<-trad[!is.na(trad$module) & trad$module==module,]
+#     nomsSSM<-toto$translationSSM ; names(nomsSSM)<-toto$name
+#     paramsSSM<-lapply(nomsSSM, function(param) return(data[param,numerocolonne]))
+#     types<-toto$typeR ; names(types)<-toto$name
+#     paramsSSM[types[names(paramsSSM)]=="numeric"]<-as.numeric(paramsSSM[types[names(paramsSSM)]=="numeric"])
+#     paramsSSMR<-list()
+#     if (length(data[paste(module, "filter", sep="."), numerocolonne])>0) paramsSSMR<-list(filter=gsub(pattern= "&amp;", replacement="&", fixed=TRUE, x=data[paste(module, "filter", sep="."), numerocolonne]))
+#     return(c(paramsSSMR, paramsSSM))
+#   }
+#   paramscrops<-list()
+#   onglets<-getSheetNames(xlsxfile)
+#   for(sheet in onglets) {
+#     data<-read.xlsx(xlsxfile, sheet=sheet, rowNames=TRUE)
+#     for (i in 2:ncol(data)) {
+#       paramsmanuels<-list(
+#         name=paste(colnames(data)[i], data["name",i], sep="."),
+#         thresholds=eval(parse(text=data["thresholds", i])),
+#         waterstress=list(filter=data["waterstress.filter", i])
+#       )
+#       paramsautomatiques<-lapply(modules, readmodule, data=data, trad=trad, numerocolonne=i)
+#       lu<-list(c(paramsmanuels, paramsautomatiques))
+#       names(lu)<-lu[[1]]$name
+#       paramscrops<-c(paramscrops, lu)
+#     }
+#   }
+#   return(paramscrops)
+# }
 
 #warning: now ALLCROPS is a data.frame, with crop.cultivar as rownames
 #' Reads in Excel crop parameter file in the same format as crops in SSM, except with extra lines at the end for filters (example crops2.xlsx)
@@ -182,6 +182,8 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
   tdata[,numericparam]<-lapply(tdata[,numericparam], as.numeric)
   #evaluation of thresholds (column threshold becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as stages in each crop)
   tdata$thresholds<-lapply(tdata$thresholds, function(x) eval(parse(text=x)))
+  #evaluation of actionsAtStageChange  (column actionsAtStageChange becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as actions to do in each crop)
+  tdata$actionsAtStageChange<-lapply(tdata$actionsAtStageChange, function(x) eval(parse(text=x)))
   #replace the amp symbol by & in filters
   tdata[,grepl(pattern=".filter", x= names(tdata), fixed=TRUE)]<-lapply(tdata[,grepl(pattern=".filter", x= names(tdata), fixed=TRUE)], function(x) gsub(pattern="&amp;", replacement="&", x=x))
   rownames(tdata)<-tdata$name
