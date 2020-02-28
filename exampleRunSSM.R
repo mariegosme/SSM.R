@@ -20,6 +20,7 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
               setoptions=mCompletePARAMSIM,
               getglobal=mGetGlobal,
               setglobal=mSetGlobal,
+              extractVariable=mExtractVariable,
               #setoptions=setoptions, #fonction qui règle les options d'affichage et de mémorisation (setoptions),
               #restart=print("reverifier restart, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #restart, #fonction qui remet le modele à 0 (restart),
               run=mRun,  #fonction qui lance la simu pour n pas de temps (run),
@@ -45,7 +46,7 @@ paramsim<-list(
   cropformat="standardSSM",
   soilformat="standardSSM",
   managformat="standardSSM",
-  Neffect=TRUE
+  Neffect=FALSE
 )
 
 #build the model
@@ -54,57 +55,76 @@ mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 #set the simulation options
 mymodel$setoptions(paramsim)
 #run the model for 100 timesteps
-mymodel$run(200)
+mymodel$run(300)
 
 #plot the dynamics of some variables
-dynamiques<-mymodel$plot("sGrowthStageNumber", 
-                         col=c(Meknes35degresWheat="lightgreen", 
-                                  Meknes35degresMaize="cornflowerblue", 
-                                  Meknes35degresChickpea="purple"),
-                         whatcol="cases", lty=1, pch="") 
-dynamiques<-mymodel$plot("sBiologicalDay", 
-                         col=c(Meknes35degresWheat="lightgreen", 
-                               Meknes35degresMaize="cornflowerblue", 
-                               Meknes35degresChickpea="purple"),
-                         whatcol="cases", lty=1, pch="") 
-dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
-                         casestoplot=c("Meknes35degresWheat"),
-                         col=c(cCoefPhotoPeriod="orange", 
-                                  cCoefTemp="blue", 
-                                  cCoefWaterstressDevelopment="red",
-                                  cBiologicalDay="black"),
-                         whatcol="variables")
-#conc: photoperiod stops wheat growth
-dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
-                         casestoplot=c("Meknes35degresWheat"),
-                         col=c("red", "blue", "green", "orange"),
-                         whatcol="variables", lty=1, pch="")
-#because fComputeCoefPhotoperiodWheat with the current wheat parameters starts being more than 0 at 11.6 h of daylength :
-#plot(seq(0,24, by=0.2), mymodel$getglobal("fComputeCoefPhotoperiodWheat")(seq(0,24, by=0.2), CriticalPhotoPeriod=14, PhotoPeriodSensitivity=0.17), type="l")
-#and in novembre, the daylength is already below 11.6
-#plot(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), 
-#    mymodel$getglobal("fPhotoperiodDuration")(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), lat=35), type="l")
-#abline(h=11.6) ; abline(v=as.Date("2019-11-01"))
+#checking weather module
+if (FALSE) {
+  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+                           colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
+                           linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
+                           symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
+  
+  #mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+  #             colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases",
+  #             linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
+}
 
-dynamiques<-mymodel$plot("sDurationStage", 
-                         col=c(Meknes35degresWheat="lightgreen", 
-                               Meknes35degresMaize="cornflowerblue", 
-                               Meknes35degresChickpea="purple"),
-                         whatcol="cases", lty=1, pch="") 
+#checking phenology module
+if (FALSE) {
+  dynamiques<-mymodel$plot("sGrowthStageNumber", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("sBiologicalDay", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
+                           casestoplot=c("Meknes35degresWheat"),
+                           col=c(cCoefPhotoPeriod="orange", 
+                                 cCoefTemp="blue", 
+                                 cCoefWaterstressDevelopment="red",
+                                 cBiologicalDay="black"),
+                           whatcol="variables")
+  #conc: photoperiod stops wheat growth
+  dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
+                           casestoplot=c("Meknes35degresWheat"),
+                           col=c("red", "blue", "green", "orange"),
+                           whatcol="variables", lty=1, pch="")
+  #because fComputeCoefPhotoperiodWheat with the current wheat parameters starts being more than 0 at 11.6 h of daylength :
+  #plot(seq(0,24, by=0.2), mymodel$getglobal("fComputeCoefPhotoperiodWheat")(seq(0,24, by=0.2), CriticalPhotoPeriod=14, PhotoPeriodSensitivity=0.17), type="l")
+  #and in novembre, the daylength is already below 11.6
+  #plot(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), 
+  #    mymodel$getglobal("fPhotoperiodDuration")(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), lat=35), type="l")
+  #abline(h=11.6) ; abline(v=as.Date("2019-11-01"))
+  
+}
 
-
-dynamiques<-mymodel$plot("sBiologicalDay", 
-                         colors=c(Meknes35degresWheat="lightgreen", 
-                                  Meknes35degresMaize="cornflowerblue", 
-                                  Meknes35degresChickpea="purple"),
-                         whatcolors="cases")
-dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
-              colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
-              linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
-             symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
-
-#mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
-#             colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases",
-#             linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
-
-
+#checking LAI module
+if (FALSE) {
+  dynamiques<-mymodel$plot("sLAI", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("sLAI", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="", ylim=c(0,37000))
+  dynamiques<-mymodel$plot("sLAI", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="", xlim=as.Date(c("1997-11-01", "1997-11-10"))) 
+  #strangely maize has exponential growth much more rapid than the other crops, but all crops have an increase then a decrease of LAI
+  dynamiques<-mymodel$plot("cDecreaseLAI", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+}

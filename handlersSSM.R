@@ -30,7 +30,10 @@ mRun<-function(howlong=1)
 
 mPlotDynamics<-function(variablestoplot=NULL, casestoplot=NULL,
                         col=NULL, pch=NULL, lty=NULL, 
-                        whatcol=c("cases", "variables"), whatpch=c("cases", "variables"), whatlty=c("cases", "variables"),
+                        whatcol=c("cases", "variables"), 
+                        whatpch=c("cases", "variables"), 
+                        whatlty=c("cases", "variables"),
+                        xlim=NULL, ylim=NULL,
                        ...)  {
   #variablestoplot: vector of variable names from ALLSIMULATEDDATA (by default all even if it doesnt look good)
   #casestoplot: vector of cases (i.e. rownames of the data.frames in ALLSIMULATEDDATA)  (by default all cases)
@@ -42,13 +45,19 @@ mPlotDynamics<-function(variablestoplot=NULL, casestoplot=NULL,
   if(is.null(casestoplot)) casestoplot<-rownames(ALLSIMULATEDDATA[[1]])
   names(variablestoplot)<-variablestoplot
   names(casestoplot)<-casestoplot
+  #if xlim is provided, we find the corresponding timesteps
+  dates<-do.call("c", lapply(ALLSIMULATEDDATA, function(x) x[1,"iDate"]))
+  if(!is.null(xlim)) {
+    timestepstoplot<- (dates>=xlim[1] & dates<=xlim[2])
+    dates<-dates[timestepstoplot]
+  } else timestepstoplot<-TRUE
   #extracts the dynamics of each variable
   dynamics<-lapply(variablestoplot, function(v, cases=TRUE) {
     if (is.numeric(ALLSIMULATEDDATA[[1]][,v])) return(
-      as.matrix(as.data.frame(lapply(ALLSIMULATEDDATA, function(x) x[cases,v, drop=FALSE])))
+      as.matrix(as.data.frame(lapply(ALLSIMULATEDDATA[timestepstoplot], function(x) x[cases,v, drop=FALSE])))
     ) else stop("variablestoplot should not contain character variables")
   }, cases=casestoplot)
-  #dynamics is a list (one element for each variable) of matrices (rows= cases to plot, columns=timesteps)
+  #dynamics is a list (one element for each variable) of matrices (rows= cases to plot, columns=timesteps to plot)
   
   if (is.null(col)) { #col not provided but whatcol provided: generate col, whatcol not provided: all black
     if (whatcol=="cases") {col<-matrix(rep(rainbow(start=0, end=5/6,n=nrow(dynamics[[1]])), times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot } else 
@@ -93,9 +102,8 @@ mPlotDynamics<-function(variablestoplot=NULL, casestoplot=NULL,
           lty<-matrix(rep(lty[variablestoplot], each=length(casestoplot)), ncol=length(variablestoplot)) ; colnames(lty)<-variablestoplot ; rownames(lty)<-casestoplot
         } else stop('if lty is of length>1, whatlty should be either "cases" or "variables"')
   #now col, symboles and lty are matrices with cases as rows and variables as columns
-  y<-range(unlist(dynamics), na.rm=TRUE)
-  dates<-do.call("c", lapply(ALLSIMULATEDDATA, function(x) x[1,"iDate"]))
-  Date<-range(dates, na.rm=TRUE)
+  if (is.null(xlim)) Date<-range(dates, na.rm=TRUE) else Date<-xlim
+  if (is.null(ylim)) y<-range(unlist(dynamics), na.rm=TRUE) else y<-ylim
   plot(Date, y, type="n", ...)
   for (v in variablestoplot) for (i in casestoplot) {
     y<-dynamics[[v]][i,,drop=FALSE]
@@ -125,6 +133,13 @@ mGetAllForDebuggingPurposes<-function(){
 mGetGlobal<-function(objectname) return(get(objectname))
 
 mSetGlobal<-function(objectname, value) return(assign(objectname, value))
+
+mExtractVariable<-function(v){
+  if (!(v %in% names(ALLSIMULATEDDATA[[1]]))) stop(v, "is not in the variables saved each day")
+  toto<-as.data.frame(lapply(ALLSIMULATEDDATA, function(x) return(unname(x[,v]))))
+  names(toto)<-paste("day", 1:ncol(toto))
+  return(toto)
+}
 
 mCompletePARAMSIM<-function(listofthings){
   duplicated<-intersect(names(listofthings), names(PARAMSIM))

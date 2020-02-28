@@ -156,6 +156,7 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
   #read in translations of parameter names from SSM to SSM.R
   trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
   trad<-trad[trad$typeinthemodel=="CropParameter",]
+  nomsexcel<-trad$translationSSM ; names(nomsexcel)<-trad$name
   modules<-c(unique(trad$module[!is.na(trad$module)]), "LAI_Secondary", "DMDistribution_SeedGrowing") #don't forget to add modules that don't have specific parameters in allvariables, but that have a filter
   names(modules)<-modules
   readmodule<-function(module, data, trad, numerocolonne){
@@ -169,7 +170,7 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
     return(c(paramsSSMR, paramsSSM))
   }
   paramscrops<-list()
-  data<-read.xlsx(xlsxfile, sheet="allcrops", rowNames=FALSE, colNames=FALSE)
+  data<-read.xlsx(xlsxfile, sheet="allcrops", rowNames=FALSE, colNames=FALSE, na.strings ="-")
   tdata<-as.data.frame(t(as.matrix(data[3:nrow(data), 3:ncol(data)])))
   names(tdata)<-gsub(pattern=" ", replacement="", gsub(pattern=":", replacement="", gsub(pattern="=", replacement="", data[3:nrow(data), "X1"])))
   tdata$name<-paste(tdata$CROP, tdata$Cultivar, sep=".")
@@ -179,7 +180,12 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
   if (any(duplicated(names(tdata)))) stop("allvariables.xlsx names created duplicated parameter names:", paste(names(tdata)[duplicated(names(tdata))], collapse=", "))
   #transformation of types
   numericparam<-intersect(trad[trad$typeR=="numeric", "name"], names(tdata))
+  #find which columns resultd in NA
+  for (v in numericparam) {
+    if (sum(is.na(tdata[,v]))<sum(is.na(as.numeric(tdata[,v])))) print(paste("parameter", nomsexcel[v], "is supposed to be numeric but contains characters in file", xlsxfile))
+  }
   tdata[,numericparam]<-lapply(tdata[,numericparam], as.numeric)
+  
   #evaluation of thresholds (column threshold becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as stages in each crop)
   tdata$thresholds<-lapply(tdata$thresholds, function(x) eval(parse(text=x)))
   #evaluation of actionsAtStageChange  (column actionsAtStageChange becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as actions to do in each crop)

@@ -32,19 +32,13 @@ fFunctionstep<-function(x, x1=NA,x2=NA, x3=NA, x4=NA, y1=NA, y2=NA, y3=NA) {
 #attention: marche SOIT avec x=vecteur et les params=1 chiffre chacun
 #                  SOIT avec x=1 chiffre et les params=vecteurs (ou un chiffre)
 #                  SOIT avec x et les éventuels params multiples de même longueur
-  toto<-y1 + (x-x1)*(y1-y2)/(x1-x2)
-  toto[!is.na(x1) & x<x1]<-y1
-  toto[!is.na(x2) & !is.na(x3) & x>x2 & x<=x3]<-y2
-  toto[!is.na(x3) & !is.na(x4) & x>x3 & x<x4]<-y2 + (x-x3)*(y3-y2)/(x4-x3)
-  toto[!is.na(x4) & x>=x4]<-y3
-  toto[is.na(x1) | is.na(x2) | is.na(x3) | is.na(x3)]<-NA
-  #autrepossibilite avec ifelse
-  #toto<-ifelse(x<=x1, y1,
-  #  ifelse(x>x1 & x<=x2), y1 + (x-x1)*(y1-y2)/(x1-x2),
-  #    ifelse(x>x2 & x<x3, y2,
-  #      ifelse(x>x3 & x>=x4, y2 + (x-x3)*(y3-y2)/(x4-x3),
-  #        y3)))
-    return(toto)
+  df<-data.frame(x, x1, x2, x3, x4, y1, y2, y3) #so that they ar all the same length
+  df$toto<-df$y1 + (df$x-df$x1)*(df$y1-df$y2)/(df$x1-df$x2)
+  df[!is.na(df$x) & df$x<df$x1, "toto"]<-df$y1[!is.na(df$x) & df$x<df$x1]
+  df[!is.na(df$x) & df$x>df$x2 & df$x<=df$x3, "toto"]<-df$y2[!is.na(df$x) & df$x>df$x2 & df$x<=df$x3]
+  df[!is.na(df$x) & df$x>df$x3 & df$x<df$x4, "toto"]<- (df$y2 + (df$x-df$x3)*(df$y3-df$y2)/(df$x4-df$x3))[!is.na(df$x) & df$x>df$x3 & df$x<df$x4]
+  df[!is.na(df$x) & df$x>=df$x4, "toto"]<-y3[!is.na(df$x) & df$x>=df$x4]
+  return(df$toto)
 }
 
 fComputeDailyVernalization<-function(cCrownTemp,TbaseVernalization,Topt1Vernalization,Topt2Vernalization,TlethalVernalization) {
@@ -153,9 +147,7 @@ fComputeDecreaseLAIwithN<-function(DailyRateNfromLeave,SpecLeafNGreenLeaf,SpecLe
     return(DailyRateNfromLeave / (SpecLeafNGreenLeaf - SpecLeafNSenescenceLeaf))
 }
 
-fComputeDecreaseLAIwithoutN<-function(){
 
-}
 fFrostEffect<-function(LAI,tasmin,FreezeThresholdTemp,FreezeFracLeafDestruction){
   frstf = abs(tasmin - FreezeThresholdTemp) * FreezeFracLeafDestruction
   frstf= max(min(frstf,1),0)
@@ -393,6 +385,7 @@ rUpdateLAI<-function(){
   daily_increase_node_number <- ALLDAYDATA$sThermalUnit / ALLDAYDATA$pPhyllochron 
   sMainstemNodeNumber <- ALLDAYDATA$sMainstemNodeNumber  + daily_increase_node_number
   leaf_area_yesterday<-ALLDAYDATA$sPlantLeafArea
+  LAI_yesterday<-ALLDAYDATA$sLAI
   sPlantLeafArea <- ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
   #warning: in the following line of code, the SSM model uses a computed value from the day before (WSFL = cCoefWaterstressLeaf)
   #which is contrary to our rules about computed/state variables, but necessary 
@@ -403,43 +396,64 @@ rUpdateLAI<-function(){
     * ALLDAYDATA$sCoefWaterstressLeaf
   )
   #LAISecondary (between booting and beginning of seed growth for wheat, between bdTLM and bdTLP for legumes)
-  increase_LAISecondary <- ALLDAYDATA$sDailyLeafWeightIncrease * ALLDAYDATA$pSpecificLeafArea
+  increase_LAISecondary <- ALLDAYDATA$sDailyLeafWeightIncrease * ALLDAYDATA$pSpecificLeafArea #sDailyLeafWeightIncrease = GLF from yesterday, from module DM_Distribution
   
   #LAI Total Growing
   cGrowthLAI <- rep(0, nrow(ALLDAYDATA))
   alaimainstem<-applyfilters("LAI_Mainstem")
   alaisecondary<-applyfilters("LAI_Secondary")
-  cGrowthLAI<-cGrowthLAI+ alaimainstem * increase_LAIMainstem + alaisecondary * increase_LAISecondary 
+  cGrowthLAI<-cGrowthLAI+ unname(alaimainstem) * increase_LAIMainstem + unname(alaisecondary) * increase_LAISecondary 
   #warning: we do a lot of unnecessary calculations because we compute both LAIMainstem and LAIsecondary 
   #also in the cases where they are not used... if performance is a problem, it would be better to apply
   #the filter to select the cases before doing the calculations
   
   ###LAI Decrease
+  cDecreaseLAI<-rep(0, nrow(ALLDAYDATA))
+  sDecreaseLAIperBD<-ALLDAYDATA$sDecreaseLAIperBD #simple decrease rate that remains the same throughout leaf senescence, to arrive at 0 LAI at MAT
   if(PARAMSIM$Neffect==T){
-    cDecreaseLAI<-fComputeDecreaseLAIwithN(DailyRateNfromLeave=ALLDAYDATA$sDailyRateNfromLeave,
+    cDecreaseLAI<-fComputeDecreaseLAIwithN(DailyRateNfromLeave=ALLDAYDATA$sDailyRateNfromLeave, #XNLF from yesterday, from module PlantN
                                            SpecLeafNGreenLeaf=ALLDAYDATA$pSpecLeafNGreenLeaf,
                                            SpecLeafNSenescenceLeaf=ALLDAYDATA$pSpecLeafNSenescenceLeaf)
-  }else{
-    cDecreaseLAI<-fComputeDecreaseLAIwithoutN()
-
-  #icicici écrire la procédure et la fonction de décroissance sans azote
-  #  If CBD < bdBLS Then
-  #     DLAI = 0
-  #     BLSLAI = LAI             'Saving LAI at BLS
-  #  ElseIf CBD >= bdBLS Then
-  #     DLAI = bd / (bdMAT - bdBLS) * BLSLAI
-  #  End If
-
+  }else{ #LAI decrease following a straight line from LAI at beginning of senescence to 0 at MAT (=last stage in all crops)
+    #the computation is more complicated than in the excel version, because we want to have nothing hard-coded (except that MAT is the last before last stage in the vector of stages)
+    #and we didn't want to asking the user to add an extra parameter for senescence duration
+    resultfilter<-applyfilters("LAI_Senescence")
+    if(any(resultfilter)) {
+      startsenescence<-resultfilter & sDecreaseLAIperBD==0 #cases where we just started leaf senescence (sDecreaseLAIperBD was still at its initial value)
+      if (any(startsenescence)) {
+        BLSLAI<-rep(NA, nrow(ALLDAYDATA))
+        BLSLAI[startsenescence]<-LAI_yesterday[startsenescence] #LAI at start of senescence
+        cultivars_startsenescence<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")[startsenescence]
+        durationOtherstages<-numeric()
+        for (cr in unique(cultivars_startsenescence)) { #for each cultivar, we will find the duration of remaining stages after the current one
+          currentstageNumber<-ALLDAYDATA$sGrowthStageNumber[startsenescence & paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")==cr][1] #they are all the same, because the filter for senescence is defined at the crop-cultivar level
+          durationstages<-ALLCROPS[cr, "thresholds"][[1]]
+          if(is.finite(durationstages[length(durationstages)])) warning(paste("leaf senescence (in the case where PARAMSIM$Neffect is FALSE) expects that the vector of thresholds for the different stages of the crops ends with a 'fake' last stage with length Inf. It is not the case for crop", cr,"so the last stage is not included in senescence" ))
+          durationremainingstages<-sum(durationstages[(currentstageNumber+1):(length(durationstages)-1)]) #duration of all the other stages NOT including the current one, and of course not including the "fake" last stage with length Inf
+          names(durationremainingstages)<-cr
+          durationOtherstages<-c(durationOtherstages, durationremainingstages)
+          if(is.na(durationremainingstages)) stop(paste("the duration of leaf senescence for", cr, " cannot be computed due to some stages having variable duration, this is not allowed in this version of the model"))
+        }
+        bdToMAT<-rep(NA, nrow(ALLDAYDATA)) #number of biological days from start of senescence to end of last stage
+        bdToMAT[startsenescence]<-(ALLDAYDATA$sDurationStage[startsenescence] - ALLDAYDATA$sBiologicalDay[startsenescence]
+        ) + ( #remaining duration of the current stage
+          durationOtherstages[cultivars_startsenescence]
+        )
+        sDecreaseLAIperBD[startsenescence]<-BLSLAI[startsenescence]/bdToMAT[startsenescence]
+      }
+      cDecreaseLAI[resultfilter]<-sDecreaseLAIperBD[resultfilter]*ALLDAYDATA$cDeltaBiologicalDay[resultfilter]
+    }
   }
 
-  frost<-fFrostEffect(LAI=ALLDAYDATA$sLAI,tasmin=ALLDAYDATA$iTASMin,
-                      FreezeThresholdTemp=ALLDAYDATA$pFreezeThresholdTemp,
-                      FreezeFracLeafDestruction=ALLDAYDATA$pFreezeFracLeafDestruction)
-  heat<-fHeatEffect(cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax,
-                    HeatThresholdTemp=ALLDAYDATA$pHeatThresholdTemp,
-                    HeatFracLeafDestruction=ALLDAYDATA$pHeatFracLeafDestruction)
-  cDecreaseLAI<-max(frost,heat)   ####heat LAI corresponds to cDecreaseLAI if no heat effect and cDreaseLAI corresponds to heat if hot effet. Take effect of frozen if it is more important that cDea
-
+#icicici frost returns NA, and heat also
+  # frost<-fFrostEffect(LAI=LAI_yesterday,tasmin=ALLDAYDATA$iTASMin,
+  #                     FreezeThresholdTemp=ALLDAYDATA$pFreezeThresholdTemp,
+  #                     FreezeFracLeafDestruction=ALLDAYDATA$pFreezeFracLeafDestruction)
+  # heat<-fHeatEffect(cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax,
+  #                   HeatThresholdTemp=ALLDAYDATA$pHeatThresholdTemp,
+  #                   HeatFracLeafDestruction=ALLDAYDATA$pHeatFracLeafDestruction)
+  # cDecreaseLAI<-max(frost,heat)   ####heat LAI corresponds to cDecreaseLAI if no heat effect and cDreaseLAI corresponds to heat if hot effet. Take effect of frozen if it is more important that cDea
+  # 
   sLAI <- pmax(0, ALLDAYDATA$sLAI+cGrowthLAI-cDecreaseLAI)         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
 
   ####Mortality test with low LAI CONDITION
@@ -449,12 +463,14 @@ rUpdateLAI<-function(){
   ALLDAYDATA[,c("sMainstemNodeNumber",
                 "sPlantLeafArea",
                 "cGrowthLAI",
+                "sDecreaseLAIperBD",
                 "cDecreaseLAI",
                 "sLAI",
                 "cEndCropCycle")]<<-data.frame(
                   sMainstemNodeNumber,
                   sPlantLeafArea,
                   cGrowthLAI,
+                  sDecreaseLAIperBD,
                   cDecreaseLAI,
                   sLAI,
                   cEndCropCycle)
