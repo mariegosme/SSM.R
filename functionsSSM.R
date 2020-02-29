@@ -125,6 +125,24 @@ fComputeCoefVernalization<-function(VernalizationSensitivity,VDSAT,sVernalizatio
 fComputeCoefWaterstressDevelopment<-function(watercontent){        ####icicici à modifier pour prendre en compte le stress hydrique
   return(rep(1, length(watercontent)))
 }
+fComputeCoefWaterstressDryMatter<-function(watercontent){        ####icicici à modifier pour prendre en compte le stress hydrique
+  return(rep(1, length(watercontent)))
+}
+fComputeCoefWaterstressLeaf<-function(watercontent){        ####icicici à modifier pour prendre en compte le stress hydrique
+  return(rep(1, length(watercontent)))
+}
+# If FTSWRZ > WSSL Then WSFL = 1 Else WSFL = FTSWRZ / WSSL
+# If FTSWRZ > WSSG Then WSFG = 1 Else WSFG = FTSWRZ / WSSG
+# WSFD = (1 - WSFG) * WSSD + 1
+# If WRZ <= WRZUL Then WSXF = 1 Else WSXF = ((WRZST - WRZ) / (WRZST - WRZUL))
+# If WSXF < 0 Then WSXF = 0
+# If FTSWRZ > 1 Then
+# WSFG = WSXF:   WSFL = WSXF:   'WSFN = WSXF:
+# End If
+# If WSXF <= 0.02 Then FLDUR = (FLDUR + 1) Else FLDUR = 0
+# If FLDUR > FLDKIL Then CBD = bdTSG: MATYP = 5
+
+
 
 fComputeDurationTSIMaize<-function(cTUbetweenEMRandTSI, pPhyllochron, pT1optDev, pTbaseDev){
   TLNO <- cTUbetweenEMRandTSI / (pPhyllochron * 0.5) + 5
@@ -224,13 +242,20 @@ rUpdatePhenology<-function(){
   sGrowthStageNumber<-ALLDAYDATA$sGrowthStageNumber
   sDurationStage<-ALLDAYDATA$sDurationStage
   cDeltaThermalUnit<-(ALLDAYDATA$pTopt1dev - ALLDAYDATA$pTbasedev)
-  cDeltaBiologicalDay<-rep(1, nrow(ALLDAYDATA))
+  cDeltaBiologicalDay<-ALLDAYDATA$cDeltaBiologicalDay
+  
+  cDailyVernalization<-ALLDAYDATA$cDailyVernalization
+  sVernalization <- ALLDAYDATA$sVernalization
+  cCoefVernalization <- ALLDAYDATA$cCoefVernalization
+  cCrownTemp <- ALLDAYDATA$cCrownTemp
+  cCoefWaterstressDevelopment <- ALLDAYDATA$cCoefWaterstressDevelopment
+  cTemp<-ALLDAYDATA$cTemp
+  cCoefTemp <-ALLDAYDATA$cCoefTemp
+  cCoefPhotoPeriod <- ALLDAYDATA$cCoefPhotoPeriod
+  cPhotoDuration<-ALLDAYDATA$cPhotoDuration
+  cCoefDrySoilSurface <- ALLDAYDATA$cCoefDrySoilSurface
   
   ###Vernalization
-  cDailyVernalization<-rep(0, nrow(ALLDAYDATA))
-  sVernalization <- ALLDAYDATA$sVernalization
-  cCoefVernalization <- rep(1, nrow(ALLDAYDATA))
-  cCrownTemp <- rep(NA, nrow(ALLDAYDATA))
   resultfilterBD<-applyfilters("vernalisation_onBD")
   resultfilterTU<-applyfilters("vernalisation_onTU")
   resultfilter<-resultfilterBD | resultfilterTU
@@ -258,9 +283,7 @@ rUpdatePhenology<-function(){
     cDeltaBiologicalDay[resultfilterBD]<-cDeltaBiologicalDay[resultfilterBD]*cCoefVernalization[resultfilterBD]
   }
   
-  
 ###Waterstress
-  cCoefWaterstressDevelopment <- rep(1, nrow(ALLDAYDATA))
   resultfilterBD<-applyfilters("waterstress_onBD")
   resultfilterTU<-applyfilters("waterstress_onTU")
   resultfilter<-resultfilterBD | resultfilterTU
@@ -275,8 +298,6 @@ rUpdatePhenology<-function(){
   }
 
 ###temperature
-  cTemp<-rep(NA, nrow(ALLDAYDATA))
-  cCoefTemp <- rep(1, nrow(ALLDAYDATA))
   resultfilterBD<-applyfilters("temperature_onBD")
   resultfilterTU<-applyfilters("temperature_onTU")
   resultfilter<-resultfilterBD | resultfilterTU
@@ -294,8 +315,6 @@ rUpdatePhenology<-function(){
   }
   
 ###PhotoPeriod
-  cCoefPhotoPeriod <- rep(1, nrow(ALLDAYDATA))
-  cPhotoDuration<-ALLDAYDATA$cPhotoDuration #only NAs but to have the right length
   resultfilterBD<-applyfilters("photoperiod_onBD")
   resultfilterTU<-applyfilters("photoperiod_onTU")
   resultfilter<-resultfilterBD | resultfilterTU
@@ -315,7 +334,6 @@ rUpdatePhenology<-function(){
   }
   
 ###dry Soil Surface
-  cCoefDrySoilSurface <- rep(1, nrow(ALLDAYDATA))
   resultfilterBD<-applyfilters("drySoilSurface_onBD")
   resultfilterTU<-applyfilters("drySoilSurface_onTU")
   resultfilter<-resultfilterBD | resultfilterTU
@@ -327,17 +345,12 @@ rUpdatePhenology<-function(){
     cDeltaBiologicalDay[resultfilterBD]<-cDeltaBiologicalDay[resultfilterBD]*cCoefDrySoilSurface[resultfilterBD]
   }
   
-###Computation of "on-the-fly" stage duration, based on previous   
 ###Phenology Update
   sThermalUnit<-sThermalUnit + cDeltaThermalUnit
   sBiologicalDay<-sBiologicalDay + cDeltaBiologicalDay
   
 ####stage changes
   cultivars<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")
-  # thresholds<-mapply(function(cropname, stage) return(ALLCROPS[cropname,"thresholds"][[1]][stage]),
-  #                    cultivars, 
-  #                    as.character(sGrowthStage), SIMPLIFY = TRUE, USE.NAMES=FALSE
-  #                    )
   changestage<-sBiologicalDay>sDurationStage
   if(any(changestage)) {
     sGrowthStageNumber[changestage]<-sGrowthStageNumber[changestage]+1
@@ -367,13 +380,12 @@ rUpdatePhenology<-function(){
   }
   
 ####Update ALLDAYDATA
-  ALLDAYDATA[,c("cCrownTemp","cDailyVernalization","sVernalization","cCoefVernalization","cCoefWaterstressDevelopment",
-                "cTemp","cCoefTemp","cPhotoDuration","cCoefPhotoPeriod","cDeltaThermalUnit","sThermalUnit",
-                "cDeltaBiologicalDay","sBiologicalDay","sGrowthStage","sGrowthStageNumber", "sDurationStage")]<<-data.frame(
-                  cCrownTemp,cDailyVernalization,sVernalization,cCoefVernalization,cCoefWaterstressDevelopment,
-                  cTemp,cCoefTemp,cPhotoDuration,cCoefPhotoPeriod,cDeltaThermalUnit,sThermalUnit,
-                  cDeltaBiologicalDay,sBiologicalDay,sGrowthStage,sGrowthStageNumber, sDurationStage)
-
+  ALLDAYDATA[,c("sThermalUnit", "sBiologicalDay", "sGrowthStage", "sGrowthStageNumber", "sDurationStage", "sVernalization",
+                "cDeltaThermalUnit", "cDeltaBiologicalDay", "cDailyVernalization", "cCoefVernalization", "cCrownTemp", 
+                "cCoefWaterstressDevelopment", "cTemp", "cCoefTemp", "cCoefPhotoPeriod", "cPhotoDuration", "cCoefDrySoilSurface")]<<-data.frame(
+                  sThermalUnit, sBiologicalDay, sGrowthStage, sGrowthStageNumber, sDurationStage, sVernalization,
+                  cDeltaThermalUnit, cDeltaBiologicalDay, cDailyVernalization, cCoefVernalization, cCrownTemp, 
+                  cCoefWaterstressDevelopment, cTemp, cCoefTemp, cCoefPhotoPeriod, cPhotoDuration, cCoefDrySoilSurface  )
   return()
 }
 
@@ -382,30 +394,35 @@ rUpdateLAI<-function(){
   #print("Updating LAI")
   ###LAI Growing (similar with and without N contribution)
   #LAIMainstem (i.e.between bdBLG and bdTLM)
+  cCoefWaterstressLeaf<-ALLDAYDATA$cCoefWaterstressLeaf
   daily_increase_node_number <- ALLDAYDATA$sThermalUnit / ALLDAYDATA$pPhyllochron 
   sMainstemNodeNumber <- ALLDAYDATA$sMainstemNodeNumber  + daily_increase_node_number
   leaf_area_yesterday<-ALLDAYDATA$sPlantLeafArea
   LAI_yesterday<-ALLDAYDATA$sLAI
   sPlantLeafArea <- ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
-  #warning: in the following line of code, the SSM model uses a computed value from the day before (WSFL = cCoefWaterstressLeaf)
-  #which is contrary to our rules about computed/state variables, but necessary 
-  #because water stress is computed in the module watermanagement that comes later in the code
-  #so I changed it to a state variable (sCoefWaterstressLeaf) with an initial value of 1, even it is not updated by adding/substracting from itself
-  increase_LAIMainstem <- ((
-    (sPlantLeafArea - leaf_area_yesterday) * ALLDAYDATA$sPlantdensity / 10000) 
-    * ALLDAYDATA$sCoefWaterstressLeaf
-  )
-  #LAISecondary (between booting and beginning of seed growth for wheat, between bdTLM and bdTLP for legumes)
-  increase_LAISecondary <- ALLDAYDATA$sDailyLeafWeightIncrease * ALLDAYDATA$pSpecificLeafArea #sDailyLeafWeightIncrease = GLF from yesterday, from module DM_Distribution
   
+  #Mainstem
+  increase_LAIMainstem <- rep(0, nrow(ALLDAYDATA))
+  resultfilter<-applyfilters("LAI_Mainstem")
+  if(any(resultfilter)) {
+    #icicicic : fComputeCoefWaterstressLeaf is not coded, watercontent should not be only at the surface.... to be changed when water module is coded
+    cCoefWaterstressLeaf[resultfilter]<-fComputeCoefWaterstressLeaf(
+      watercontent=ALLDAYDATA$sWater.1[resultfilter]
+    )
+    increase_LAIMainstem[resultfilter] <- ((
+      (sPlantLeafArea - leaf_area_yesterday) * ALLDAYDATA$sPlantdensity / 10000) 
+      * ALLDAYDATA$cCoefWaterstressLeaf
+    )[resultfilter]
+  }
+  
+  #LAISecondary (between booting and beginning of seed growth for wheat, between bdTLM and bdTLP for legumes)
+  increase_LAISecondary <- rep(0, nrow(ALLDAYDATA))
+  applyfilters("LAI_Secondary")
+  if(any(resultfilter)) {
+    increase_LAISecondary[resultfilter] <- (ALLDAYDATA$sDailyLeafWeightIncrease * ALLDAYDATA$pSpecificLeafArea)[resultfilter] #sDailyLeafWeightIncrease = GLF from yesterday, from module DM_Distribution
+  }
   #LAI Total Growing
-  cGrowthLAI <- rep(0, nrow(ALLDAYDATA))
-  alaimainstem<-applyfilters("LAI_Mainstem")
-  alaisecondary<-applyfilters("LAI_Secondary")
-  cGrowthLAI<-cGrowthLAI+ unname(alaimainstem) * increase_LAIMainstem + unname(alaisecondary) * increase_LAISecondary 
-  #warning: we do a lot of unnecessary calculations because we compute both LAIMainstem and LAIsecondary 
-  #also in the cases where they are not used... if performance is a problem, it would be better to apply
-  #the filter to select the cases before doing the calculations
+  cGrowthLAI<- increase_LAIMainstem + increase_LAISecondary 
   
   ###LAI Decrease
   cDecreaseLAI<-rep(0, nrow(ALLDAYDATA))
@@ -472,6 +489,7 @@ rUpdateLAI<-function(){
 
   ALLDAYDATA[,c("sMainstemNodeNumber",
                 "sPlantLeafArea",
+                "cCoefWaterstressLeaf",
                 "cGrowthLAI",
                 "sDecreaseLAIperBD",
                 "cDecreaseLAI",
@@ -480,6 +498,7 @@ rUpdateLAI<-function(){
                 "sLAI")]<<-data.frame(
                   sMainstemNodeNumber,
                   sPlantLeafArea,
+                  cCoefWaterstressLeaf,
                   cGrowthLAI,
                   sDecreaseLAIperBD,
                   cDecreaseLAI,
@@ -490,24 +509,27 @@ rUpdateLAI<-function(){
 
 rUpdateDMProduction<-function(){
   #print("Updating DMProduction")
-  cCoefRadiationEfficiency <- rep(0, nrow(ALLDAYDATA))   #Radiation effiency is null when the plant doens't produce leaf
-  cRadiationUseEffiency <- ALLDAYDATA$cRadiationUseEffiency
+  cRUE <- rep(0, nrow(ALLDAYDATA))   #Radiation efficiency is null when the plant doens't produce leaf
+  cCoefTemperatureRUE <- ALLDAYDATA$cCoefTemperatureRUE
   cPAR<-ALLDAYDATA$cPAR
   cDryMatterProduction<-ALLDAYDATA$cDryMatterProduction
+  aFINT<-rep(0, nrow(ALLDAYDATA)) 
   resultfilter<-applyfilters("DMProduction") 
   if(any(resultfilter)) {
-    cCoefRadiationEfficiency[resultfilter]<-fComputeCoefTemp(cTemp=ALLDAYDATA$cTemp,Tbase=ALLDAYDATA$pTbasRUE,
-                                                             Topt1=ALLDAYDATA$DMProduction$pTopt1RUE,
+    cCoefTemperatureRUE[resultfilter]<-fComputeCoefTemp(cTemp=ALLDAYDATA$cTemp,Tbase=ALLDAYDATA$pTbasRUE,
+                                                             Topt1=ALLDAYDATA$pTopt1RUE,
                                                              Topt2=ALLDAYDATA$pTopt2RUE,
                                                              Tlethal=ALLDAYDATA$plethalRUE)[resultfilter]
-    cRadiationUseEffiency <- ALLDAYDATA$pRadEffiencyOptimal * cCoefRadiationEfficiency * ALLDAYDATA$cCoefWaterstressDryMatter
-    cPAR<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, CoefPAR=GENERALPARAMETERS["pCoefPAR", "defaultInitialvalue"])
-    aFINT<- 1 - exp(-ALLDAYDATA$pKPAR * ALLDAYDATA$sLAI)
-    cDryMatterProduction <- ALLDAYDATA$cPAR * aFINT * cRadiationUseEffiency
+    ##icicicic cCoefWaterstressDryMatter is set to 1 from the excel file because water module isn't coded yet
+    cRUE[resultfilter] <- (ALLDAYDATA$pRadEffiencyOptimal * cCoefTemperatureRUE * ALLDAYDATA$cCoefWaterstressDryMatter)[resultfilter]
+    cPAR[resultfilter]<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, 
+                                    CoefPAR=GENERALPARAMETERS["pCoefPAR", "defaultInitialvalue"])[resultfilter]
+    aFINT[resultfilter]<- (1 - exp(-ALLDAYDATA$pKPAR * ALLDAYDATA$sLAI))[resultfilter]
+    cDryMatterProduction[resultfilter] <- (cPAR * aFINT * cRUE)[resultfilter]
   }
   
 
-  ALLDAYDATA[,c("cCoefRadiationEfficiency","cRadiationUseEffiency","cPAR","cDryMatterProduction")]<<-data.frame(
-    cCoefRadiationEfficiency,cRadiationUseEffiency,cPAR,cDryMatterProduction)
+  ALLDAYDATA[,c("cCoefTemperatureRUE","cRUE","cPAR","cDryMatterProduction")]<<-data.frame(
+    cCoefTemperatureRUE,cRUE,cPAR,cDryMatterProduction)
 
 }

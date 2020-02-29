@@ -43,25 +43,24 @@ applyfilters<-function(processname){
   return(resultfilter)
 }
 
+fCreateDay<-function(dateday){
+  types<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"]
+  names(types)<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "name"]
+  df<-cbind(data.frame(iDate=dateday),
+            as.data.frame(lapply(types, function(x) return(do.call(x, list(nrow(PARAMSIM$cases)))))))
+  rownames(df)<-rownames(PARAMSIM$cases)
+ #initialize all variables as their default values
+  df[,setdiff(names(df), "iDate")]<-lapply(setdiff(names(df), "iDate"), function(x) VARIABLEDEFINITIONS[x, "defaultInitialvalue"])
+  df[,names(types)[types=="numeric"]]<-lapply(df[,names(types)[types=="numeric"]],as.numeric)
+  return(df)
+}
 
 #creation of day 0 
 rCreateDay0<-function() {
   print("initializing the simulation (with crops because sowing hasnt been coded yet" )
   if(is.null(PARAMSIM$simustart)) stop("you didn't define a starting date, use $setoptions to do it")
-  ##### creation of day 0 (before start of simulation)
-  vnames<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "name"]
-  types<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"]
-  names(types)<-vnames
-  ##warning: this lapply works only for numeric and character!!!!!!
-  if (sum( !types %in% c("numeric", "character"))>0) stop("all variables should be either numeric or character, check variables", paste(names(types)[!types %in% c("numeric", "character")], collapse=","))
-  df<-cbind(data.frame(iDate=PARAMSIM$simustart-1),
-            as.data.frame(lapply(types, FUN=function(x) return(do.call(x, list(nrow(PARAMSIM$cases)))))))
-  rownames(df)<-rownames(PARAMSIM$cases)
-  #we initialize the state variables with their default value in allvariables.xlsx
-  for(v in vnames[substr(vnames, start=1, stop=1)=="s"]) {
-    df[,v]<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name==v,"defaultInitialvalue"]
-    if(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name==v,"typeR"]=="numeric") df[,v]<-as.numeric(df[,v])
-  }
+  if (sum( !(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"]%in% c("numeric", "character")) )>0) stop("all variables should be either numeric or character, check variables", paste(names(types)[!types %in% c("numeric", "character")], collapse=","))
+  df<-fCreateDay(PARAMSIM$simustart-1)
   #we start without crop (sowing in the future, harvest in the past)
   #df$sLastSowing<-Inf 
   #df$sLastHarvest<- (-Inf)
@@ -89,13 +88,10 @@ rCreateDay<-function() {
   daybefore<-length(ALLSIMULATEDDATA)
   print(paste("creating day", daybefore)) #because there is a day 0
   dateday<-ALLSIMULATEDDATA[[daybefore]][,"iDate"]+1
-  types<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"]
-  names(types)<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "name"]
-  df<-cbind(data.frame(iDate=dateday),
-            as.data.frame(lapply(types, function(x) return(do.call(x, list(nrow(PARAMSIM$cases)))))))
-  rownames(df)<-rownames(PARAMSIM$cases)
+  df<-fCreateDay(dateday)
   #initialize state variables to the state at preceding timestep
-  df[,substr(x=colnames(df), start=1, stop=1)=="s"]<-ALLSIMULATEDDATA[[daybefore]][,substr(x=colnames(df), start=1, stop=1)=="s"]
+  statevars<-names(df)[substr(x=colnames(df), start=1, stop=1)=="s"]
+  df[,statevars]<-ALLSIMULATEDDATA[[daybefore]][,statevars]
   ALLDAYDATA<<-df
   return()
 }

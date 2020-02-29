@@ -25,8 +25,8 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
               #restart=print("reverifier restart, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #restart, #fonction qui remet le modele à 0 (restart),
               run=mRun,  #fonction qui lance la simu pour n pas de temps (run),
               #map=cartesorties,
-              plot=mPlotDynamics#,#fonction qui plote la dynamique d'une ou plusieurs variables enregistréées (plot)
-              #summary=resume #fonction qui résume l état du modèle: t actuel, ... (summary),
+              plot=mPlotDynamics,#fonction qui plote la dynamique d'une ou plusieurs variables enregistréées (plot)
+              summary=mSummary #fonction qui résume l état du modèle: nombre de pas de temps et gamme de dates, ,
   ))
 }
 
@@ -56,18 +56,19 @@ mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 mymodel$setoptions(paramsim)
 #run the model for 100 timesteps
 mymodel$run(300)
+#mymodel$GetAllForDebuggingPurposes()
 
 #plot the dynamics of some variables
 #checking weather module
 if (FALSE) {
   dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
-                           colors=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcolors="variables",
-                           linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables",
-                           symbols=c(Meknes35degres=1, Meknes45degres=8), whatsymbols="cases")
+                           col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
+                           lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
+                           pch=c(Meknes35degresWheat=1, Meknes35degresMaize=8, Meknes35degresChickpea=14), whatpch="cases")
   
   #mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
-  #             colors=c(Meknes35degres=1, Meknes45degres=8), whatcolors="cases",
-  #             linetypes=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlinetypes="variables")
+  #             col=c(Meknes35degres=1, Meknes45degres=8), whatcol="cases",
+  #             lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables")
 }
 
 #checking phenology module
@@ -120,7 +121,7 @@ if (FALSE) {
                                  Meknes35degresMaize="cornflowerblue", 
                                  Meknes35degresChickpea="purple"),
                            whatcol="cases", lty=1, pch="", xlim=as.Date(c("1997-11-01", "1997-11-10"))) 
-  #strangely maize has exponential growth much more rapid than the other crops, but all crops have an increase then a decrease of LAI
+  #strangely maize has exponential growth much more rapid than the other crops, but all crops except maize have an increase then a decrease of LAI
   dynamiques<-mymodel$plot("cDecreaseLAI", 
                            col=c(Meknes35degresWheat="lightgreen", 
                                  Meknes35degresMaize="cornflowerblue", 
@@ -141,5 +142,20 @@ if (FALSE) {
                                  Meknes35degresMaize="cornflowerblue", 
                                  Meknes35degresChickpea="purple"),
                            whatcol="cases", lty=1, pch="", ylim=c(0,2500))
+  
+}
+
+#checking DMProduction module
+if(FALSE){
+  dynamiques<-mymodel$plot("cRUE", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("cDryMatterProduction", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
   
 }

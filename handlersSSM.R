@@ -26,8 +26,6 @@ mRun<-function(howlong=1)
   return(paste("the model ran for", howlong, "time steps"))
 }
 
-
-
 mPlotDynamics<-function(variablestoplot=NULL, casestoplot=NULL,
                         col=NULL, pch=NULL, lty=NULL, 
                         whatcol=c("cases", "variables"), 
@@ -137,7 +135,14 @@ mSetGlobal<-function(objectname, value) return(assign(objectname, value))
 mExtractVariable<-function(v){
   if (!(v %in% names(ALLSIMULATEDDATA[[1]]))) stop(v, "is not in the variables saved each day")
   toto<-as.data.frame(lapply(ALLSIMULATEDDATA, function(x) return(unname(x[,v]))))
-  names(toto)<-paste("day", 1:ncol(toto))
+  names(toto)<-paste("day", 0:(ncol(toto)-1))
+  return(toto)
+}
+
+mExtractCase<-function(case){
+  if (!(case %in% rownames(ALLSIMULATEDDATA[[1]]))) stop(case, "is not in the cases names in the simulation options")
+  toto<-do.call(rbind, lapply(ALLSIMULATEDDATA[2:10], function(x) return(x[case,])))
+  rownames(toto)<-NULL
   return(toto)
 }
 
@@ -148,3 +153,14 @@ mCompletePARAMSIM<-function(listofthings){
   PARAMSIM<<-c(PARAMSIM, listofthings[setdiff(names(listofthings), names(PARAMSIM))])
 }
 
+mSummary<-function(){
+  nsteps<-length(ALLSIMULATEDDATA)
+  daterange<-c(ALLSIMULATEDDATA[[1]][1,"iDate"],ALLSIMULATEDDATA[[length(ALLSIMULATEDDATA)]][1,"iDate"])
+  ncases<-nrow(ALLSIMULATEDDATA[[1]])
+  casenames<-rownames(ALLSIMULATEDDATA[[1]])
+  print(paste("number of timesteps (including day 0):", nsteps))
+  print(paste("simulations dates from", daterange[1], "to", daterange[2]))
+  print(paste("number of cases (location-climate-management):", ncases))
+  print(paste("names of the first cases:", paste(casenames[1:min(10,length(casenames))], collapse=", ")))
+  return(list(nsteps=nsteps, daterange=daterange, ncases=ncases, casenames=casenames))
+}

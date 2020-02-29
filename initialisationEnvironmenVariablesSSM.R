@@ -2,9 +2,10 @@
 #uppercase variables: global variables of the model that can be modified by procedures without being passed as arguments
 
 VARIABLEDEFINITIONS<-read.xlsx("allvariables.xlsx", sheet="savedEachDay", colNames=TRUE) #all variables (not only state variables) are saved for traceability
-#we sort them by type, module and name
-VARIABLEDEFINITIONS<-VARIABLEDEFINITIONS[order(VARIABLEDEFINITIONS$module, VARIABLEDEFINITIONS$name),]
-VARIABLEDEFINITIONS<-VARIABLEDEFINITIONS[order(VARIABLEDEFINITIONS$typeinthemodel, decreasing=TRUE),]
+rownames(VARIABLEDEFINITIONS)<-VARIABLEDEFINITIONS$name
+#we sort them by type, module and name, no: keep the order from the excel file so that the user can personalize this
+#VARIABLEDEFINITIONS<-VARIABLEDEFINITIONS[order(VARIABLEDEFINITIONS$module, VARIABLEDEFINITIONS$name),]
+#VARIABLEDEFINITIONS<-VARIABLEDEFINITIONS[order(VARIABLEDEFINITIONS$typeinthemodel, decreasing=TRUE),]
 ALLSIMULATEDDATA<-list() #list of data.frames from the previous timesteps (here: day 0)
 ALLDAYDATA<-data.frame() #data.frame (row = case, column = variable) of current daily variables  
 ##### definition of constants
