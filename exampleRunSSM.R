@@ -1,5 +1,6 @@
 
 ##### a faire dans la console de l utilisateur
+#Vive le Pacifique!
 
 setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R and allvariables.xlsx
 {
