@@ -15,18 +15,6 @@ fComputeTemp<-function(tasmax,tasmin) {
 
 }
 
-
-
-# fDeltaThermalUnit<-function(pTbasdev,pTopt1dev,cCoefTemp,cWaterStressFactorDevelopment) {
-#   return((pTopt1dev - pTbasdev)*cCoefTemp*cWaterStressFactorDevelopment)
-# 
-# }
-# 
-# fBiologicalDay<-function(cCoefTemp,cCoefPhotoPeriod,cWaterStressFactorDevelopment,cCoefVernalization){
-# 
-#   return(cBiologicalDay=cCoefTemp*cCoefPhotoPeriod*cWaterStressFactorDevelopment*cCoefVernalization)
-# }
-
 fFunctionstep<-function(x, x1=NA,x2=NA, x3=NA, x4=NA, y1=NA, y2=NA, y3=NA) {
 #fonction en _/~\_
 #attention: marche SOIT avec x=vecteur et les params=1 chiffre chacun
@@ -45,7 +33,7 @@ fComputeDailyVernalization<-function(cCrownTemp,TbaseVernalization,Topt1Vernaliz
   return(fFunctionstep(x=cCrownTemp, x1=TbaseVernalization, x2=Topt1Vernalization, x3=Topt2Vernalization, x4=TlethalVernalization, y1=0, y2=1, y3=0))
 }
 
-fDegreeDays<-function(cTemp, Tbase) return(max(Tbase, cTemp))
+fDegreeDays<-function(cTemp, Tbase) return(pmax(Tbase, cTemp))
 
 fComputeCoefTemp<-function(cTemp, Tbase, Topt1, Topt2, Tlethal) { 
  return(fFunctionstep(x=cTemp, x1=Tbase, x2=Topt1, x3=Topt2, x4=Tlethal, y1=0, y2=1, y3=0))
@@ -149,17 +137,29 @@ fComputeDecreaseLAIwithN<-function(DailyRateNfromLeave,SpecLeafNGreenLeaf,SpecLe
 
 
 fFrostEffect<-function(LAI,tasmin,FreezeThresholdTemp,FreezeFracLeafDestruction){
-  frstf = abs(tasmin - FreezeThresholdTemp) * FreezeFracLeafDestruction
-  frstf= max(min(frstf,1),0)
-  return(LAI * frstf)
+  DLAIF<-rep(0, length(LAI))
+  frstf<-pmax(pmin((FreezeThresholdTemp-tasmin) * FreezeFracLeafDestruction,1),0)
+  FreezeThresholdTemp[is.na(FreezeThresholdTemp)]<- -Inf
+  DLAIF[tasmin<FreezeThresholdTemp] <- (frstf*LAI)[tasmin<FreezeThresholdTemp]
+  return(DLAIF)
 }
 
-fHeatEffect<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracLeafDestruction){
-  heatf = 1 + (tasmax - HeatThresholdTemp) * HeatFracLeafDestruction              #Semenov-Sirius
-  heatf = min(1,heatf)
-  return(cDecreaseLAI * heatf)
+fHeatEffectSemenovSirius<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracLeafDestruction){
+  DLAIH<-rep(0, length(cDecreaseLAI))
+  heatf <- pmax(1 + (tasmax - HeatThresholdTemp) * HeatFracLeafDestruction, 1)              #Semenov-Sirius
+  HeatThresholdTemp[is.na(HeatThresholdTemp)]<- Inf
+  DLAIH[tasmax>HeatThresholdTemp] <- (heatf*cDecreaseLAI)[tasmax>HeatThresholdTemp]
+  return(DLAIH)
 }
 
+#just in case we want to add a parameter in the crop file to select the type of LAI decrease response to heat
+fHeatEffectAssengAPSIM<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracLeafDestruction){
+  DLAIH<-rep(0, length(LAI))
+  heatf = 4-(1 - (tasmax - 34) /2)              #Asseng-APSIM
+  HeatThresholdTemp[is.na(HeatThresholdTemp)]<- Inf
+  DLAIH[tasmax>HeatThresholdTemp] <- (heatf*cDecreaseLAI)[tasmax>HeatThresholdTemp]
+  return(DLAIH)
+}
 
 #####Weather module
 rWeatherDay<-function(){
@@ -445,36 +445,47 @@ rUpdateLAI<-function(){
     }
   }
 
-#icicici frost returns NA, and heat also
-  # frost<-fFrostEffect(LAI=LAI_yesterday,tasmin=ALLDAYDATA$iTASMin,
-  #                     FreezeThresholdTemp=ALLDAYDATA$pFreezeThresholdTemp,
-  #                     FreezeFracLeafDestruction=ALLDAYDATA$pFreezeFracLeafDestruction)
-  # heat<-fHeatEffect(cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax,
-  #                   HeatThresholdTemp=ALLDAYDATA$pHeatThresholdTemp,
-  #                   HeatFracLeafDestruction=ALLDAYDATA$pHeatFracLeafDestruction)
-  # cDecreaseLAI<-max(frost,heat)   ####heat LAI corresponds to cDecreaseLAI if no heat effect and cDreaseLAI corresponds to heat if hot effet. Take effect of frozen if it is more important that cDea
-  # 
+   cFrost<-fFrostEffect(LAI=LAI_yesterday,tasmin=ALLDAYDATA$iTASMin,
+                       FreezeThresholdTemp=ALLDAYDATA$pFreezeThresholdTemp,
+                       FreezeFracLeafDestruction=ALLDAYDATA$pFreezeFracLeafDestruction)
+   cHeat<-fHeatEffectSemenovSirius(
+        cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax, HeatThresholdTemp=ALLDAYDATA$pHeatThresholdTemp,
+        HeatFracLeafDestruction=ALLDAYDATA$pHeatFracLeafDestruction)
+   #just in case we want to add a parameter in the crop file to select the type of LAI decrease response to heat
+   # cHeat<-rep(0, nrow(ALLDAYDATA))
+   # cHeat[ALLDAYDATA$pHeateffectfunction=="SemenovSirius"]<- fHeatEffectSemenovSirius(
+   #   cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax, HeatThresholdTemp=ALLDAYDATA$pHeatThresholdTemp,
+   #   HeatFracLeafDestruction=ALLDAYDATA$pHeatFracLeafDestruction)[ALLDAYDATA$pHeateffectfunction=="SemenovSirius"]
+   # cHeat[ALLDAYDATA$pHeateffectfunction=="AssengAPSIM"]<- fHeatEffectAssengAPSIM(
+   #   cDecreaseLAI,tasmax=ALLDAYDATA$iTASMax, HeatThresholdTemp=ALLDAYDATA$pHeatThresholdTemp,
+   #   HeatFracLeafDestruction=ALLDAYDATA$pHeatFracLeafDestruction)[ALLDAYDATA$pHeateffectfunction=="SemenovSirius"]
+   cDecreaseLAI<-pmax(cFrost,cHeat)   
+   ####heat LAI corresponds to cDecreaseLAI if no heat effect 
+   # and cDreaseLAI corresponds to heat if hot effet. 
+   #Take effect of frost if it is more important that cDecreaseLAI
+
   sLAI <- pmax(0, ALLDAYDATA$sLAI+cGrowthLAI-cDecreaseLAI)         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
 
   ####Mortality test with low LAI CONDITION
-  alaicond<-applyfilters("DMDistribution_SeedGrowing")
-  cEndCropCycle<-ifelse((sLAI< 0.05 & alaicond==TRUE),"pre-mature due to low LAI",NA)
+  #alaicond<-applyfilters("DMDistribution_SeedGrowing")
+  #cEndCropCycle<-ifelse((sLAI< 0.05 & alaicond==TRUE),"pre-mature due to low LAI",NA)
 
   ALLDAYDATA[,c("sMainstemNodeNumber",
                 "sPlantLeafArea",
                 "cGrowthLAI",
                 "sDecreaseLAIperBD",
                 "cDecreaseLAI",
-                "sLAI",
-                "cEndCropCycle")]<<-data.frame(
+                "cFrost",
+                "cHeat",
+                "sLAI")]<<-data.frame(
                   sMainstemNodeNumber,
                   sPlantLeafArea,
                   cGrowthLAI,
                   sDecreaseLAIperBD,
                   cDecreaseLAI,
-                  sLAI,
-                  cEndCropCycle)
-                                                  #Delete negative value and to limit to 0
+                  cFrost,
+                  cHeat,
+                  sLAI)
 }
 
 rUpdateDMProduction<-function(){

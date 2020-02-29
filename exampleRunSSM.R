@@ -103,7 +103,7 @@ if (FALSE) {
   
 }
 
-#checking LAI module
+#checking LAI module : decrease without N
 if (FALSE) {
   dynamiques<-mymodel$plot("sLAI", 
                            col=c(Meknes35degresWheat="lightgreen", 
@@ -126,5 +126,20 @@ if (FALSE) {
                                  Meknes35degresMaize="cornflowerblue", 
                                  Meknes35degresChickpea="purple"),
                            whatcol="cases", lty=1, pch="")
+  dynamiques<-mymodel$plot("cDecreaseLAI", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="", ylim=c(0,3000))
+  dynamiques<-mymodel$plot("cHeat", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="", ylim=c(0,2500))
+  dynamiques<-mymodel$plot("cFrost", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="", ylim=c(0,2500))
   
 }
