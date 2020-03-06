@@ -159,3 +159,23 @@ if(FALSE){
                            whatcol="cases", lty=1, pch="") 
   
 }
+
+#checking DMDistribution module
+if(FALSE){
+  dynamiques<-mymodel$plot("sAccumulatedLeafDryMatter", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("sAccumulatedStemDryMatter", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("sAccumulatedGrainDryMatter", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  
+}

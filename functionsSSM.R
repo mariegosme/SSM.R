@@ -511,25 +511,137 @@ rUpdateDMProduction<-function(){
   #print("Updating DMProduction")
   cRUE <- rep(0, nrow(ALLDAYDATA))   #Radiation efficiency is null when the plant doens't produce leaf
   cCoefTemperatureRUE <- ALLDAYDATA$cCoefTemperatureRUE
+  ##icicicic cCoefWaterstressDryMatter is set to 1 from the excel file because water module isn't coded yet
+  cCoefWaterstressDryMatter<-ALLDAYDATA$cCoefWaterstressDryMatter
   cPAR<-ALLDAYDATA$cPAR
   cDryMatterProduction<-ALLDAYDATA$cDryMatterProduction
   aFINT<-rep(0, nrow(ALLDAYDATA)) 
   resultfilter<-applyfilters("DMProduction") 
   if(any(resultfilter)) {
-    cCoefTemperatureRUE[resultfilter]<-fComputeCoefTemp(cTemp=ALLDAYDATA$cTemp,Tbase=ALLDAYDATA$pTbasRUE,
+    cCoefTemperatureRUE[resultfilter]<-fComputeCoefTemp(cTemp=ALLDAYDATA$cTemp,Tbase=ALLDAYDATA$pTbaseRUE,
                                                              Topt1=ALLDAYDATA$pTopt1RUE,
                                                              Topt2=ALLDAYDATA$pTopt2RUE,
-                                                             Tlethal=ALLDAYDATA$plethalRUE)[resultfilter]
-    ##icicicic cCoefWaterstressDryMatter is set to 1 from the excel file because water module isn't coded yet
-    cRUE[resultfilter] <- (ALLDAYDATA$pRadEffiencyOptimal * cCoefTemperatureRUE * ALLDAYDATA$cCoefWaterstressDryMatter)[resultfilter]
+                                                             Tlethal=ALLDAYDATA$pTlethalRUE)[resultfilter]
+    cRUE[resultfilter] <- (ALLDAYDATA$pRadEffiencyOptimal * cCoefTemperatureRUE * cCoefWaterstressDryMatter)[resultfilter]
     cPAR[resultfilter]<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, 
                                     CoefPAR=GENERALPARAMETERS["pCoefPAR", "defaultInitialvalue"])[resultfilter]
     aFINT[resultfilter]<- (1 - exp(-ALLDAYDATA$pKPAR * ALLDAYDATA$sLAI))[resultfilter]
     cDryMatterProduction[resultfilter] <- (cPAR * aFINT * cRUE)[resultfilter]
   }
   
-
   ALLDAYDATA[,c("cCoefTemperatureRUE","cRUE","cPAR","cDryMatterProduction")]<<-data.frame(
     cCoefTemperatureRUE,cRUE,cPAR,cDryMatterProduction)
 
+}
+
+rUpdateDMDistribution<-function(){
+  #icicici warning: this procedure is a simple translation of the VBA code, which does not correspond to what 
+  #is described in the book, for example it does not take into acount tuBSG and tuTSG
+  
+  #local copy of all variables that are needed
+  #crop parameters (not to be saved)
+  pFractionCropMassTranslocatable<-ALLDAYDATA$pFractionCropMassTranslocatable #FRTRL
+  pGrainConversionCoefficient<-ALLDAYDATA$pGrainConversionCoefficient #GCC
+  pFractionDMtoLeavesPhase1A<-ALLDAYDATA$pFractionDMtoLeavesPhase1A #FLF1A
+  pFractionDMtoLeavesPhase1B<-ALLDAYDATA$pFractionDMtoLeavesPhase1B #FLF1B
+  pFractionDMtoLeavesPhase2<-ALLDAYDATA$pFractionDMtoLeavesPhase2 #FLF2
+  pPotentialDailyRateHIincrease<-ALLDAYDATA$pPotentialDailyRateHIincrease #PDHI
+  pDailyRateHIincreaseCriticalPoint1<-ALLDAYDATA$pDailyRateHIincreaseCriticalPoint1 #WDHI1
+  pDailyRateHIincreaseCriticalPoint2<-ALLDAYDATA$pDailyRateHIincreaseCriticalPoint2 #WDHI2
+  pDailyRateHIincreaseCriticalPoint3<-ALLDAYDATA$pDailyRateHIincreaseCriticalPoint3 #WDHI3
+  pDailyRateHIincreaseCriticalPoint4<-ALLDAYDATA$pDailyRateHIincreaseCriticalPoint4 #WDHI4
+  pInflexionPointLeafAllocationAB<-ALLDAYDATA$pInflexionPointLeafAllocationAB #WTOPL
+  pStemMinimumNconcentration<-ALLDAYDATA$pStemMinimumNconcentration #SNCS
+  #state and computed variables from this module (to be saved)
+  cDailyDryMatterforLeavesAndStems<-ALLDAYDATA$cDailyDryMatterforLeavesAndStems #DDMP2
+  sDailyLeafWeightIncrease<-ALLDAYDATA$sDailyLeafWeightIncrease #GLF
+  cDailyPortionDMtranslocated<-ALLDAYDATA$cDailyPortionDMtranslocated #TRANSL
+  cDailySeedWeightIncrease<-ALLDAYDATA$cDailySeedWeightIncrease #SGR
+  cDailyStemWeightIncrease<-ALLDAYDATA$cDailyStemWeightIncrease #GST
+  cEffectOfHeatOnDHI<-ALLDAYDATA$cEffectOfHeatOnDHI #FrHtDHI
+  cFractionDMtoLeaves<-ALLDAYDATA$cFractionDMtoLeaves #FLF
+  sAccumulatedAboveGroundDryMatter<-ALLDAYDATA$sAccumulatedAboveGroundDryMatter #WTOP
+  sAccumulatedGrainDryMatter<-ALLDAYDATA$sAccumulatedGrainDryMatter #WGRN
+  sAccumulatedLeafDryMatter<-ALLDAYDATA$sAccumulatedLeafDryMatter #WLF
+  sAccumulatedStemDryMatter<-ALLDAYDATA$sAccumulatedStemDryMatter #WST
+  sAccumulatedVegetativeDryMatter<-ALLDAYDATA$sAccumulatedVegetativeDryMatter #WVEG
+  sDailyRateHIincrease<-ALLDAYDATA$sDailyRateHIincrease #DHI
+  sDryMatterAtBeginningSeedGrowth<-ALLDAYDATA$sDryMatterAtBeginningSeedGrowth #BSGDM
+  sHarvestIndex<-ALLDAYDATA$sHarvestIndex #HI
+  sTranslocatableBiomass<-ALLDAYDATA$sTranslocatableBiomass #TRLDM
+  #state variables from other modules (not to be saved)
+  DryMatterProduction<-ALLDAYDATA$cDryMatterProduction #DDMP of today, from DMProduction module
+  LAI<-ALLDAYDATA$sLAI #LAI of today, from LAI module
+  Nstem<-ALLDAYDATA$sNstem # NST of yesterday, from PlantN module (which updates it later)
+  
+  
+  #seed growth
+  phaseSeedGrowth<-applyfilters("DMDistribution_SeedGrowing")
+      # things to do before seed growth so that some variables are initialized at their value at beginning of seed growth 
+      # (these could be replaced by an actionsAtStageChange, but it would mean that beginning of seed growth has to be explicitely defined as a stage change, which is not the case in the initial crop files for wheat (ANT+5) and maize (SIL+170/effT))
+  sDryMatterAtBeginningSeedGrowth[!phaseSeedGrowth]<-sAccumulatedAboveGroundDryMatter[!phaseSeedGrowth] #Saving WTOP at BSG because this stops being overwritten by abovegroundDM (thus remains at its value from yesterday) as soon as seed growth begins
+  sDailyRateHIincrease[!phaseSeedGrowth]<-fFunctionstep(x=sDryMatterAtBeginningSeedGrowth, 
+                                      x1=pDailyRateHIincreaseCriticalPoint1,
+                                      x2=pDailyRateHIincreaseCriticalPoint2,
+                                      x3=pDailyRateHIincreaseCriticalPoint3,
+                                      x4=pDailyRateHIincreaseCriticalPoint4,
+                                      y1=0,
+                                      y2=pPotentialDailyRateHIincrease,
+                                      y3=0)[!phaseSeedGrowth]
+  sTranslocatableBiomass[!phaseSeedGrowth]<-(sDryMatterAtBeginningSeedGrowth*pFractionCropMassTranslocatable)[!phaseSeedGrowth]
+  
+  #compute first version of seed growth rate
+  ## icicici cEffectOfHeatOnDHI (FrHtDHI) is never changed in the code, it is always 1
+  ## icicici I don't understand this equation : it seems to me DryMatterProduction is added twice: 
+  cDailySeedWeightIncrease[phaseSeedGrowth]<-pmax(0, ((sDailyRateHIincrease*cEffectOfHeatOnDHI) # coefficient that is a function of DryMatterAtBeginningSeedGrowth
+                             *(sAccumulatedAboveGroundDryMatter + DryMatterProduction) # accumulated DM until today (included)
+                             + DryMatterProduction*sHarvestIndex)[phaseSeedGrowth]) #dry matter produced today * harvest index of yesterday
+  
+  #if there is no N for seed filling, no seed growth
+  ## icicici I don't think this ever happens, because LAI senescence is computed so that LAI reaches 0 at maturity, which is after TSG for all crops currently in the model
+  #cDailySeedWeightIncrease[phaseSeedGrowth & LAI==0 & Nstem <= (sAccumulatedStemDryMatter * pStemMinimumNconcentration)]<-0
+  
+  #translocation (remobilization of DM from stem and leaves to seed)
+  cDailyPortionDMtranslocated[phaseSeedGrowth]<-pmax(0, pmin(sTranslocatableBiomass[phaseSeedGrowth], (cDailySeedWeightIncrease/pGrainConversionCoefficient-DryMatterProduction)[phaseSeedGrowth]))
+  sTranslocatableBiomass[phaseSeedGrowth]<-(sTranslocatableBiomass-cDailyPortionDMtranslocated)[phaseSeedGrowth]
+  cDailySeedWeightIncrease[phaseSeedGrowth]<-pmin(cDailySeedWeightIncrease, 
+                                                  (DryMatterProduction+cDailyPortionDMtranslocated)*pGrainConversionCoefficient)[phaseSeedGrowth]
+  #dry matter available for leaves and stems
+  cDailyDryMatterforLeavesAndStems<-pmax(0, DryMatterProduction-cDailySeedWeightIncrease*pGrainConversionCoefficient)
+  
+  #select the cFractionDMtoLeaves corresponding to the phase
+  phase1A<-applyfilters("LAI_Mainstem") & sAccumulatedAboveGroundDryMatter<pInflexionPointLeafAllocationAB
+  phase1B<-applyfilters("LAI_Mainstem") & sAccumulatedAboveGroundDryMatter>=pInflexionPointLeafAllocationAB
+  phase2<-applyfilters("LAI_Secondary")
+  phaseVegetativeGrowth<- (phase1A | phase1B | phase2)
+  cFractionDMtoLeaves[phase1A]<-pFractionDMtoLeavesPhase1A[phase1A]
+  cFractionDMtoLeaves[phase1B]<-pFractionDMtoLeavesPhase1B[phase1B]
+  cFractionDMtoLeaves[phase2]<-pFractionDMtoLeavesPhase2[phase2]
+  
+  #distribution of DM between leaves and stem
+  sDailyLeafWeightIncrease[phaseVegetativeGrowth]<- (cFractionDMtoLeaves*cDailyDryMatterforLeavesAndStems)[phaseVegetativeGrowth]
+  cDailyStemWeightIncrease[phaseVegetativeGrowth]<-((1-cFractionDMtoLeaves)*cDailyDryMatterforLeavesAndStems)[phaseVegetativeGrowth]
+  
+  #Organs accumulated mass
+  sAccumulatedLeafDryMatter<-sAccumulatedLeafDryMatter + sDailyLeafWeightIncrease
+  sAccumulatedStemDryMatter<-sAccumulatedStemDryMatter + cDailyStemWeightIncrease
+  sAccumulatedVegetativeDryMatter<-sAccumulatedVegetativeDryMatter + cDailyDryMatterforLeavesAndStems
+  sAccumulatedGrainDryMatter<-sAccumulatedGrainDryMatter + cDailySeedWeightIncrease
+  sAccumulatedAboveGroundDryMatter<-sAccumulatedVegetativeDryMatter + sAccumulatedGrainDryMatter
+  sHI<-sAccumulatedGrainDryMatter/sAccumulatedAboveGroundDryMatter
+  
+  #saving state and computed variables
+  ALLDAYDATA[,c("cDailyDryMatterforLeavesAndStems", "sDailyLeafWeightIncrease", "cDailyPortionDMtranslocated",
+               "cDailySeedWeightIncrease", "cDailyStemWeightIncrease", "cEffectOfHeatOnDHI", "cFractionDMtoLeaves",
+               "sAccumulatedAboveGroundDryMatter", "sAccumulatedGrainDryMatter", "sAccumulatedLeafDryMatter", 
+               "sAccumulatedStemDryMatter", "sAccumulatedVegetativeDryMatter", "sDailyRateHIincrease", 
+               "sDryMatterAtBeginningSeedGrowth", "sHarvestIndex", "sTranslocatableBiomass")]<<-data.frame(
+                 cDailyDryMatterforLeavesAndStems, sDailyLeafWeightIncrease, cDailyPortionDMtranslocated,
+                 cDailySeedWeightIncrease, cDailyStemWeightIncrease, cEffectOfHeatOnDHI, cFractionDMtoLeaves, 
+                 sAccumulatedAboveGroundDryMatter, sAccumulatedGrainDryMatter, sAccumulatedLeafDryMatter, 
+                 sAccumulatedStemDryMatter, sAccumulatedVegetativeDryMatter, sDailyRateHIincrease,
+                 sDryMatterAtBeginningSeedGrowth, sHarvestIndex, sTranslocatableBiomass
+               )
+    
+    
 }
