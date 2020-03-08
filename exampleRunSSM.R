@@ -179,3 +179,12 @@ if(FALSE){
                            whatcol="cases", lty=1, pch="") 
   
 }
+
+#checking root growth module
+if(FALSE){
+  dynamiques<-mymodel$plot("sRootFrontDepth", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+}

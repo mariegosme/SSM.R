@@ -54,15 +54,42 @@ eReadClimate<-function(){
 
 eReadSoil<-function(){
   if (PARAMSIM$soilformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
+    if (!require(openxlsx)) {warning("function eReadSoil needs package openxlsx"); return(list())}
     pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/soils.xlsx", sep=""))
     locations<-getSheetNames(pathtoExcel)
-    ALLSOILS<<-data.frame()
-    for (sheet in locations) {
-      #to do: decide how to tracks soil parameters and variables for each layer
+    if (any(! PARAMSIM$cases$soilname %in% locations)) stop("soils", setdiff(PARAMSIM$cases$soilname, locations), "are not in the soils.xlsx file")
+    newnames<-c("pNLayer", "pDrainLayer", "pSoilAlbedo", "U", "pSoilCurveNumber", 
+                "pVPDcoef",
+                "layer", "pLayerThickness", "pSaturation", "pFieldCapacity", 
+                "pWiltingPoint", "pSoilDryness")
+    names(newnames)<-c("NLYER",	"LDRAIN",	"SALB",	"U",	"CN2", 
+                  "VPDF", #it was in sheet "locations" in excel version, moved it to soil description
+                  "Layer.", "DLYER",	"SAT",	"DUL",	
+                  "LL", "ADRY"#,		
+                  #"iniWL",	"DRAINF",	"FG",	
+                  #"BDL",	"NORG",	"FMIN",	"NO3",	"NH4"
+    )
+    ALLSOILS<-list()
+    for (sheet in PARAMSIM$cases$soilname) {
+      print(paste("read soil", sheet))
+      df1<-read.xlsx(pathtoExcel, sheet=sheet, colNames=TRUE, startRow =3, rows=3:4, cols=1:5) 
+      names(df1)[names(df1) %in% names(newnames)]<-newnames[names(df1)[names(df1) %in% names(newnames)]]
+      df2<-read.xlsx(pathtoExcel, sheet=sheet, colNames=TRUE, startRow =6, rows=6:(6+df1$pNLayer))       
+      names(df2)[names(df2) %in% names(newnames)]<-newnames[names(df2)[names(df2) %in% names(newnames)]]
+      if (length(ALLSOILS)==0) {ALLSOILS<-as.list(df1) ; ALLSOILS$paramlayers<-list(df2) } else {
+        for (n in names(df1)) ALLSOILS[[n]]<-c(ALLSOILS[[n]], df1[,n])
+        ALLSOILS$paramlayers<-c(ALLSOILS$paramlayers, list(df2))
+      }
     }
+    # PARAMSSOILS<-list(pNLayer=c(2,2,3), pDrainLayer=c(2,2,3), pSoilAlbedo=c(0.12, 0.13,0.15), U=NA, pSoilCurveNumber=c(60,70,80), pVPDcoef=c(0.65, 0.65, 0.65),
+    #                   paramlayers=list(data.frame(layer=1:2, pLayerThickness=c(300,700), pSaturation=c(0.36, 0.40), pFieldCapacity=c(0.24, 0.25), pWiltingPoint=c(0.1, 0.12), pSoilDryness=c(0.03, 0.04)),
+    #                                    data.frame(layer=1:2, pLayerThickness=c(200,800), pSaturation=c(0.36, 0.40), pFieldCapacity=c(0.24, 0.25), pWiltingPoint=c(0.1, 0.14), pSoilDryness=c(0.04, 0.04)),
+    #                                    data.frame(layer=1:3, pLayerThickness=c(300,200,400), pSaturation=c(0.36, 0.40, 0.38), pFieldCapacity=c(0.24, 0.25, 0.22), pWiltingPoint=c(0.1, 0.12, 0.09), pSoilDryness=c(0.03, 0.04, 0.035))
+    #                   )
   } else  {
     stop("Only standard SSM format is supported for soil data")
   }
+  ALLSOILS<<-ALLSOILS
 } #end read soil
 
 eReadCrop<-function(){

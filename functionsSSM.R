@@ -179,6 +179,130 @@ fHeatEffectAssengAPSIM<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracL
   return(DLAIH)
 }
 
+
+#' Computes the ATSW (available transpirable water) or TTSW (total transpirable soil water) in a given layer (in all cases)
+#' @param layer vector of target soil layers (from 1 to 10 : hard-coded max number of soil layers): one value for each case (or only one value: same layer for all cases)
+#' @param df data.frame of state variables (ALLDAYDATA or ALLSIMULATEDDATA[[timestep]])
+#' @return vector of ATSW in all cases, in the target layers
+#' @examples
+#'\dontrun{
+#'fFindWater(3, df=data.frame(sWater.1=c(1,2,3),
+#'sWater.2=c(1,1,1),
+#'sWater.3=c(0.5,0.6,0.7),
+#'sWater.4=c(NA, 3,2),
+#'sRootFrontDepth=c(500,400,600)), what="ATSW")
+#'}
+fFindWater<-function(layer, df, what=c("ATSW", "TTSW")){
+  what<-what[1]
+  water<-df[,paste("sWater", 1:10, sep='.')]
+  WL<-water[cbind(1:3, layer)] #water amount in the target layers
+  if (what=="ATSW") {
+    WLL<-fExtractSoilParameter(paramname="pWiltingPoint", layer=layer)
+    ATSW<-WL-WLL
+    return(ATSW)
+  } else if (what=="TTSW") {
+    WDUL<-fExtractSoilParameter(paramname="pFieldCapacity", layer=layer)
+    TTSW<-WL-WDUL
+    return(TTSW)
+  }
+}
+
+#' returns ATSWRZ or TTSWRZ (sum over all layers, of the value (ATSW or TTSW) weighted by the length of proportion of the layer having roots)
+#' @param what = "ATSW" or "TTSW"
+#' @param nlayersmax maximum number of layers (10 by default)
+#' @param df data.frame of state variables (ALLDAYDATA or ALLSIMULATEDDATA)
+#' @return vector (one element per case) of ATSWR or TTSWR
+#' @examples
+#' \dontrun{
+#' 
+#' }
+fFindwaterRZ<-function(what=c("ATSW", "TTSW"), nlayersmax=10, df){
+  layers<-1:nlayersmax
+  names(layers)<-paste("layer", layers)
+  allwater<-as.data.frame(t(as.matrix(as.data.frame(lapply(layers, fFindwater, what=what, df=df)))))#returns list (of cases)one element per case), of vectors (one element per layer)
+  alldepths<-fExtractSoilParameter("pLayerThickness", Inf, "I") #colonnes: cases, lignes: epaisseur
+  allroots<-mapply(fFindRLYER,
+                   df[,"sRootFrontDepth"], #vecteur (cases) de profondeur de racines
+                   alldepths, SIMPLIFY=FALSE
+  ) #returns list (of cases)one element per case), of vectors (one element per layer)
+  return(unlist(lapply(mapply(function(x,y,z) return(x*y/z), allwater, alldepths, allroots, SIMPLIFY=FALSE), sum, na.rm=TRUE)))
+}
+
+#' Find the thickness of the rooted part of each layer
+#'
+#' @param rootFrontDepth depth of the front of root colonisation (atomic value)
+#' @param LayerThicknesses vector of layer thickness (one element per layer)
+#'
+#' @return a vector of rooted thickness (one element per layer): when the roots go deeper, it is the depth of the layer, and in the last rooted layer, it is the length of roots inside this layer
+#' @examples
+#' thickness<-c(1,3,2,1)
+#' rootdepth<-5
+#' fFindRLYER(rootdepth, thickness)
+fFindRLYER<-function(rootFrontDepth, LayerThicknesses){
+  return(pmin(pmax(rootFrontDepth-(cumsum(LayerThicknesses)-LayerThicknesses),0), LayerThicknesses))
+}
+
+
+
+#' Computes runoff
+#'
+#' @param vectorRain (corrected) rain
+#' @param vectorCurveNumber Curve number  describing the soil infiltration capacity 
+#' @param vectorSAT water content at full saturation in top layer
+#' @param vectorlayerthickness thickness of top soil layer 
+#' @param vectorwatercontent water content in soil layer 1
+#' @param vectorWLL water content at wilting point in soil layer 1
+#'
+#' @return vector (one element per case) of runoff water
+#' @examples
+#' \dontrun{
+#' fComputeRunoff(vectorrain=rain,
+#' vectorCurveNumber=fExtractSoilParameter("pSoilCurveNumber"), 
+#' vectorSAT=fExtractSoilParameter("pSaturation", layer=1),
+#' vectorlayerthickness=fExtractSoilParameter("pLayerThickness", layer=1),
+#' vectorwatercontent=ALLSIMULATEDDATA[[daybefore]][,"sWater.1"],
+#' vectorWLL=fExtractSoilParameter("pWiltingPoint", layer=1)
+#' }
+fComputeRunoff<-function(vectorRain,
+                         vectorCurveNumber, 
+                         vectorSAT,
+                         vectorlayerthickness,
+                         vectorwatercontent,
+                         vectorWLL){
+  S <- 254 * (100 / vectorCurveNumber - 1)
+  SWER <- max(0, 0.15 * ((vectorSAT*vectorlayerthickness - vectorwatercontent) / (vectorSAT*vectorlayerthickness - vectorWLL)))
+  vectorrunof<-ifelse(vectorrain-SWER*S<0, 0, (vectorrain - SWER * S) ^ 2 / (vectorrain + (1 - SWER) * S))
+  vectorrunof[rain<=0.01]<-0
+  return(vectorrunof)
+}
+
+#' Potential evapotranspiration following simplified Penman equation
+#'
+#' @param tmax daily max temperature
+#' @param tmin daily min temperature
+#' @param srad total daily solar radiation
+#' @param calb crop albedo
+#' @param ket canopy extinction coefficient
+#' @param etlai LAI used for PET calculation (takes into account senesced leaves still attached to the plant and/or on the soil)
+#' @param salb #soil albedo
+#' @return vector of PET (one element per case)
+#' @examples
+fComputePETsimplifiedPenman<-function(tmax, tmin, srad, calb, ket, etlai, salb) {
+  td = 0.6 * tmax + 0.4 * tmin
+  albedo = calb * (1 - exp(-ket * etlai)) + salb * exp(-ket * etlai)
+  eeq = srad * (0.004876 - 0.004374 * albedo) * (td + 29)
+  pet = eeq * 1.1
+  pet[tmax > 34]<- eeq * ((tmax - 34) * 0.05 + 1.1)
+  pet[tmax < 5]<- eeq * 0.01 * exp(0.18 * (tmax + 20))
+  return(pet)
+}
+
+fComputeSoilEvaporationTwoStages<-function(vectorPet, vectorCanopyExtinctionCoefficient, vectorEtlai, atomicMinimalSoilEvaporation, 
+                                           vectorStubbleWeight, vectorRain, vectorIrrigation, atomicpSoilWettingWaterQuantity) {
+  
+}
+
+
 #####Weather module
 rWeatherDay<-function(){
   #print("Updating weather intput")
@@ -507,6 +631,8 @@ rUpdateLAI<-function(){
                   sLAI)
 }
 
+
+##### DM Production module
 rUpdateDMProduction<-function(){
   #print("Updating DMProduction")
   cRUE <- rep(0, nrow(ALLDAYDATA))   #Radiation efficiency is null when the plant doens't produce leaf
@@ -534,6 +660,8 @@ rUpdateDMProduction<-function(){
 
 }
 
+
+#### DM DIstribution module
 rUpdateDMDistribution<-function(){
   #icicici warning: this procedure is a simple translation of the VBA code, which does not correspond to what 
   #is described in the book, for example it does not take into acount tuBSG and tuTSG
@@ -645,3 +773,88 @@ rUpdateDMDistribution<-function(){
     
     
 }
+
+
+####root depth module
+rRootDepth<-function(){
+  filter<-applyfilters("rRootDepth") #filter on stage (crop parameter)
+  if (any(filter)){
+    grtd<-ALLDAYDATA$cDeltaBiologicalDay*ALLDAYDATA$pPotentialRootGrowth #potential growth
+    grtd<-grtd*filter #filter on stage (crop parameter)
+    grtd[ALLDAYDATA$cDryMatterProduction==0 #in case no biomass accumulation
+         | ALLDAYDATA$sRootFrontDepth>=ALLDAYDATA$pMaxDepthWaterExtraction #or root depth already at the maximum water extraction depth
+         | ALLDAYDATA$sRootFrontDepth>=fExtractSoilParameter("pLayerThickness", Inf, "sum", na.rm=TRUE) #or root already at hte bottom of the soil
+         ]<-0 #then no root growth
+    rtln<-mapply(function(floors,rootdepths) {toto<-which.max(floors[floors<rootdepths])+1 ; if(length(toto)==0) toto<-1; return(toto)},
+                 fExtractSoilParameter("pLayerThickness", Inf, "cumsum"), #colonnes: cases, lignes: profondeurs du plancher de chaque couche
+                 ALLDAYDATA$sRootFrontDepth #vecteur (cases) de profondeur de racines
+    ) #vector (one element per case) of number of the lowest layer with roots
+    grtd[fFindWater(layer=rtln, what="ATSW", df=ALLDAYDATA)==0]<-0 #in case the lowest layer with roots (=the layer of root tips) is dry, no growth
+    ALLDAYDATA$sRootFrontDepth<<-ALLDAYDATA$sRootFrontDepth+grtd
+  }
+  
+  return()
+}
+#### Water module
+rWaterBudget<-function(){
+  currentcropcult<-paste(ALLDAYDATA[,"sCrop"], ALLDAYDATA[,"sCultivar"], sep=".")
+  
+  #input rain+melted snow
+  rain<-ALLDAYDATA[,"cPrCorrected"]
+  
+  #drainage
+  DRAIN = FLOUT(ALLSOILS$pDrainLayer) #icicicici coder la generation de flout. (attention au premier pas de temps)
+  
+  #compute runoff
+  runof<-fComputeRunoff(vectorrain=rain,
+                        vectorCurveNumber=fExtractSoilParameter("pSoilCurveNumber"), 
+                        vectorSAT=fExtractSoilParameter("pSaturation", layer=1),
+                        vectorlayerthickness=fExtractSoilParameter("pLayerThickness", layer=1),
+                        vectorwatercontent=ALLDAYDATA$sWater.1,
+                        vectorWLL=fExtractSoilParameter("pWiltingPoint", layer=1)
+  )
+  #find LAI useful to compute soil evaporation (= real LAI until beginning of seed growth, and then LAI at stage TLP (which is not necessarily BSG))
+  etlai<-ALLSIMULATEDDATA[[daybefore]][,"sBuLlShitLAI"] # beginning of leaf senescence LAI?? mis a jour dans rUpdateLAI ... TO DO !!!!
+  #compute PET
+  pet<-fComputePETsimplifiedPenman(tmax=ALLDAYDATA[,"iTASMax"], 
+                                   tmin=ALLDAYDATA[,"iTASMin"], 
+                                   srad=ALLDAYDATA[,"iRSDS"], 
+                                   calb=GENERALPARAMETERS$pCropAlbedo, 
+                                   ket=GENERALPARAMETERS$pCanopyExtinctionCoefficient, 
+                                   etlai=etlai , salb=fExtractSoilParameter("pSoilAlbedo"))
+  #compute soil evaporation
+  soilevaporation <- pet * exp(-GENERALPARAMETERS$pCanopyExtinctionCoefficient * etlai)
+  soilevaporation[pet>GENERALPARAMETERS$pMinimalSoilEvaporation & soilevaporation<GENERALPARAMETERS$pMinimalSoilEvaporation]<-GENERALPARAMETERS$pMinimalSoilEvaporation
+  #modify to take into account the effect of mulch
+  soilevaporation <- soilevaporation * (1.5 - 0.2 * log((100 * unlist(lapply(ITKPARAMETERS, "[[", "pStubleWeight")))))
+  #real soil evaporation 
+  SEVP<-soilevaporation
+  DYSE<-ALLSIMULATEDDATA[[daybefore]][,"sDaysSinceSoilWettingWater"]
+  DYSE[rain+ALLDAYDATA["cIrrigationWater"]>GENERALPARAMETERS$pSoilWettingWaterQuantity]<-1
+  FTSWRZ<-fFindWaterRZ(what="ATSW", nlayersmax=10, df=ALLSIMULATEDDATA[[daybefore]])/fFindWaterRZ(what="TTSW", nlayersmax=10, df=ALLSIMULATEDDATA[[daybefore]])
+  conditionstageII<-DYSE>1 | FTSWRZ<0.5 | fFindWater(layer=1, df=ALLSIMULATEDDATA[[daybefore]], what="ATSW")<=1
+  SEVP[conditionstageII]<-(soilevaporation*((DYSE+1)^0.5-DYSE^0.5))[conditionstageII]
+  DYSE[conditionstageII]<-DYSE[conditionstageII]+1 
+  
+  #plant transpiration
+  VPTMIN<- 0.6108 * exp(17.27 * ALLDAYDATA["iTASMin"] / (ALLDAYDATA["iTASMin"] + 237.3))
+  VPTMAX<- 0.6108 * exp(17.27 * ALLDAYDATA["iTASMax"] / (ALLDAYDATA["iTASMax"] + 237.3))
+  VPD <- ALLSOILS$pVPDcoef * (VPTMAX - VPTMIN) #warning: in SSM.R, VPDF (and latitude) has been moved from location-specific parameters to soil parameters, to avoid having a file just for locations
+  currentcropcult<-paste(ALLDAYDATA[,"sCrop"], ALLDAYDATA[,"sCultivar"], sep=".")
+  TR <- ALLDAYDATA$cDryMatterProduction * VPD / PARAMSCROPS[[currentcropcult]]$pTranspirationEfficiencyLinkedToCO2 #VPD in kPa, TEC in Pa
+  
+  #compute water uptake
+  rlyer<-mapply(fFindRLYER,
+                ALLDAYDATA[,"sRootFrontDepth"], #vecteur (cases) de profondeur de racine
+                fExtractSoilParameter("pLayerThickness", Inf, "I") #colonnes: cases, lignes: epaisseur
+                
+  ) 
+  
+  
+  #update water content in each layer of soil and everything else
+  ALLDAYDATA$sDaysSinceSoilWettingWater<<-DYSE
+  #ALLDAYDATA$
+    
+}
+
+
