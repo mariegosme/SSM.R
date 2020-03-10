@@ -29,14 +29,14 @@ fFunctionstep<-function(x, x1=NA,x2=NA, x3=NA, x4=NA, y1=NA, y2=NA, y3=NA) {
   return(df$toto)
 }
 
-fComputeDailyVernalization<-function(cCrownTemp,TbaseVernalization,Topt1Vernalization,Topt2Vernalization,TlethalVernalization) {
-  return(fFunctionstep(x=cCrownTemp, x1=TbaseVernalization, x2=Topt1Vernalization, x3=Topt2Vernalization, x4=TlethalVernalization, y1=0, y2=1, y3=0))
+fComputeDailyVernalization<-function(cCrownTemp,TbaseVernalization,Topt1Vernalization,Topt2Vernalization,TstopVernalization) {
+  return(fFunctionstep(x=cCrownTemp, x1=TbaseVernalization, x2=Topt1Vernalization, x3=Topt2Vernalization, x4=TstopVernalization, y1=0, y2=1, y3=0))
 }
 
 fDegreeDays<-function(cTemp, Tbase) return(pmax(Tbase, cTemp))
 
-fComputeCoefTemp<-function(cTemp, Tbase, Topt1, Topt2, Tlethal) { 
- return(fFunctionstep(x=cTemp, x1=Tbase, x2=Topt1, x3=Topt2, x4=Tlethal, y1=0, y2=1, y3=0))
+fComputeCoefTemp<-function(cTemp, Tbase, Topt1, Topt2, Tstop) { 
+ return(fFunctionstep(x=cTemp, x1=Tbase, x2=Topt1, x3=Topt2, x4=Tstop, y1=0, y2=1, y3=0))
 }
 
 fComputeSnowMelt<-function(iTASMax, iPr, sSnow) {
@@ -362,6 +362,7 @@ rUpdatePhenology<-function(){
   #print("Updating phenology")
   sThermalUnit<-ALLDAYDATA$sThermalUnit
   sBiologicalDay<-ALLDAYDATA$sBiologicalDay
+  sBiologicalDaysSinceSowing<-ALLDAYDATA$sBiologicalDaysSinceSowing
   sGrowthStage<-ALLDAYDATA$sGrowthStage
   sGrowthStageNumber<-ALLDAYDATA$sGrowthStageNumber
   sDurationStage<-ALLDAYDATA$sDurationStage
@@ -391,7 +392,7 @@ rUpdatePhenology<-function(){
                                                       TbaseVernalization=ALLDAYDATA$pTbaseVernalization[resultfilter],
                                                       Topt1Vernalization=ALLDAYDATA$pTopt1Vernalization[resultfilter],
                                                       Topt2Vernalization=ALLDAYDATA$pTopt2Vernalization[resultfilter],
-                                                      TlethalVernalization=ALLDAYDATA$pTlethalVernalization[resultfilter]
+                                                      TstopVernalization=ALLDAYDATA$pTstopVernalization[resultfilter]
     )
     sVernalization[resultfilter] <- sVernalization[resultfilter] + cDailyVernalization[resultfilter]
     autumnheatwave<- (!is.na(sVernalization) & sVernalization < 10 & ALLDAYDATA$iTASMax > 30)
@@ -432,7 +433,7 @@ rUpdatePhenology<-function(){
                                               Tbase=ALLDAYDATA$pTbasedev[resultfilter],
                                               Topt1=ALLDAYDATA$pTopt1dev[resultfilter],
                                               Topt2=ALLDAYDATA$pTopt2dev[resultfilter],
-                                              Tlethal=ALLDAYDATA$pTlethaldev[resultfilter])
+                                              Tstop=ALLDAYDATA$pTstopdev[resultfilter])
     #modify DTU and bd accordingly
     cDeltaThermalUnit[resultfilterTU]<-cDeltaThermalUnit[resultfilterTU]*cCoefTemp[resultfilterTU]
     cDeltaBiologicalDay[resultfilterBD]<-cDeltaBiologicalDay[resultfilterBD]*cCoefTemp[resultfilterBD]
@@ -472,6 +473,7 @@ rUpdatePhenology<-function(){
 ###Phenology Update
   sThermalUnit<-sThermalUnit + cDeltaThermalUnit
   sBiologicalDay<-sBiologicalDay + cDeltaBiologicalDay
+  sBiologicalDaysSinceSowing<-sBiologicalDaysSinceSowing + cDeltaBiologicalDay
   
 ####stage changes
   cultivars<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")
@@ -504,10 +506,10 @@ rUpdatePhenology<-function(){
   }
   
 ####Update ALLDAYDATA
-  ALLDAYDATA[,c("sThermalUnit", "sBiologicalDay", "sGrowthStage", "sGrowthStageNumber", "sDurationStage", "sVernalization",
+  ALLDAYDATA[,c("sThermalUnit", "sBiologicalDay", "sBiologicalDaysSinceSowing", "sGrowthStage", "sGrowthStageNumber", "sDurationStage", "sVernalization",
                 "cDeltaThermalUnit", "cDeltaBiologicalDay", "cDailyVernalization", "cCoefVernalization", "cCrownTemp", 
                 "cCoefWaterstressDevelopment", "cTemp", "cCoefTemp", "cCoefPhotoPeriod", "cPhotoDuration", "cCoefDrySoilSurface")]<<-data.frame(
-                  sThermalUnit, sBiologicalDay, sGrowthStage, sGrowthStageNumber, sDurationStage, sVernalization,
+                  sThermalUnit, sBiologicalDay, sBiologicalDaysSinceSowing, sGrowthStage, sGrowthStageNumber, sDurationStage, sVernalization,
                   cDeltaThermalUnit, cDeltaBiologicalDay, cDailyVernalization, cCoefVernalization, cCrownTemp, 
                   cCoefWaterstressDevelopment, cTemp, cCoefTemp, cCoefPhotoPeriod, cPhotoDuration, cCoefDrySoilSurface  )
   return()
@@ -647,7 +649,7 @@ rUpdateDMProduction<-function(){
     cCoefTemperatureRUE[resultfilter]<-fComputeCoefTemp(cTemp=ALLDAYDATA$cTemp,Tbase=ALLDAYDATA$pTbaseRUE,
                                                              Topt1=ALLDAYDATA$pTopt1RUE,
                                                              Topt2=ALLDAYDATA$pTopt2RUE,
-                                                             Tlethal=ALLDAYDATA$pTlethalRUE)[resultfilter]
+                                                             Tstop=ALLDAYDATA$pTstopRUE)[resultfilter]
     cRUE[resultfilter] <- (ALLDAYDATA$pRadEffiencyOptimal * cCoefTemperatureRUE * cCoefWaterstressDryMatter)[resultfilter]
     cPAR[resultfilter]<-fComputePAR(globalradiation=ALLDAYDATA$iRSDS, 
                                     CoefPAR=GENERALPARAMETERS["pCoefPAR", "defaultInitialvalue"])[resultfilter]
@@ -795,6 +797,8 @@ rRootDepth<-function(){
   
   return()
 }
+
+
 #### Water module
 rWaterBudget<-function(){
   currentcropcult<-paste(ALLDAYDATA[,"sCrop"], ALLDAYDATA[,"sCultivar"], sep=".")
