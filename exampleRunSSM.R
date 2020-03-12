@@ -55,8 +55,8 @@ mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 #set the simulation options
 mymodel$setoptions(paramsim)
 #run the model for 100 timesteps
-mymodel$run(300)
-#mymodel$GetAllForDebuggingPurposes()
+mymodel$run(100)
+#  mymodel$GetAllForDebuggingPurposes()
 
 #plot the dynamics of some variables
 #checking weather module
@@ -69,6 +69,37 @@ if (FALSE) {
   #mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
   #             col=c(Meknes35degres=1, Meknes45degres=8), whatcol="cases",
   #             lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables")
+}
+
+#checking stresses module
+if (FALSE) {
+  dynamiques<-mymodel$plot("sWater.1", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("sRootFrontDepth", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("cEfficientRootLength", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("cFTSWweightedByRoots", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot(c("cCoefWaterstressGrowth", "cCoefWaterstressLeafArea", "cCoefWaterstressDevelopment"),
+                           casestoplot=c("Meknes35degresWheat"),
+                           col=c(cCoefWaterstressGrowth="orange", 
+                                 cCoefWaterstressLeafArea="blue", 
+                                 cCoefWaterstressDevelopment="red"),
+                           whatcol="variables", lty=1, pch="")
+  #warning= WSFD can be higher than 1, is it normal?
 }
 
 #checking phenology module
@@ -187,4 +218,39 @@ if(FALSE){
                                  Meknes35degresMaize="cornflowerblue", 
                                  Meknes35degresChickpea="purple"),
                            whatcol="cases", lty=1, pch="") 
+}
+
+#checking water module
+if(FALSE){
+  dynamiques<-mymodel$plot("cRunoff", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("cPET", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("cActualSoilEvaporation", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("cTranspiration", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  
+  
+  linetypes<-1:10 ; names(linetypes)<-paste("sWater", 1:10, sep=".")
+  dynamiques<-mymodel$plot(paste("sWater", 1:10, sep="."), 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", 
+                           lty=linetypes, 
+                           whatlty="variables", pch="") 
+  
 }

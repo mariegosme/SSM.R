@@ -75,7 +75,13 @@ rCreateDay0<-function() {
   df$sGrowthStageNumber<-1
   df$sBiologicalDay<-0
   df$sPlantdensity<-280
+  df$sStubleWeight<-2
+  df$sRootFrontDepth<-200
   
+    #initialisation of soil water
+  df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="iniWL", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
+
+
   
   ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)
   return()
@@ -112,46 +118,41 @@ rSetParamsFromCrops<-function(){
 
 #' Extraction of soil Parameters
 #'
-#' @param paramname name of the parameter to extract
-#' @param layer layer from which the parameter should be extracted (single value, or vector of values of the same length as number of cases), or on which the aggregation should be done (=> vector of layers), or Inf to aggregate over all layers, or NULL (default) for general parameters of the soil
+#' @param paramname name of the parameter to extract (single value)
+#' @param layers layer(s) from which the parameter should be extracted (single value, or vector of values of the same length as number of cases), or on which the aggregation should be done (=> vector of layers), or Inf to aggregate over all layers, or NULL (default) for general parameters of the soil
 #' @param aggregationfunction name of function to aggregate over given layers, or over all layers (if layer=Inf), must be a valid function name (e.g. sum, mean, min, max, cumsum etc...)
 #' @param ... additional parameters to pass to aggregationfunction (e.g. na.rm=TRUE)
 #' @return vector (one element per case) of parameters, except if aggregationfunction returns a vector, in which case, it returns a data.frame with cases as columns and the dimension of the return value of the aggregation function as rows
 #' @examples
 #' \dontrun{ 
 #' fExtractSoilParameter("pSoilAlbedo") #extracts a single parameter from all cases (parameter of the whole soil)
+#' fExtractSoilParameter("pLayerThickness", Inf) #extracts a single parameter from all cases and all layers
 #' fExtractSoilParameter("pLayerThickness", 2) #extracts a parameter from a single layer (layer-specific parameter)
 #' fExtractSoilParameter("pLayerThickness", 1:2, "sum", na.rm=TRUE) #computes an aggregated value over n layers
 #' fExtractSoilParameter("pLayerThickness", Inf, "cumsum") # computes an aggregated value over all layers, returning cases as columns and layers as rows
-#' fExtractSoilParameter("pLayerThickness", Inf, "range") # computes an aggregated value over all layers, returning a data.frame with cases as columns, and 2 rows (min and max)
-#' fExtractSoilParameter("pLayerThickness", Inf, "I") #returns the values "as.is" but with cases in colums and layers in rows
-#' fExtractSoilParameter("pLayerThickness", c(1,3,2)) #returns th value for layer for case 1, layer 3 for case 2 and layer 2 for case 3
+#' fExtractSoilParameter("pLayerThickness", Inf, "range", na.rm=TRUE) # computes an aggregated value over all layers, returning a data.frame with cases as columns, and 2 rows (min and max)
+#' fExtractSoilParameter("pLayerThickness", 1:5, "I") #returns the values "as.is" 
+#' fExtractSoilParameter("pLayerThickness", c(1,3,2)) #returns th value for layer 1 for case 1, layer 3 for case 2 and layer 2 for case 3
+#' fExtractSoilParameter("pLayerThickness", 1:10) #error: if there is no aggregationfunction and if layers is given, it should be the same length as the number of cases (to extract one layer per case) ; to extract all layers, use Inf for layers
 #' }
-fExtractSoilParameter<-function(paramname, layer=NULL, aggregationfunction=NULL, ...){
-  if(is.null(layer)) {
+fExtractSoilParameter<-function(paramname, layers=NULL, aggregationfunction=NULL, ...){
+  if(is.null(layers)) {
     return(ALLSOILS[[paramname]])
-  } else { #layer not null
+  } else { #layers not null
+    #extracts the parameter
+    toto<-ALLSOILS$paramlayers[,paramname,]
     if (is.null (aggregationfunction)) {
-      if (length(layer)>1 & length(layer)!=length(ALLSOILS$pNLayer)) stop("only one layer should be extracted for each case with fExtractSoilParameter when no aggregation function is given")
-      toto<-lapply(ALLSOILS[["paramlayers"]],"[[", paramname)
-      return(mapply(function(n,x) return(x[n]), layer, toto))
+      if (length(layers)>1 & length(layers)!=dim(ALLSOILS$paramlayers)[1]) stop("only one layer per case should be extracted with fExtractSoilParameter when no aggregation function is given")
+      if (all(is.finite(layers))) {
+        #extracts the layers
+        toto<-toto[cbind(1:nrow(toto), layers)]
+      } #if layers is finite, returns a vector, if layers is Inf, returns a matrix with cases as rows and layers as columns
+      return(toto)
     } else { #aggregationfunction not null
-      toto<-ALLSOILS[["paramlayers"]]
-      resultparsol<-lapply(toto, function(x) {
-        if(all(is.finite(layer))) cond<-(1:10)==layer else cond<-TRUE
-        titi<-do.call(aggregationfunction, c(list(x[cond,paramname], ...)))
-        if(length(titi)==0) titi<-NA
-        return(titi)
-      })
-      if (all(unlist(lapply(resultparsol, length))==1)) {
-        return(unlist(resultparsol)) 
-      } else {
-        lengthmax<-max(unlist(lapply(resultparsol, length)))
-        resultparsol<-lapply(resultparsol, function(x) c(x, rep(NA, lengthmax-length(x))))
-        names(resultparsol)<-paste("case", 1:length(resultparsol), sep="")
-        #colonnes: cases, lignes: profondeurs du plancher de chaque couche
-        return(as.data.frame(resultparsol, row.names=paste("layer", 1:lengthmax)))
-      }
+      if(all(is.finite(layers))) cond<-(1:10) %in% layers else cond<-TRUE
+      toto<-apply(X=toto[,cond], MARGIN=1, FUN=aggregationfunction, ...)
+      if(!is.null(dim(toto))) toto<-t(toto) #if toto is not a vector, put the cases in rows and the other dimension in columns
+      return(toto)
     }
   }
 }
