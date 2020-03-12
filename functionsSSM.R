@@ -328,7 +328,11 @@ rUpdateStresses<-function(){
   cCoefWaterstressLeafArea<-pmin(1, cFTSWweightedByRoots/ALLDAYDATA$pThresholdWaterStressLeafArea) #WSFL
   cCoefWaterstressDevelopment<-(1-cCoefWaterstressGrowth)*ALLDAYDATA$pCoefWaterStressGrowthToDevelopment+1 #WSFD 
   
-  #not coded yet:
+  #icicicic not coded yet (used for nitrogen uptake:
+  #WRZ = WRZ + WL(L) * (RLYER(L) / DLYER(L))
+  #WRZUL = WRZUL + WLUL(L) * (RLYER(L) / DLYER(L))
+  #WRZST = WRZST + WLST(L) * (RLYER(L) / DLYER(L))
+  
     # If WRZ <= WRZUL Then WSXF = 1 Else WSXF = ((WRZST - WRZ) / (WRZST - WRZUL))
     # If WSXF < 0 Then WSXF = 0
     # If FTSWRZ > 1 Then
@@ -806,20 +810,27 @@ rRootDepth<-function(){
 rWaterBudget<-function(){
   #we transform all variables into matrices (rows = cases, columns= layers) to facilitate computations
   sWater<-as.matrix(ALLDAYDATA[,paste("sWater", 1:10, sep=".")])
-  cFTSWweightedByRoots<-ALLDAYDATA$cFTSWweightedByRoots #FTSWRZ (computed in rUpdateStresses)
-  FTSW_L<-fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE)
+  
+  #icicicic warning  : rootLength_L here is computed after today's root growth,
+  # while cEfficientRootLength (AROOT) was computed with root length from the day before in rUpdateStresses
+  # and waterStressTranspiration_L is also from yesterday variables (FTSW_L is computed at the beginning of the current procedure, and does not weight by root length
+  #check in the excel code when each element is updated to do the same
+  yesterdayFTSWweightedByRoots<- ALLDAYDATA$cFTSWweightedByRoots #FTSWRZ (computed in rUpdateStresses)
+  yesterdayEfficientRootLength<- ALLDAYDATA$cEfficientRootLength #AROOT (computed in rUpdateStresses)
+  FTSW_L<- fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE) #FTSW(L)
+  ATSW_1<- fFindWater(layers=1, df=ALLDAYDATA, what="ATSW")
   WLUL_L<- fExtractSoilParameter(paramname="pFieldCapacity", Inf)*fExtractSoilParameter(paramname="pLayerThickness", Inf) #water amount above the field capacity
-  waterStressTranspiration_L<-pmax(pmin(FTSW_L/ALLDAYDATA$pThresholdWaterStressGrowth, 1),0 ) #RT(L)
- 
+  waterStressTranspiration_L<- pmax(pmin(FTSW_L/ALLDAYDATA$pThresholdWaterStressGrowth, 1),0 ) #RT(L)
+  sDaysSinceStage2evaporation<-ALLDAYDATA$sDaysSinceStage2evaporation
+  rootLength_L<-fFindRLYER(Inf, ALLDAYDATA) #RLYER with root length of today !!
+  
   ##### icicici dont forget to code irrigation in management module
+  cIrrigationWater<-ALLDAYDATA$cIrrigationWater
   
   #input rain+melted snow
   rain<-ALLDAYDATA[,"cPrCorrected"]
   
-  #drainage
-  FLOUT<-pmax((sWater - WLUL_L)*fExtractSoilParameter(paramname="pDrainedFraction", Inf), 0) #flow of water downward
-  #icicici: why is this done now? why is FLIN not added?
-  sWater<-sWater-FLOUT
+  #drainage has been moved to after computation of FLOUT (it is just for saving the amount of water drained, can be done at the end of the procedure)
   
   #compute runoff
   cRunoff<-fComputeRunoff(vectorRain=rain,
@@ -850,9 +861,8 @@ rWaterBudget<-function(){
   cPotentialSoilEvaporation <- cPotentialSoilEvaporation * (1.5 - 0.2 * log((100 * ALLDAYDATA$sStubleWeight)))
   #real soil evaporation 
   cActualSoilEvaporation<-cPotentialSoilEvaporation
-  sDaysSinceStage2evaporation<-ALLDAYDATA$sDaysSinceStage2evaporation
-  sDaysSinceStage2evaporation[rain+ALLDAYDATA$cIrrigationWater>soilWettingWaterQuantity]<-0
-  conditionstageII<- cFTSWweightedByRoots<=0.5 | fFindWater(layers=1, df=ALLDAYDATA, what="ATSW")<=1
+  sDaysSinceStage2evaporation[rain + cIrrigationWater > soilWettingWaterQuantity]<-0
+  conditionstageII<- cFTSWweightedByRoots<=0.5 | ATSW_1<=1
   cActualSoilEvaporation[conditionstageII]<-(cActualSoilEvaporation*((sDaysSinceStage2evaporation+1)^0.5-sDaysSinceStage2evaporation^0.5))[conditionstageII]
   sDaysSinceStage2evaporation[conditionstageII]<-sDaysSinceStage2evaporation[conditionstageII]+1 
   
@@ -864,12 +874,7 @@ rWaterBudget<-function(){
   cTranspiration <- pmax(0, ALLDAYDATA$cDryMatterProduction * VPD / ALLDAYDATA$pTranspirationEfficiencyLinkedToCO2) #icicicic VPD in kPa, TEC in Pa
   
   #compute water uptake
-  #icicicic I don't understand why we use cEfficientRootLength (AROOT) from the day before 
-  # while we use rootLength_L and waterStressTranspiration_L from the current time step
-  #if this is an error, remove computation of cEfficientRootLength fromrUpdateStresses
-  WUUR<-cTranspiration/(ALLDAYDATA$cEfficientRootLength + 1e-8) 
-  rootLength_L<-fFindRLYER(Inf, ALLDAYDATA) #RLYER
-  waterStressTranspiration_L<-pmax(pmin(FTSW_L/ALLDAYDATA$pThresholdWaterStressGrowth, 1),0 ) #RT(L)
+  WUUR<-cTranspiration/(yesterdayEfficientRootLength + 1e-8) 
   waterUptake_L<-rootLength_L*waterStressTranspiration_L*WUUR
   
   #distribute soil evaporation in different soil layers
@@ -883,26 +888,28 @@ rWaterBudget<-function(){
     toBeEvaporated<-pmax(0, toBeEvaporated-evapHere)
   }
   
-  
-  FTSW_L<-fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE) #FTSW(l)
-  
+  #water budget
+  FLOUT<-pmax((sWater - WLUL_L)*fExtractSoilParameter(paramname="pDrainedFraction", Inf), 0) #flow of water downward
+  FLIN<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
+  FLIN[,1]<-rain + cIrrigationWater - cRunoff
+  FLIN[,2:10]<-FLOUT[,1:9]
+  sWater<-sWater + FLIN - FLOUT - waterUptake_L - soilEvaporation_L
   
   #update water content in each layer of soil and everything else
-  
-  
-  ALLDAYDATA[,c("cRunoff",
+  ALLDAYDATA[,c(paste("sWater", 1:10, sep="."), 
+                "cRunoff",
                 "cPET",
                 "cPotentialSoilEvaporation",
                 "sDaysSinceStage2evaporation",
                 "cActualSoilEvaporation",
-                "cTranspiration")]<<-data.frame(
+                "cTranspiration")]<<-cbind(as.data.frame(sWater), data.frame(
                   cRunoff,
                   cPET,
                   cPotentialSoilEvaporation,
                   sDaysSinceStage2evaporation,
                   cActualSoilEvaporation,
                   cTranspiration
-                )
+                ))
     
 }
 

@@ -244,13 +244,14 @@ if(FALSE){
                            whatcol="cases", lty=1, pch="") 
   
   
-  linetypes<-1:10 ; names(linetypes)<-paste("sWater", 1:10, sep=".")
+  cols<-1:10 ; names(cols)<-paste("sWater", 1:10, sep=".")
   dynamiques<-mymodel$plot(paste("sWater", 1:10, sep="."), 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
-                           whatcol="cases", 
-                           lty=linetypes, 
-                           whatlty="variables", pch="") 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="") 
   
 }
