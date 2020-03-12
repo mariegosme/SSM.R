@@ -33,16 +33,23 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
 
 
 # prepare cases (these will be the rows of ALLSIMULATEDDATA:
-mycases<-data.frame(climatename="Ain Hamra - Meknes", soilname="325_-35", lat=c(35, 35, 45), long=-5)
+#mycases<-data.frame(climatename="Ain Hamra - Meknes", soilname="325_-35", lat=c(35, 35, 45), long=-5)
 #climatename: one of the sheet names of file climates (if climate in standard SSM format)
 #soilname: one of the sheet names of file soils (if in standard SSM format)
 #to do: define crop rotation and management (once management procedure is completed)
-rownames(mycases)<-c("Meknes35degresWheat", "Meknes35degresMaize", "Meknes35degresChickpea") #these will be the cases names used in the plots, outputs etc...
+#rownames(mycases)<-c("Meknes35degresWheat", "Meknes35degresMaize", "Meknes35degresChickpea") #these will be the cases names used in the plots, outputs etc...
+#OR read from excel file
+mycases<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="cases")
+rownames(mycases)<-mycases$name
+mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+
 paramsim<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
   #directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
-  directory="/Users/user/Documents/b_maison/congeMat/D4DECLIC/runSSM",#directory where your input (with climates and soils files) and output folders are
+  #directory="/Users/user/Documents/b_maison/congeMat/D4DECLIC/runSSM",#directory where your input (with climates and soils files) and output folders are
+  directory="/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM",
   climateformat="standardSSM",
   cropformat="standardSSM",
   soilformat="standardSSM",
@@ -121,7 +128,7 @@ if (FALSE) {
                                  cCoefTemp="blue", 
                                  cCoefWaterstressDevelopment="red",
                                  cBiologicalDay="black"),
-                           whatcol="variables")
+                           whatcol="variables", lty=1, pch=NA)
   #conc: photoperiod stops wheat growth
   dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
                            casestoplot=c("Meknes35degresWheat"),

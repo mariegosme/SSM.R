@@ -42,8 +42,11 @@ runModelD4DECLIC<-function(NbDaysToRun){
     managformat="standardSSM",
     Neffect=FALSE
   ))
-  cases<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="cases")
-  modeloptions$cases<-cases
+  mycases<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="cases")
+  rownames(mycases)<-mycases$name
+  mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+  mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+  modeloptions$cases<-mycases
   #create an instance of the model
   mymodel<-setup()
   #set the simulation options

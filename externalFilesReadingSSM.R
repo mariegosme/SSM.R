@@ -90,9 +90,92 @@ eReadSoil<-function(){
 
 eReadCrop<-function(){
   if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/crops.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/crops.xlsx")
-  ALLCROPS<<-eReadExcelCropParameters(xlsxfile=pathtoExcel,
-                           allvariablesfile="allvariables.xlsx")
+  #first, look at the necessary crops
+  requiredCrops<-unique(do.call(c, as.list(PARAMSIM$cases$rotation)))
+  toto<-eReadExcelCropParameters(xlsxfile=pathtoExcel,
+                                 allvariablesfile="allvariables.xlsx")
+  if(any(! requiredCrops %in% rownames(toto))) stop("Crops ", paste(setdiff(requiredCrops, rownames(toto)), collapse=", "), " are missing from file crops.xlsx, which contains only ", paste(rownames(toto), collapse=","))
+  ALLCROPS<<-toto
+  
 }#end read crops
+
+#warning: now ALLCROPS is a data.frame, with crop.cultivar as rownames
+#' Reads in Excel crop parameter file in the same format as crops in SSM, except with extra lines at the end for filters (example crops2.xlsx)
+#'
+#' @param xlsxfile path to the excel file of crop parameters
+#' @param allvariablesfile path to the allvariables.xlsx file, with the translations of parameter names fromSSM to SSM.R (necessary because we use the SSM format, with row names different from SSM.R names)
+#' @return returns a data.frame, with crop.cultivar as rownames
+#' @examples eReadExcelCropParameters(xlsxfile="/Users/user/Documents/b_maison/congeMat/D4DECLIC/runSSM/input/crops.xlsx",
+#'   allvariablesfile="allvariables.xlsx"
+#' )
+eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
+  if (!require(openxlsx)) {warning("function readExcelCropParameters needs package openxlsx"); return(list())}
+  #read in translations of parameter names from SSM to SSM.R
+  trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
+  trad<-trad[trad$typeinthemodel=="CropParameter",]
+  paramscrops<-list()
+  data<-read.xlsx(xlsxfile, sheet="allcrops", rowNames=FALSE, colNames=FALSE, na.strings ="-")
+  tdata<-as.data.frame(t(as.matrix(data[3:nrow(data), 3:ncol(data)])))
+  names(tdata)<-gsub(pattern=" ", replacement="", gsub(pattern=":", replacement="", gsub(pattern="=", replacement="", data[3:nrow(data), "X1"])))
+  tdata$name<-paste(tdata$CROP, tdata$Cultivar, sep=".")
+  if (any(duplicated(names(tdata)))) stop("excel crop parameters file contains duplicated parameter names:", paste(names(tdata)[duplicated(names(tdata))], collapse=", "))
+  translations<-trad$name ; names(translations)<-trad$translationSSM
+  names(tdata)[names(tdata) %in% names(translations)]<-translations[names(tdata) [names(tdata) %in% names(translations)]]
+  if (any(duplicated(names(tdata)))) stop("allvariables.xlsx names created duplicated parameter names:", paste(names(tdata)[duplicated(names(tdata))], collapse=", "))
+  #transformation of types
+  numericparam<-intersect(trad[trad$typeR=="numeric", "name"], names(tdata))
+  #find which columns resultd in NA
+  for (v in numericparam) {
+    if (sum(is.na(tdata[,v]))<sum(is.na(as.numeric(tdata[,v])))) print(paste("parameter", nomsexcel[v], "is supposed to be numeric but contains characters in file", xlsxfile))
+  }
+  tdata[,numericparam]<-lapply(tdata[,numericparam], as.numeric)
+  
+  #evaluation of thresholds (column threshold becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as stages in each crop)
+  tdata$thresholds<-lapply(tdata$thresholds, function(x) eval(parse(text=x)))
+  #evaluation of actionsAtStageChange  (column actionsAtStageChange becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as actions to do in each crop)
+  tdata$actionsAtStageChange<-lapply(tdata$actionsAtStageChange, function(x) eval(parse(text=x)))
+  #replace the amp symbol by & in filters
+  tdata[,grepl(pattern=".filter", x= names(tdata), fixed=TRUE)]<-lapply(tdata[,grepl(pattern=".filter", x= names(tdata), fixed=TRUE)], function(x) gsub(pattern="&amp;", replacement="&", x=x))
+  rownames(tdata)<-tdata$name
+  return(tdata)
+}
+
+
+eReadManagement<-function(){
+  if (PARAMSIM$managformat=="standardSSM") { #read file only once and load it in the workspace
+    requiredManag<-unique(do.call(c, as.list(PARAMSIM$cases$management)))
+    if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/managementPlans.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/managementPlans.xlsx")
+    locations<-getSheetNames(pathtoExcel)
+    if(length(locations)>1) warning("Your managementPlans.xlsx file has several sheets, but only the first one will be used")
+    firstcol<-read.xlsx(pathtoExcel, sheet=1, colNames=FALSE, cols=1, skipEmptyRows = FALSE, skipEmptyCols = FALSE)
+    startManag<- which(firstcol$X1=="Code")
+    allmanag<-list()
+    for (i in 1:length(startManag)){
+      dfCode<-read.xlsx(pathtoExcel, sheet=1, rows=startManag[i]:(startManag[i]+1), cols=1:3)
+      dfSowing<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+2):(startManag[i]+3), cols=1:11)
+      nitrogenScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=2, colNames=FALSE)[1,1]
+      nitrogenNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=2, colNames=FALSE)[1,1]
+      nitrogenDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=2, colNames=FALSE)[1,1]
+      nitrogendf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+nitrogenNumber), cols=1:4)
+      names(nitrogendf)<-c("NapplNumber", "DAPorCBD", "amount", "FracVol")
+      waterLevel<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=7, colNames=FALSE)[1,1]
+      waterScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=6, colNames=FALSE)[1,1]
+      waterNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=6, colNames=FALSE)[1,1]
+      waterDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=6, colNames=FALSE)[1,1]
+      waterdf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+waterNumber), cols=5:6)
+      names(waterdf)<-c("DAPorCBDorDOY", "amount")
+      managementPlan<-list(dfCode, dfSowing, nitrogenScenario, nitrogenNumber, nitrogenDatetype, nitrogendf, waterLevel, waterScenario, waterNumber, waterDatetype, waterdf)
+      names(managementPlan)<-c("dfCode", "dfSowing", "nitrogenScenario", "nitrogenNumber", "nitrogenDatetype", "nitrogendf", "waterLevel", "waterScenario", "waterNumber", "waterDatetype", "waterdf")
+      toto<-list(managementPlan) ; names(toto)<-managementPlan$dfCode$Code #names(toto)<-paste("row", startManag[i]-1)
+      allmanag<-c(allmanag, toto)
+    }
+    if(any(! requiredManag %in% names(allmanag))) stop("management plans ", paste(setdiff(requiredManag, names(allmanag)), collapse=", "), " are missing from file managementPlans.xlsx")
+    ALLMANAGEMENTS<<-allmanag
+    } else  {
+    stop("Only standard SSM format is supported for crop management data")
+  }
+}
+
 
 # eReadCrops_OLD<-function(){
 #   if (PARAMSIM$cropformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
@@ -165,79 +248,3 @@ eReadCrop<-function(){
 #   }
 #   return(paramscrops)
 # }
-
-#warning: now ALLCROPS is a data.frame, with crop.cultivar as rownames
-#' Reads in Excel crop parameter file in the same format as crops in SSM, except with extra lines at the end for filters (example crops2.xlsx)
-#'
-#' @param xlsxfile path to the excel file of crop parameters
-#' @param allvariablesfile path to the allvariables.xlsx file, with the translations of parameter names fromSSM to SSM.R (necessary because we use the SSM format, with row names different from SSM.R names)
-#' @return returns a data.frame, with crop.cultivar as rownames
-#' @examples eReadExcelCropParameters(xlsxfile="/Users/user/Documents/b_maison/congeMat/D4DECLIC/runSSM/input/crops.xlsx",
-#'   allvariablesfile="allvariables.xlsx"
-#' )
-eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
-  if (!require(openxlsx)) {warning("function readExcelCropParameters needs package openxlsx"); return(list())}
-  #read in translations of parameter names from SSM to SSM.R
-  trad<-read.xlsx(allvariablesfile, sheet="savedEachDay")
-  trad<-trad[trad$typeinthemodel=="CropParameter",]
-  paramscrops<-list()
-  data<-read.xlsx(xlsxfile, sheet="allcrops", rowNames=FALSE, colNames=FALSE, na.strings ="-")
-  tdata<-as.data.frame(t(as.matrix(data[3:nrow(data), 3:ncol(data)])))
-  names(tdata)<-gsub(pattern=" ", replacement="", gsub(pattern=":", replacement="", gsub(pattern="=", replacement="", data[3:nrow(data), "X1"])))
-  tdata$name<-paste(tdata$CROP, tdata$Cultivar, sep=".")
-  if (any(duplicated(names(tdata)))) stop("excel crop parameters file contains duplicated parameter names:", paste(names(tdata)[duplicated(names(tdata))], collapse=", "))
-  translations<-trad$name ; names(translations)<-trad$translationSSM
-  names(tdata)[names(tdata) %in% names(translations)]<-translations[names(tdata) [names(tdata) %in% names(translations)]]
-  if (any(duplicated(names(tdata)))) stop("allvariables.xlsx names created duplicated parameter names:", paste(names(tdata)[duplicated(names(tdata))], collapse=", "))
-  #transformation of types
-  numericparam<-intersect(trad[trad$typeR=="numeric", "name"], names(tdata))
-  #find which columns resultd in NA
-  for (v in numericparam) {
-    if (sum(is.na(tdata[,v]))<sum(is.na(as.numeric(tdata[,v])))) print(paste("parameter", nomsexcel[v], "is supposed to be numeric but contains characters in file", xlsxfile))
-  }
-  tdata[,numericparam]<-lapply(tdata[,numericparam], as.numeric)
-  
-  #evaluation of thresholds (column threshold becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as stages in each crop)
-  tdata$thresholds<-lapply(tdata$thresholds, function(x) eval(parse(text=x)))
-  #evaluation of actionsAtStageChange  (column actionsAtStageChange becomes a list whith as many elements as rows in ALLCROPS, of lists with as many elements as actions to do in each crop)
-  tdata$actionsAtStageChange<-lapply(tdata$actionsAtStageChange, function(x) eval(parse(text=x)))
-  #replace the amp symbol by & in filters
-  tdata[,grepl(pattern=".filter", x= names(tdata), fixed=TRUE)]<-lapply(tdata[,grepl(pattern=".filter", x= names(tdata), fixed=TRUE)], function(x) gsub(pattern="&amp;", replacement="&", x=x))
-  rownames(tdata)<-tdata$name
-  return(tdata)
-}
-
-
-eReadManagement<-function(){
-  if (PARAMSIM$managformat=="standardSSM") { #read file only once and load it in the workspace
-    if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/managementPlans.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/managementPlans.xlsx")
-    locations<-getSheetNames(pathtoExcel)
-    if(length(locations)>1) warning("Your managementPlans.xlsx file has several sheets, but only the first one will be used")
-    firstcol<-read.xlsx(pathtoExcel, sheet=1, colNames=FALSE, cols=1, skipEmptyRows = FALSE, skipEmptyCols = FALSE)
-    startManag<- which(firstcol$X1=="Code")
-    allmanag<-list()
-    for (i in 1:length(startManag)){
-      dfCode<-read.xlsx(pathtoExcel, sheet=1, rows=startManag[i]:(startManag[i]+1), cols=1:3)
-      dfSowing<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+2):(startManag[i]+3), cols=1:11)
-      nitrogenScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=2, colNames=FALSE)[1,1]
-      nitrogenNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=2, colNames=FALSE)[1,1]
-      nitrogenDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=2, colNames=FALSE)[1,1]
-      nitrogendf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+nitrogenNumber), cols=1:4)
-      names(nitrogendf)<-c("NapplNumber", "DAPorCBD", "amount", "FracVol")
-      waterLevel<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=7, colNames=FALSE)[1,1]
-      waterScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=6, colNames=FALSE)[1,1]
-      waterNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=6, colNames=FALSE)[1,1]
-      waterDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=6, colNames=FALSE)[1,1]
-      waterdf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+waterNumber), cols=5:6)
-      names(waterdf)<-c("DAPorCBDorDOY", "amount")
-      managementPlan<-list(dfCode, dfSowing, nitrogenScenario, nitrogenNumber, nitrogenDatetype, nitrogendf, waterLevel, waterScenario, waterNumber, waterDatetype, waterdf)
-      names(managementPlan)<-c("dfCode", "dfSowing", "nitrogenScenario", "nitrogenNumber", "nitrogenDatetype", "nitrogendf", "waterLevel", "waterScenario", "waterNumber", "waterDatetype", "waterdf")
-      toto<-list(managementPlan) ; names(toto)<-paste("row", startManag[i]-1)
-      allmanag<-c(allmanag, toto)
-    }
-    ALLMANAGEMENTS<<-allmanag
-  } else  {
-    stop("Only standard SSM format is supported for crop management data")
-  }
-}
-

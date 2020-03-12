@@ -247,7 +247,7 @@ fComputeRunoff<-function(vectorRain,
   S <- 254 * (100 / vectorCurveNumber - 1)
   SWER <- pmax(0, 0.15 * ((vectorSAT*vectorLayerThickness - vectorWaterContent) / (vectorSAT*vectorLayerThickness - vectorWLL)))
   vectorrunof<-ifelse(vectorRain-SWER*S<0, 0, (vectorRain - SWER * S) ^ 2 / (vectorRain + (1 - SWER) * S))
-  vectorrunof[rain<=0.01]<-0
+  vectorrunof[vectorRain<=0.01]<-0
   return(vectorrunof)
 }
 
@@ -277,18 +277,15 @@ fComputeSoilEvaporationTwoStages<-function(vectorPet, vectorCanopyExtinctionCoef
   
 }
 
+################################ procedures
 
 #####Weather module
 rWeatherDay<-function(){
   #print("Updating weather intput")
-
   Dateoftheday<-ALLDAYDATA[1,"iDate"]
   dfclimate<-fGetClimateDay(date=Dateoftheday)
   climatevariables<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
   ALLDAYDATA[,climatevariables]<<-dfclimate[PARAMSIM$cases$climatename, climatevariables]
-  ###To be full in
-  #Calculate sSnow evolution, cSnowMelt, CorrectedPr
-
   cSnowMelt<-fComputeSnowMelt(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
   cPrCorrected<-fComputeCorrectedPr(cSnowMelt=cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
   sSnow<-ALLDAYDATA$sSnow + ALLDAYDATA$iPr -  cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
@@ -299,8 +296,14 @@ rWeatherDay<-function(){
 
 
 #### Management module (for now, just keeps the crop, cultivar and crop parameters at their previous values)
+rFindWhoSows<-function(){
+  #find the sowing type for each case (type depends on crop)
+  #compute the necessary variables for each type
+  #compare with the thresholds for each case
+}
 rUpdateManagement<-function(){
   #print("Updating crops according to crop management")
+  DOY<-as.POSIXlt(ALLDAYDATA[1,"iDate"])$yday+1
   #whosows
   rSetParamsFromCrops() #in HousekeepingFunctions
   #icicici also initialize sRootFrontDepth
@@ -862,7 +865,7 @@ rWaterBudget<-function(){
   #real soil evaporation 
   cActualSoilEvaporation<-cPotentialSoilEvaporation
   sDaysSinceStage2evaporation[rain + cIrrigationWater > soilWettingWaterQuantity]<-0
-  conditionstageII<- cFTSWweightedByRoots<=0.5 | ATSW_1<=1
+  conditionstageII<- yesterdayFTSWweightedByRoots<=0.5 | ATSW_1<=1
   cActualSoilEvaporation[conditionstageII]<-(cActualSoilEvaporation*((sDaysSinceStage2evaporation+1)^0.5-sDaysSinceStage2evaporation^0.5))[conditionstageII]
   sDaysSinceStage2evaporation[conditionstageII]<-sDaysSinceStage2evaporation[conditionstageII]+1 
   
@@ -881,7 +884,7 @@ rWaterBudget<-function(){
   soilEvaporation_L<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
   WLAD_L<-fExtractSoilParameter("pSoilDryness", layers=Inf)*fExtractSoilParameter("pLayerThickness", layers=Inf)
   DRAINF_L<-fExtractSoilParameter("pDrainedFraction", layers=Inf)
-  toBeEvaporated<-actualSoilEvaporation #TSE
+  toBeEvaporated<-cActualSoilEvaporation #TSE
   for (l in 1:10) {
     evapHere<-pmax(0, pmin(toBeEvaporated, (sWater[,l]-WLAD_L[l])*DRAINF_L[l]))
     soilEvaporation_L[,l]<-evapHere
