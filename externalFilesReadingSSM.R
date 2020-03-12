@@ -29,7 +29,7 @@ eReadClimate<-function(){
   if (PARAMSIM$climateformat=="standardSSM") { #if climate read from excel, read file only once and load it in the workspace
     climatevar<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input",]
     newnames<-climatevar$name ; names(newnames)<-climatevar$translationSSM
-    pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/climates.xlsx", sep=""))
+    if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/climates.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/climates.xlsx")
     locations<-getSheetNames(pathtoExcel)
     ALLCLIMATES<<-data.frame()
     for (sheet in locations) {
@@ -55,7 +55,7 @@ eReadClimate<-function(){
 eReadSoil<-function(){
   if (PARAMSIM$soilformat=="standardSSM") { #if soil read from excel, read file only once and load it in the workspace
     if (!require(openxlsx)) {warning("function eReadSoil needs package openxlsx"); return(list())}
-    pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/soils.xlsx", sep=""))
+    if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/soils.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/soils.xlsx")
     locations<-getSheetNames(pathtoExcel)
     if (any(! PARAMSIM$cases$soilname %in% locations)) stop("soils", setdiff(PARAMSIM$cases$soilname, locations), "are not in the soils.xlsx file")
     #read the new names of soil parameters from sheet "other" of allvariables.xlsx
@@ -89,7 +89,8 @@ eReadSoil<-function(){
 } #end read soil
 
 eReadCrop<-function(){
-  ALLCROPS<<-eReadExcelCropParameters(xlsxfile=normalizePath(paste(PARAMSIM$directory, "/input/crops.xlsx", sep="")),
+  if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/crops.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/crops.xlsx")
+  ALLCROPS<<-eReadExcelCropParameters(xlsxfile=pathtoExcel,
                            allvariablesfile="allvariables.xlsx")
 }#end read crops
 
@@ -209,7 +210,7 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
 
 eReadManagement<-function(){
   if (PARAMSIM$managformat=="standardSSM") { #read file only once and load it in the workspace
-    pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "/input/managementPlans.xlsx", sep=""))
+    if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/managementPlans.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/managementPlans.xlsx")
     locations<-getSheetNames(pathtoExcel)
     if(length(locations)>1) warning("Your managementPlans.xlsx file has several sheets, but only the first one will be used")
     firstcol<-read.xlsx(pathtoExcel, sheet=1, colNames=FALSE, cols=1, skipEmptyRows = FALSE, skipEmptyCols = FALSE)

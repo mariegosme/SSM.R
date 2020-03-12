@@ -26,7 +26,8 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
               run=mRun,  #fonction qui lance la simu pour n pas de temps (run),
               #map=cartesorties,
               plot=mPlotDynamics,#fonction qui plote la dynamique d'une ou plusieurs variables enregistréées (plot)
-              summary=mSummary #fonction qui résume l état du modèle: nombre de pas de temps et gamme de dates, ,
+              summary=mSummary, #fonction qui résume l état du modèle: nombre de pas de temps et gamme de dates, 
+              ExportDataFrame=mExportDataFrame
   ))
 }
 

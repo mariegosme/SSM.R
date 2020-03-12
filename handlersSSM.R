@@ -167,3 +167,7 @@ mSummary<-function(){
   print(paste("names of the first cases:", paste(casenames[1:min(10,length(casenames))], collapse=", ")))
   return(list(nsteps=nsteps, daterange=daterange, ncases=ncases, casenames=casenames))
 }
+
+mExportDataFrame<-function(){
+  return(do.call(rbind, lapply(ALLSIMULATEDDATA, function(x) return(cbind(PARAMSIM$cases, x)))))
+}
