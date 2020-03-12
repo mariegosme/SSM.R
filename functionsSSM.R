@@ -895,6 +895,9 @@ rWaterBudget<-function(){
   FLIN[,2:10]<-FLOUT[,1:9]
   sWater<-sWater + FLIN - FLOUT - waterUptake_L - soilEvaporation_L
   
+  #drainage
+  drainLayer<-fExtractSoilParameter("pDrainLayer")
+  cDrain<-FLOUT[cbind(1:nrow(FLOUT), drainLayer)]
   #update water content in each layer of soil and everything else
   ALLDAYDATA[,c(paste("sWater", 1:10, sep="."), 
                 "cRunoff",
@@ -902,13 +905,13 @@ rWaterBudget<-function(){
                 "cPotentialSoilEvaporation",
                 "sDaysSinceStage2evaporation",
                 "cActualSoilEvaporation",
-                "cTranspiration")]<<-cbind(as.data.frame(sWater), data.frame(
+                "cTranspiration", "cDrain")]<<-cbind(as.data.frame(sWater), data.frame(
                   cRunoff,
                   cPET,
                   cPotentialSoilEvaporation,
                   sDaysSinceStage2evaporation,
                   cActualSoilEvaporation,
-                  cTranspiration
+                  cTranspiration, cDrain
                 ))
     
 }

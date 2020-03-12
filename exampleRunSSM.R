@@ -242,6 +242,11 @@ if(FALSE){
                                  Meknes35degresMaize="cornflowerblue", 
                                  Meknes35degresChickpea="purple"),
                            whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot("cDrain", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="") 
   
   
   cols<-1:10 ; names(cols)<-paste("sWater", 1:10, sep=".")
