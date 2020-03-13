@@ -5,14 +5,14 @@ mOnetimestep<-function(){
 
   rWeatherDay()
   #rUpdatePAR() not coded, and I don't know what is was supposed to be, maybe it was to update PAR depending on tree interception once the agroforestry module would be added?
-  rUpdateManagement() #for now, just keeps the crops and cultivars as the day before
+  rUpdateManagement() 
   rUpdateStresses() #compute water stress with water from the day before
   rUpdatePhenology()
   rUpdateLAI()
   rUpdateDMProduction()
   rUpdateDMDistribution() 
-  rRootDepth()
-  rWaterBudget()
+  rUpdateRootDepth()
+  rUpdateWaterBudget()
   
   #at the end of the timestep, adds the new day at the end of the list of all variables
   ALLSIMULATEDDATA <<- c(ALLSIMULATEDDATA, list(ALLDAYDATA))

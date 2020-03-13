@@ -21,11 +21,13 @@ fFunctionstep<-function(x, x1=NA,x2=NA, x3=NA, x4=NA, y1=NA, y2=NA, y3=NA) {
 #                  SOIT avec x=1 chiffre et les params=vecteurs (ou un chiffre)
 #                  SOIT avec x et les éventuels params multiples de même longueur
   df<-data.frame(x, x1, x2, x3, x4, y1, y2, y3) #so that they ar all the same length
+  noNA<-apply(df,1, function(x) !any(is.na(x)))
   df$toto<-df$y1 + (df$x-df$x1)*(df$y1-df$y2)/(df$x1-df$x2)
-  df[!is.na(df$x) & df$x<df$x1, "toto"]<-df$y1[!is.na(df$x) & df$x<df$x1]
-  df[!is.na(df$x) & df$x>df$x2 & df$x<=df$x3, "toto"]<-df$y2[!is.na(df$x) & df$x>df$x2 & df$x<=df$x3]
-  df[!is.na(df$x) & df$x>df$x3 & df$x<df$x4, "toto"]<- (df$y2 + (df$x-df$x3)*(df$y3-df$y2)/(df$x4-df$x3))[!is.na(df$x) & df$x>df$x3 & df$x<df$x4]
-  df[!is.na(df$x) & df$x>=df$x4, "toto"]<-y3[!is.na(df$x) & df$x>=df$x4]
+  df[noNA & df$x<df$x1, "toto"]<-df$y1[noNA & df$x<df$x1]
+  df[noNA & df$x>df$x2 & df$x<=df$x3, "toto"]<-df$y2[noNA & df$x>df$x2 & df$x<=df$x3]
+  df[noNA & df$x>df$x3 & df$x<df$x4, "toto"]<- (df$y2 + (df$x-df$x3)*(df$y3-df$y2)/(df$x4-df$x3))[noNA & df$x>df$x3 & df$x<df$x4]
+  df[noNA & df$x>=df$x4, "toto"]<-y3[noNA & df$x>=df$x4]
+  df[!noNA, "toto"]<-NA
   return(df$toto)
 }
 
@@ -73,8 +75,8 @@ fPhotoperiodDuration<-function(iDate,latitude){
 
 fComputeCoefPhotoperiodCrops<-function(pPhotoperiodFunction, photoDuration,CriticalPhotoPeriod,PhotoPeriodSensitivity){
   ppfun<-rep(1, length(pPhotoperiodFunction))
-  for (funct in unique(pPhotoperiodFunction)) {
-    whichcases<- (pPhotoperiodFunction==funct)
+  for (funct in unique(pPhotoperiodFunction[!is.na(pPhotoperiodFunction)])) {
+    whichcases<- (! is.na(pPhotoperiodFunction) & pPhotoperiodFunction==funct)
     ppfun[whichcases]<-do.call(funct, args=list(
       photoDuration=photoDuration[whichcases],
       CriticalPhotoPeriod=CriticalPhotoPeriod[whichcases],
@@ -169,9 +171,12 @@ fHeatEffectAssengAPSIM<-function(cDecreaseLAI,tasmax,HeatThresholdTemp,HeatFracL
 #' fFindRLYER(c(1,1,2), ALLDAYDATA) #works only if there are 3 cases
 #' }
 #' 
-fFindRLYER<-function(layers, df) {#rootFrontDepth, LayerThicknesses){
+fFindRLYER<-function(layers, df) {
+  if (nrow(df) != nrow(ALLSOILS$paramlayers)) {
+    whichcases <- rownames(ALLSOILS$paramlayers) %in% rownames(df) #if df contained only some of the cases, we need to tell fExtractSoilParameter which cases to take from the soil parameters array
+  } else  whichcases<-TRUE
   rootFrontDepth<-df$sRootFrontDepth
-  LayerThicknesses<-fExtractSoilParameter(paramname="pLayerThickness", layers=Inf)
+  LayerThicknesses<-fExtractSoilParameter(paramname="pLayerThickness", layers=Inf, whichcases=whichcases)
   Layerceilings<-t(apply(LayerThicknesses, 1, cumsum))-LayerThicknesses
   rootedlength<-pmin(pmax(rootFrontDepth-Layerceilings,0), LayerThicknesses)
   if(any(!is.finite(layers))) { #all layers
@@ -185,9 +190,9 @@ fFindRLYER<-function(layers, df) {#rootFrontDepth, LayerThicknesses){
 #' this is not really a function because it accesses global soil parameters
 #' @param layers vector of target soil layer(s) (single value, or one layer per case)
 #' @param df data.frame of state variables (ALLDAYDATA or ALLSIMULATEDDATA[[timestep]])
-#' @param what 
-#' 
-#' @return vector of ATSW in all cases, in the target layers
+#' @param what one of "ATSW", "TTSW", "FTSW", "WL"
+#' @param weightedbyroots TRUE or FALSE, depending of wether the value should be weighted by the rooted proportion of the layer
+#' @return vector of ATSW in all cases of df, in the target layers
 #' @examples
 #'\dontrun{
 #' fFindWater(layers=1, df=ALLDAYDATA, what="ATSW") #ATSW(1)
@@ -195,22 +200,25 @@ fFindRLYER<-function(layers, df) {#rootFrontDepth, LayerThicknesses){
 #' apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
 #' apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="WL", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) # WRZ
 #' apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE),1,sum, na.rm=TRUE) #FTSWSL
-#' apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="WL", weightedbyroots=FALSE),1,sum, na.rm=TRUE) #FTSWSL
+#' apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="WL", weightedbyroots=FALSE),1,sum, na.rm=TRUE) #SWSL
 #'}
 fFindWater<-function(layers, df, what=c("ATSW", "TTSW", "FTSW", "WL"), weightedbyroots=FALSE){
   what<-what[1]
+  if (nrow(df) != nrow(ALLSOILS$paramlayers)) {
+    whichcases <- rownames(ALLSOILS$paramlayers) %in% rownames(df) #if df contained only some of the cases, we need to tell fExtractSoilParameter which cases to take from the soil parameters array
+  } else  whichcases<-TRUE
   #get water and make it into a matrix
   water<-as.matrix(df[,paste("sWater", 1:10, sep='.')])
   if (any(!is.finite(layers)))  WL<-water else WL<-as.matrix(water[cbind(1:nrow(water), layers)]) #water amount in the target layers
   #compute weigths (proportion of layer colonized by roots)
   if (weightedbyroots) {
     RLYER<-fFindRLYER(layers, df) #length of roots in each layer
-    DLYER<-fExtractSoilParameter(paramname="pLayerThickness", layers=layers) #layer thickness
+    DLYER<-fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #layer thickness
     weights<-RLYER/DLYER
   } else weights<-1 
   if (what=="WL") return(WL*weights)
-  WLLL<-fExtractSoilParameter(paramname="pWiltingPoint", layers=layers)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers) #amount of water at wilting point
-  WLUL<-fExtractSoilParameter(paramname="pFieldCapacity", layers=layers)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers) #amount of water at field capacity
+  WLLL<-fExtractSoilParameter(paramname="pWiltingPoint", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at wilting point
+  WLUL<-fExtractSoilParameter(paramname="pFieldCapacity", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at field capacity
   if (what=="ATSW") {
     return(drop((WL-WLLL)*weights))
   } else if (what=="TTSW") {
@@ -277,6 +285,27 @@ fComputeSoilEvaporationTwoStages<-function(vectorPet, vectorCanopyExtinctionCoef
   
 }
 
+#' function (but with access to global variables) to compute the variables needed to determine sowing
+#'
+#' @param whichcases logical vector indicating which cases to use for computing
+#' @param what one of "cumuRain5days", "temp", "FTSW1", "ATSWwholeSoil"
+#' @return the variable that was requested, for the requested cases
+#' @examples
+#' fVariablesForSowing()
+fVariablesForSowing<-function(whichcases=TRUE, what=c("cumuRain5days", "temp", "FTSW1", "ATSWwholeSoil")) {
+  what<-what[1]
+  if (what=="cumuRain5days") {
+    timestep<-length(ALLSIMULATEDDATA)
+    if(timestep<5) return(NA) else
+      return(rowSums(do.call(cbind, lapply(ALLSIMULATEDDATA[(timestep-5): timestep], "[", whichcases, "iPr", drop=FALSE))))
+  } else if (what=="temp") {
+    return((ALLDAYDATA[whichcases, "iTASMax"]+ALLDAYDATA[whichcases, "iTASMin"])/2)
+  } else if (what=="FTSW1") {
+    return(fFindWater(layers=1, df=ALLDAYDATA[whichcases,, drop=FALSE], what="FTSW"))
+  } else if (what=="ATSWwholeSoil") {
+    return(apply(fFindWater(layers=Inf, df=ALLDAYDATA[whichcases,, drop=FALSE], what="ATSW"),1,sum, na.rm=TRUE))
+  } else stop("function fVariablesForSowing cannot compute", what)
+}
 ################################ procedures
 
 #####Weather module
@@ -284,36 +313,149 @@ rWeatherDay<-function(){
   #print("Updating weather intput")
   Dateoftheday<-ALLDAYDATA[1,"iDate"]
   dfclimate<-fGetClimateDay(date=Dateoftheday)
-  climatevariables<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
+  climatevariables<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="rWeatherDay" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
   ALLDAYDATA[,climatevariables]<<-dfclimate[PARAMSIM$cases$climatename, climatevariables]
   cSnowMelt<-fComputeSnowMelt(sSnow=ALLDAYDATA$sSnow,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
   cPrCorrected<-fComputeCorrectedPr(cSnowMelt=cSnowMelt,iTASMax=ALLDAYDATA$iTASMax,iPr=ALLDAYDATA$iPr)
   sSnow<-ALLDAYDATA$sSnow + ALLDAYDATA$iPr -  cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
   #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
   ALLDAYDATA[,c("cSnowMelt","cPrCorrected","sSnow")]<<-data.frame(cSnowMelt,cPrCorrected,sSnow)
-  return()
 }
 
 
 #### Management module (for now, just keeps the crop, cultivar and crop parameters at their previous values)
 rFindWhoSows<-function(){
-  #find the sowing type for each case (type depends on crop)
-  #compute the necessary variables for each type
-  #compare with the thresholds for each case
+  doy<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
+  #find the sowing window for each case
+  sowingwindowstart<-rep(Inf, nrow(ALLDAYDATA))
+  sowingwindowend<-rep(-Inf, nrow(ALLDAYDATA))
+  for (manag in unique(ALLDAYDATA$sManagement)) {
+    sowingwindowstart[ALLDAYDATA$sManagement==manag]<-ALLMANAGEMENTS[[manag]]$dfSowing$Fpdoy
+    sowingwindowend[ALLDAYDATA$sManagement==manag]<-ALLMANAGEMENTS[[manag]]$dfSowing$Lpdoy
+  }
+  withinsowingwindow<-( ((sowingwindowstart<=sowingwindowend & doy>=sowingwindowstart & doy<=sowingwindowend) #summer crop
+                        |  (sowingwindowstart>sowingwindowend & (doy>=sowingwindowstart | doy<sowingwindowend)) ) #winter crop
+  ) & ALLDAYDATA$sLastSowing<ALLDAYDATA$sLastHarvest #to avoid sowing again something that is already sowed
+  #find the sowing type the thresholds (sowwat and sowtemp) for each case (type depends on crop)
+  sowingtype<-factor(rep(8, nrow(ALLDAYDATA)), levels=c(
+    "5 days without rain", 
+    "5 days without rain  and temp>SowTmp",
+    "5 days without rain  and temp<SowTmp",
+    "FTSW1>SowWat",
+    "FTSW1<SowWat",
+    "cumulated rainfall over 5 days > SowWat",
+    "ATSW whole soil > SowWat",
+    "fixed doy" #last because levels are numbered from 1 to n, but this was code 0
+    ))
+  waterthreshold<-numeric(nrow(ALLDAYDATA))
+  tempthreshold<-numeric(nrow(ALLDAYDATA))
+  for (manag in unique(ALLDAYDATA$sManagement[withinsowingwindow])) {
+    sowingtype[ALLDAYDATA$sManagement==manag]<-levels(sowingtype)[ALLMANAGEMENTS[[manag]]$dfSowing$FixFind]
+    waterthreshold[ALLDAYDATA$sManagement==manag]<-ALLMANAGEMENTS[[manag]]$dfSowing$SowWat
+    tempthreshold[ALLDAYDATA$sManagement==manag]<-ALLMANAGEMENTS[[manag]]$dfSowing$SowTmp
+  }
+  #compute the necessary variables for each type and compare with the thresholds for each case
+  sowingday<-rep(FALSE, nrow(ALLDAYDATA))
+  for(type in unique(sowingtype[withinsowingwindow])) {
+    tobetested<- withinsowingwindow & sowingtype==type
+    if(type == "5 days without rain") {
+      test<-fVariablesForSowing(whichcases=tobetested, what="cumuRain5days")==0
+    } else if(type == "5 days without rain  and temp>sowtemp") {
+      test<-(
+        fVariablesForSowing(whichcases=tobetested, what="cumuRain5days")==0
+        & fVariablesForSowing(whichcases=tobetested, what="temp") > tempthreshold[tobetested]
+      )
+    } else if(type == "5 days without rain  and temp<sowtemp") {
+      test<-(
+        fVariablesForSowing(whichcases=tobetested, what="cumuRain5days")==0
+        & fVariablesForSowing(whichcases=tobetested, what="temp") < tempthreshold[tobetested]
+      )
+    } else if(type == "FTSW1>SowWat") {
+      test<-(
+        fVariablesForSowing(whichcases=tobetested, what="FTSW1")>= waterthreshold[tobetested]
+      )
+    } else if(type == "FTSW1<SowWat") {
+      test<-(
+        fVariablesForSowing(whichcases=tobetested, what="FTSW1")<= waterthreshold[tobetested]
+      )
+    } else if(type == "cumulated rainfall over 5 days > SowWat") {
+      test<-(
+        fVariablesForSowing(whichcases=tobetested, what="cumuRain5days") > waterthreshold[tobetested]
+      )
+    }  else if(type == "ATSW whole soil > SowWat") {
+      test<-(
+        fVariablesForSowing(whichcases=tobetested, what="ATSWwholeSoil") > waterthreshold[tobetested]
+      )
+    }  else test<-TRUE #fixed sowing=>as soon as within the sowing window, we sow
+    sowingday[tobetested]<- test
+  }
+  #update sLastSowing
+  ALLDAYDATA$sLastSowing[sowingday]<<-length(ALLSIMULATEDDATA)#ALLDAYDATA$iDate[1]
 }
+
+rSowing<-function(){
+  whosows<-ALLDAYDATA$sLastSowing==length(ALLSIMULATEDDATA) #ALLDAYDATA$iDate[1]
+  if(any(whosows)) {
+    df<-ALLDAYDATA[whosows,]
+    splits<-strsplit(df$sCropCult, split=".", fixed=TRUE)
+    df$sCrop<-sapply(splits,"[[", 1)
+    df$sCultivar<-sapply(splits,"[[", 2)
+    #update crop parameters according to crop and cultivar
+    cropparameters<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel =="CropParameter", "name"]
+    cultivars<-paste(df$sCrop, df$sCultivar, sep=".")
+    possiblecrops<-unique(cultivars)
+    missing<-setdiff(cropparameters, names(ALLCROPS))
+    if(length(missing)>0) warning("the following parameters are mising from crop parameters: ", paste(missing, collapse=", "))
+    paramstobechanged<-intersect(cropparameters, names(ALLCROPS))
+    df[, paramstobechanged]<-ALLCROPS[cultivars, paramstobechanged]
+    #initialize phenology
+    df$sGrowthStageNumber<-1
+    df$sGrowthStage<-mapply(function(thresh, num) return(names(thresh)[num]),
+                            ALLCROPS[df$sCropCult, "thresholds"], 
+                            df$sGrowthStageNumber
+    )
+    df$sDurationStage<-mapply(function(cropname, stage) return(ALLCROPS[cropname,"thresholds"][[1]][stage]),
+                              df$sCropCult, 
+                              as.character(df$sGrowthStage), SIMPLIFY = TRUE, USE.NAMES=FALSE
+    )
+    df$sBiologicalDay<-0
+    #initialize other things
+    df$sPlantdensity<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$Pden)
+    #stubleWeight is initialized by harvest, at the same time as management change, because it is necessary for soil evaporation before sowing
+    df$sRootFrontDepth<-as.numeric(ALLCROPS[df$sCropCult,"iDEPORT"])
+    #initialize all other crop-related variables to their default value
+    variablestoinitialize<-setdiff(
+      VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable"
+                          & VARIABLEDEFINITIONS$module %in% c(
+                            "rUpdateStresses", "rUpdatePhenology", "rUpdateLAI",
+                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth"
+                          ), "name"],
+      c("sCrop", "sCultivar", "sGrowthStageNumber", "sGrowthStage", "sDurationStage", 
+        "sBiologicalDay", "sPlantdensity", "sStubleWeight", "sRootFrontDepth")
+    )
+    numericvariables<-variablestoinitialize[VARIABLEDEFINITIONS[variablestoinitialize,"typeR"]=="numeric"]
+    df[,variablestoinitialize]<-VARIABLEDEFINITIONS[variablestoinitialize, "defaultInitialvalue"]
+    df[,numericvariables]<-lapply(df[,numericvariables],as.numeric)
+    #update ALLDAYDATA
+    ALLDAYDATA[whosows,]<<-df
+  }
+}
+
+rHarvesting<-function(){
+  #dont forget to initialize 
+  #df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
+}
+
 rUpdateManagement<-function(){
   #print("Updating crops according to crop management")
-  DOY<-as.POSIXlt(ALLDAYDATA[1,"iDate"])$yday+1
+  #DOY<-as.POSIXlt(ALLDAYDATA[1,"iDate"])$yday+1
   #whosows
-  rSetParamsFromCrops() #in HousekeepingFunctions
-  #icicici also initialize sRootFrontDepth
-  
+  rFindWhoSows() #writes the current date into ALLDAYDATA$sLastSowing
+  rSowing() #initialize crop variables
+  rSetParamsFromCrops() #assign the crop parameters according to the crop present (i.e. do it again fro crops that are just sowed today, but we need it for the other cases as well)
   #whoharvests
   #whofertilizes
   #whoirrigates
-  
-  
-  return()
 }
 
 #### computation of water stresses and N stresses, from water level and nitrogen of the previous day
@@ -372,11 +514,12 @@ rComputeTSISILdurationMaize<-function(whichcases){
   pTopt1dev<-ALLDAYDATA$pTopt1dev[whichcases]
   pTbasedev<-ALLDAYDATA$pTbasedev[whichcases]
   duration<-((TuEMRTIL/(0.5*pPhyllochron)+5)*pPhyllochron-TuEMRTIL)/(pTopt1dev-pTbasedev)
-  return(duration) 
+  ALLDAYDATA$sDurationStage[whichcases]<<-duration
 }
 
 rUpdatePhenology<-function(){
   #print("Updating phenology")
+  cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
   sThermalUnit<-ALLDAYDATA$sThermalUnit
   sBiologicalDay<-ALLDAYDATA$sBiologicalDay
   sBiologicalDaysSinceSowing<-ALLDAYDATA$sBiologicalDaysSinceSowing
@@ -412,6 +555,7 @@ rUpdatePhenology<-function(){
                                                       TstopVernalization=ALLDAYDATA$pTstopVernalization[resultfilter]
     )
     sVernalization[resultfilter] <- sVernalization[resultfilter] + cDailyVernalization[resultfilter]
+    #icicici there are hard-coded parameters here
     autumnheatwave<- (!is.na(sVernalization) & sVernalization < 10 & ALLDAYDATA$iTASMax > 30)
     sVernalization[autumnheatwave] <- (
       sVernalization[autumnheatwave] - 0.5 * (ALLDAYDATA$iTASMax[autumnheatwave] - 30)
@@ -484,13 +628,13 @@ rUpdatePhenology<-function(){
   }
   
 ###Phenology Update
-  sThermalUnit<-sThermalUnit + cDeltaThermalUnit
-  sBiologicalDay<-sBiologicalDay + cDeltaBiologicalDay
-  sBiologicalDaysSinceSowing<-sBiologicalDaysSinceSowing + cDeltaBiologicalDay
+  sThermalUnit[cultivars!="NA.NA"]<-(sThermalUnit + cDeltaThermalUnit)[cultivars!="NA.NA"]
+  sBiologicalDay[cultivars!="NA.NA"]<-(sBiologicalDay + cDeltaBiologicalDay)[cultivars!="NA.NA"]
+  sBiologicalDaysSinceSowing[cultivars!="NA.NA"]<-(sBiologicalDaysSinceSowing + cDeltaBiologicalDay)[cultivars!="NA.NA"]
   
 ####stage changes
-  cultivars<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")
   changestage<-sBiologicalDay>sDurationStage
+  changestage[is.na(changestage)]<-FALSE
   if(any(changestage)) {
     sGrowthStageNumber[changestage]<-sGrowthStageNumber[changestage]+1
     #find the corresponding stage name
@@ -512,11 +656,8 @@ rUpdatePhenology<-function(){
                                cultivars, 
                                as.character(sGrowthStage), SIMPLIFY = TRUE, USE.NAMES=FALSE
     )
-    for (atd in unique(actionstodo[!is.na(actionstodo)])) {
-      whichcases<-(!is.na(actionstodo) &  actionstodo==atd) 
-      sDurationStage[whichcases]<-do.call(atd, list(whichcases=whichcases))
-    }
-  }
+    #we don't do the actions now, first we update ALLDAYDATA because actionstodo are procedures that directly modify ALLDAYDATA
+  } else actionstodo<-list()
   
 ####Update ALLDAYDATA
   ALLDAYDATA[,c("sThermalUnit", "sBiologicalDay", "sBiologicalDaysSinceSowing", "sGrowthStage", "sGrowthStageNumber", "sDurationStage", "sVernalization",
@@ -525,20 +666,32 @@ rUpdatePhenology<-function(){
                   sThermalUnit, sBiologicalDay, sBiologicalDaysSinceSowing, sGrowthStage, sGrowthStageNumber, sDurationStage, sVernalization,
                   cDeltaThermalUnit, cDeltaBiologicalDay, cDailyVernalization, cCoefVernalization, cCrownTemp, 
                   cTemp, cCoefTemp, cCoefPhotoPeriod, cPhotoDuration, cCoefDrySoilSurface  )
-  return()
+  ##### do actionstodo
+  for (atd in unique(actionstodo[!is.na(actionstodo) & !sapply(actionstodo, is.null)])) {
+    whichcases<-(!is.na(actionstodo) &  !sapply(actionstodo, is.null) & actionstodo==atd) 
+    do.call(atd, list(whichcases=whichcases))
+  }
 }
 
 #####LAI module
 rUpdateLAI<-function(){
   #print("Updating LAI")
+  cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
+  sMainstemNodeNumber<-ALLDAYDATA$sMainstemNodeNumber
+  sPlantLeafArea<-ALLDAYDATA$sPlantLeafArea
+  cGrowthLAI<-ALLDAYDATA$cGrowthLAI
+  sDecreaseLAIperBD<-ALLDAYDATA$sDecreaseLAIperBD #simple decrease rate that remains the same throughout leaf senescence, to arrive at 0 LAI at MAT
+  sLAIforEvapotranspiration<-ALLDAYDATA$sLAIforEvapotranspiration #we need to keep this information because it is used for evapotranspiration
+  sLAI<-ALLDAYDATA$sLAI
   ###LAI Growing (similar with and without N contribution)
   #LAIMainstem (i.e.between bdBLG and bdTLM)
   cCoefWaterstressLeafArea<-ALLDAYDATA$cCoefWaterstressLeafArea
   daily_increase_node_number <- ALLDAYDATA$sThermalUnit / ALLDAYDATA$pPhyllochron 
-  sMainstemNodeNumber <- ALLDAYDATA$sMainstemNodeNumber  + daily_increase_node_number
+  sMainstemNodeNumber[!is.na(daily_increase_node_number)] <- (ALLDAYDATA$sMainstemNodeNumber  + daily_increase_node_number)[!is.na(daily_increase_node_number)]
   leaf_area_yesterday<-ALLDAYDATA$sPlantLeafArea
   LAI_yesterday<-ALLDAYDATA$sLAI
-  sPlantLeafArea <- ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
+  toto<-ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
+  sPlantLeafArea[!is.na(toto)] <- toto[!is.na(toto)]
   
   #Mainstem
   increase_LAIMainstem <- rep(0, nrow(ALLDAYDATA))
@@ -552,17 +705,15 @@ rUpdateLAI<-function(){
   
   #LAISecondary (between booting and beginning of seed growth for wheat, between bdTLM and bdTLP for legumes)
   increase_LAISecondary <- rep(0, nrow(ALLDAYDATA))
-  applyfilters("LAI_Secondary")
+  resultfilter<-applyfilters("LAI_Secondary")
   if(any(resultfilter)) {
     increase_LAISecondary[resultfilter] <- (ALLDAYDATA$sDailyLeafWeightIncrease * ALLDAYDATA$pSpecificLeafArea)[resultfilter] #sDailyLeafWeightIncrease = GLF from yesterday, from module DM_Distribution
   }
   #LAI Total Growing
-  cGrowthLAI<- increase_LAIMainstem + increase_LAISecondary 
+  cGrowthLAI[cultivars != "NA.NA"]<- (increase_LAIMainstem + increase_LAISecondary )[cultivars != "NA.NA"]
   
   ###LAI Decrease
   cDecreaseLAI<-rep(0, nrow(ALLDAYDATA))
-  sDecreaseLAIperBD<-ALLDAYDATA$sDecreaseLAIperBD #simple decrease rate that remains the same throughout leaf senescence, to arrive at 0 LAI at MAT
-  sLAIforEvapotranspiration<-ALLDAYDATA$sLAIforEvapotranspiration #we need to keep this information because it is used for evapotranspiration
   if(PARAMSIM$Neffect==T){
     #icicici not done yet, need to do it after Plant N module is coded
     cDecreaseLAI<-fComputeDecreaseLAIwithN(DailyRateNfromLeave=ALLDAYDATA$sDailyRateNfromLeave, #XNLF from yesterday, from module PlantN
@@ -619,9 +770,9 @@ rUpdateLAI<-function(){
    # and cDreaseLAI corresponds to heat if hot effet. 
    #Take effect of frost if it is more important that cDecreaseLAI
 
-  sLAI <- pmax(0, ALLDAYDATA$sLAI+cGrowthLAI-cDecreaseLAI)         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
+  sLAI[cultivars != "NA.NA"] <- pmax(0, ALLDAYDATA$sLAI+cGrowthLAI-cDecreaseLAI)[cultivars != "NA.NA"]         #Update LAI (sLAI) by the end of the module (in SSM excel is in the beginning)
 
-  ####Mortality test with low LAI CONDITION
+  ####Mortality test with low LAI CONDITION moved to DMDistribution
   #alaicond<-applyfilters("DMDistribution_SeedGrowing")
   #cEndCropCycle<-ifelse((sLAI< 0.05 & alaicond==TRUE),"pre-mature due to low LAI",NA)
 
@@ -711,6 +862,7 @@ rUpdateDMDistribution<-function(){
   sHarvestIndex<-ALLDAYDATA$sHarvestIndex #HI
   sTranslocatableBiomass<-ALLDAYDATA$sTranslocatableBiomass #TRLDM
   #state variables from other modules (not to be saved)
+  cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
   DryMatterProduction<-ALLDAYDATA$cDryMatterProduction #DDMP of today, from DMProduction module
   LAI<-ALLDAYDATA$sLAI #LAI of today, from LAI module
   Nstem<-ALLDAYDATA$sNstem # NST of yesterday, from PlantN module (which updates it later)
@@ -763,12 +915,13 @@ rUpdateDMDistribution<-function(){
   cDailyStemWeightIncrease[phaseVegetativeGrowth]<-((1-cFractionDMtoLeaves)*cDailyDryMatterforLeavesAndStems)[phaseVegetativeGrowth]
   
   #Organs accumulated mass
-  sAccumulatedLeafDryMatter<-sAccumulatedLeafDryMatter + sDailyLeafWeightIncrease
-  sAccumulatedStemDryMatter<-sAccumulatedStemDryMatter + cDailyStemWeightIncrease
-  sAccumulatedVegetativeDryMatter<-sAccumulatedVegetativeDryMatter + cDailyDryMatterforLeavesAndStems
-  sAccumulatedGrainDryMatter<-sAccumulatedGrainDryMatter + cDailySeedWeightIncrease
-  sAccumulatedAboveGroundDryMatter<-sAccumulatedVegetativeDryMatter + sAccumulatedGrainDryMatter
-  sHI<-sAccumulatedGrainDryMatter/sAccumulatedAboveGroundDryMatter
+  withcrop<- (cultivars != "NA.NA")
+  sAccumulatedLeafDryMatter[withcrop]<-(sAccumulatedLeafDryMatter + sDailyLeafWeightIncrease)[withcrop]
+  sAccumulatedStemDryMatter[withcrop]<-(sAccumulatedStemDryMatter + cDailyStemWeightIncrease)[withcrop]
+  sAccumulatedVegetativeDryMatter[withcrop]<-(sAccumulatedVegetativeDryMatter + cDailyDryMatterforLeavesAndStems)[withcrop]
+  sAccumulatedGrainDryMatter[withcrop]<-(sAccumulatedGrainDryMatter + cDailySeedWeightIncrease)[withcrop]
+  sAccumulatedAboveGroundDryMatter[withcrop]<-(sAccumulatedVegetativeDryMatter + sAccumulatedGrainDryMatter)[withcrop]
+  sHarvestIndex[withcrop]<-(sAccumulatedGrainDryMatter/sAccumulatedAboveGroundDryMatter)[withcrop]
   
   #saving state and computed variables
   ALLDAYDATA[,c("cDailyDryMatterforLeavesAndStems", "sDailyLeafWeightIncrease", "cDailyPortionDMtranslocated",
@@ -788,7 +941,7 @@ rUpdateDMDistribution<-function(){
 
 
 ####root depth module
-rRootDepth<-function(){
+rUpdateRootDepth<-function(){
   filter<-applyfilters("rRootDepth") #filter on stage (crop parameter)
   if (any(filter)){
     grtd<-ALLDAYDATA$cDeltaBiologicalDay*ALLDAYDATA$pPotentialRootGrowth #potential growth
@@ -804,13 +957,11 @@ rRootDepth<-function(){
     grtd[fFindWater(layer=rtln, what="ATSW", df=ALLDAYDATA)==0]<-0 #in case the lowest layer with roots (=the layer of root tips) is dry, no growth
     ALLDAYDATA$sRootFrontDepth<<-ALLDAYDATA$sRootFrontDepth+grtd
   }
-  
-  return()
 }
 
 
 #### Water module
-rWaterBudget<-function(){
+rUpdateWaterBudget<-function(){
   #we transform all variables into matrices (rows = cases, columns= layers) to facilitate computations
   sWater<-as.matrix(ALLDAYDATA[,paste("sWater", 1:10, sep=".")])
   
@@ -826,6 +977,8 @@ rWaterBudget<-function(){
   waterStressTranspiration_L<- pmax(pmin(FTSW_L/ALLDAYDATA$pThresholdWaterStressGrowth, 1),0 ) #RT(L)
   sDaysSinceStage2evaporation<-ALLDAYDATA$sDaysSinceStage2evaporation
   rootLength_L<-fFindRLYER(Inf, ALLDAYDATA) #RLYER with root length of today !!
+  cTranspiration<-ALLDAYDATA$cTranspiration
+  cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
   
   ##### icicici dont forget to code irrigation in management module
   cIrrigationWater<-ALLDAYDATA$cIrrigationWater
@@ -845,6 +998,8 @@ rWaterBudget<-function(){
   )
   #find LAI useful to compute soil evaporation (= real LAI until beginning of seed growth, and then LAI at stage TLP (which is not necessarily BSG))
   etlai<-ALLDAYDATA[,"sLAIforEvapotranspiration"] # icicicici BLSLAI is overwritten at different places: at beginning of leaf senescence (BLS), and at termination of secondary LAI growth (TLP).... and depending on the crop, BLS is before (legumes), after (maize) or the same (wheat) as TLP. I haven't had time to study in detail in which case BLSLAI is really at beginning of leaf senescence and in which case it isn't
+  etlai[is.na(etlai)]<-0
+  
   #compute PET
   cropAlbedo<-GENERALPARAMETERS["pCropAlbedo", "defaultInitialvalue"]
   canopyExtinctionCoefficient<-GENERALPARAMETERS["pCanopyExtinctionCoefficient", "defaultInitialvalue"]
@@ -874,11 +1029,12 @@ rWaterBudget<-function(){
   VPTMIN<- 0.6108 * exp(17.27 * ALLDAYDATA$iTASMin / (ALLDAYDATA$iTASMin + 237.3))
   VPTMAX<- 0.6108 * exp(17.27 * ALLDAYDATA$iTASMax / (ALLDAYDATA$iTASMax + 237.3))
   VPD <- fExtractSoilParameter(paramname="pVPDcoef") * (VPTMAX - VPTMIN) #warning: in SSM.R, VPDF (and latitude) has been moved from location-specific parameters to soil parameters, to avoid having a file just for locations
-  cTranspiration <- pmax(0, ALLDAYDATA$cDryMatterProduction * VPD / ALLDAYDATA$pTranspirationEfficiencyLinkedToCO2) #icicicic VPD in kPa, TEC in Pa
+  cTranspiration[cultivars != "NA.NA"] <- pmax(0, ALLDAYDATA$cDryMatterProduction * VPD / ALLDAYDATA$pTranspirationEfficiencyLinkedToCO2)[cultivars != "NA.NA"] #icicicic VPD in kPa, TEC in Pa
   
   #compute water uptake
   WUUR<-cTranspiration/(yesterdayEfficientRootLength + 1e-8) 
   waterUptake_L<-rootLength_L*waterStressTranspiration_L*WUUR
+  waterUptake_L[is.na(waterUptake_L)] <-0
   
   #distribute soil evaporation in different soil layers
   soilEvaporation_L<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
@@ -890,6 +1046,7 @@ rWaterBudget<-function(){
     soilEvaporation_L[,l]<-evapHere
     toBeEvaporated<-pmax(0, toBeEvaporated-evapHere)
   }
+  soilEvaporation_L[is.na(soilEvaporation_L)] <-0
   
   #water budget
   FLOUT<-pmax((sWater - WLUL_L)*fExtractSoilParameter(paramname="pDrainedFraction", Inf), 0) #flow of water downward
@@ -916,7 +1073,6 @@ rWaterBudget<-function(){
                   cActualSoilEvaporation,
                   cTranspiration, cDrain
                 ))
-    
 }
 
 

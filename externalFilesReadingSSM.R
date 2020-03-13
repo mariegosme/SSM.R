@@ -27,7 +27,7 @@ eReadInInputs<-function(){
 
 eReadClimate<-function(){
   if (PARAMSIM$climateformat=="standardSSM") { #if climate read from excel, read file only once and load it in the workspace
-    climatevar<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="weather" & VARIABLEDEFINITIONS$typeinthemodel=="input",]
+    climatevar<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="rWeatherDay" & VARIABLEDEFINITIONS$typeinthemodel=="input",]
     newnames<-climatevar$name ; names(newnames)<-climatevar$translationSSM
     if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/climates.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/climates.xlsx")
     locations<-getSheetNames(pathtoExcel)

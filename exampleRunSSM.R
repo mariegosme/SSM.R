@@ -62,9 +62,11 @@ paramsim<-list(
 mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
 #set the simulation options
 mymodel$setoptions(paramsim)
+ mymodel$run(0) #just to initialise the model
+# mymodel$GetAllForDebuggingPurposes()
+
 #run the model for 100 timesteps
-mymodel$run(100)
-#  mymodel$GetAllForDebuggingPurposes()
+mymodel$run(300)
 
 #plot the dynamics of some variables
 #checking weather module
@@ -77,6 +79,11 @@ if (FALSE) {
   #mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
   #             col=c(Meknes35degres=1, Meknes45degres=8), whatcol="cases",
   #             lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables")
+}
+
+#checking Management module
+if (FALSE) {
+  mymodel$extractVariable("sLastSowing")
 }
 
 #checking stresses module
@@ -230,6 +237,8 @@ if(FALSE){
 
 #checking water module
 if(FALSE){
+  mymodel$extractVariable("sWater.1")
+  
   dynamiques<-mymodel$plot("cRunoff", 
                            col=c(Meknes35degresWheat="lightgreen", 
                                  Meknes35degresMaize="cornflowerblue", 
@@ -257,8 +266,8 @@ if(FALSE){
                            whatcol="cases", lty=1, pch="") 
   
   
-  cols<-1:10 ; names(cols)<-paste("sWater", 1:10, sep=".")
-  dynamiques<-mymodel$plot(paste("sWater", 1:10, sep="."), 
+  cols<-1:2 ; names(cols)<-paste("sWater", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sWater", 1:2, sep="."), 
                            lty=c(Meknes35degresWheat=1, 
                                  Meknes35degresMaize=2, 
                                  Meknes35degresChickpea=3),
