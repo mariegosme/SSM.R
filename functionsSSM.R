@@ -77,12 +77,18 @@ fComputeCoefPhotoperiodCrops<-function(pPhotoperiodFunction, photoDuration,Criti
   ppfun<-rep(1, length(pPhotoperiodFunction))
   for (funct in unique(pPhotoperiodFunction[!is.na(pPhotoperiodFunction)])) {
     whichcases<- (! is.na(pPhotoperiodFunction) & pPhotoperiodFunction==funct)
-    ppfun[whichcases]<-do.call(funct, args=list(
-      photoDuration=photoDuration[whichcases],
-      CriticalPhotoPeriod=CriticalPhotoPeriod[whichcases],
-      PhotoPeriodSensitivity=PhotoPeriodSensitivity[whichcases]
-    ))
-    
+    if ("whichcases" %in% names(formals(funct))) {
+      arguments<-list(photoDuration=photoDuration,
+                      CriticalPhotoPeriod=CriticalPhotoPeriod,
+                      PhotoPeriodSensitivity=PhotoPeriodSensitivity,
+                      whichcases=whichcases)
+    }else {
+      arguments<-list(photoDuration=photoDuration[whichcases],
+                      CriticalPhotoPeriod=CriticalPhotoPeriod[whichcases],
+                      PhotoPeriodSensitivity=PhotoPeriodSensitivity[whichcases]
+      )
+    }
+    ppfun[whichcases]<-do.call(funct, args=arguments)
   }
  return(ppfun)
 }
@@ -94,15 +100,13 @@ fComputeCoefPhotoperiodWheat<-function(photoDuration,CriticalPhotoPeriod,PhotoPe
   return(ppfun)
 }
 
-rComputeCoefPhotoperiodMaize<-function(photoDuration,CriticalPhotoPeriod,PhotoPeriodSensitivity){
+rComputeCoefPhotoperiodMaize<-function(photoDuration,CriticalPhotoPeriod,PhotoPeriodSensitivity, whichcases){
   #we cheat : this is supposed to be a function, i.e. use only arguments that are passed to it, 
-  #but it is a procedure because it accsses parameters from ALLDAYDATA (cultivars) and from ALLCROPS (threshold EJU) 
+  #but it is a procedure because it accesses parameters from ALLDAYDATA (cultivars) and from ALLCROPS (threshold EJU) 
   #instead of only the parameters that are passed to all the other photoperiod functions (pp, cpp, ppsen)
-  cultivars<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")
+  cultivars<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")[whichcases]
   bdEJUTSI<-sapply(cultivars, function(cv) sapply(ALLCROPS[cv, "thresholds"], function(th) return(th["EJU"])))
-  ppfun <- ifelse(CriticalPhotoPeriod < photoDuration , 
-                  pmax(0, bdEJUTSI / (bdEJUTSI + ppsen * (pp - cpp))),
-                  1)
+  ppfun <- pmin(1, pmax(0, bdEJUTSI / (bdEJUTSI + PhotoPeriodSensitivity[whichcases] * (photoDuration[whichcases] - CriticalPhotoPeriod[whichcases]))))
   return(ppfun)
 }
 

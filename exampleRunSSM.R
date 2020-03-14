@@ -147,7 +147,20 @@ if (FALSE) {
   #plot(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), 
   #    mymodel$getglobal("fPhotoperiodDuration")(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), lat=35), type="l")
   #abline(h=11.6) ; abline(v=as.Date("2019-11-01"))
-  
+  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
+                           casestoplot=c("Meknes35degresMaize"),
+                           col=c(cCoefPhotoPeriod="orange", 
+                                 cCoefTemp="blue", 
+                                 cCoefWaterstressDevelopment="red",
+                                 cBiologicalDay="black"),
+                           whatcol="variables", lty=1, pch=NA)
+  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
+                           casestoplot=c("Meknes35degresChickpea"),
+                           col=c(cCoefPhotoPeriod="orange", 
+                                 cCoefTemp="blue", 
+                                 cCoefWaterstressDevelopment="red",
+                                 cBiologicalDay="black"),
+                           whatcol="variables", lty=1, pch=NA)
 }
 
 #checking LAI module : decrease without N
@@ -157,17 +170,6 @@ if (FALSE) {
                                  Meknes35degresMaize="cornflowerblue", 
                                  Meknes35degresChickpea="purple"),
                            whatcol="cases", lty=1, pch="") 
-  dynamiques<-mymodel$plot("sLAI", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
-                           whatcol="cases", lty=1, pch="", ylim=c(0,37000))
-  dynamiques<-mymodel$plot("sLAI", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
-                           whatcol="cases", lty=1, pch="", xlim=as.Date(c("1997-11-01", "1997-11-10"))) 
-  #strangely maize has exponential growth much more rapid than the other crops, but all crops except maize have an increase then a decrease of LAI
   dynamiques<-mymodel$plot("cDecreaseLAI", 
                            col=c(Meknes35degresWheat="lightgreen", 
                                  Meknes35degresMaize="cornflowerblue", 
