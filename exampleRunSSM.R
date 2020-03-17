@@ -1,4 +1,4 @@
-
+library(openxlsx)
 ##### a faire dans la console de l utilisateur
 
 setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R and allvariables.xlsx
@@ -66,7 +66,7 @@ mymodel$setoptions(paramsim)
 # mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
-mymodel$run(300)
+mymodel$run(5*365)
 
 #plot the dynamics of some variables
 #checking weather module

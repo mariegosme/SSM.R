@@ -142,6 +142,11 @@ eReadExcelCropParameters<-function(xlsxfile, allvariablesfile){
 
 
 eReadManagement<-function(){
+  #check that we have one management for each crop in the rotation in PARAMSIM
+  lengthrotation<-sapply(PARAMSIM$cases$rotation, length)
+  numbermanag<-sapply(PARAMSIM$cases$management, length)
+  notthesame<-lengthrotation!=numbermanag
+  if(any(notthesame)) stop("In SimulationOptions.xlsx, you don't have the same number of management plans as crops in the rotation in lines ", paste(which(notthesame), collapse=", "))
   if (PARAMSIM$managformat=="standardSSM") { #read file only once and load it in the workspace
     requiredManag<-unique(do.call(c, as.list(PARAMSIM$cases$management)))
     if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/managementPlans.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/managementPlans.xlsx")

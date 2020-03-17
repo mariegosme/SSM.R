@@ -65,11 +65,13 @@ fCreateDay<-function(dateday){
 rCreateDay0<-function() {
   print("initializing the simulation (with crops because sowing hasnt been coded yet" )
   if(is.null(PARAMSIM$simustart)) stop("you didn't define a starting date, use $setoptions to do it")
-  if (sum( !(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"]%in% c("numeric", "character")) )>0) stop("all variables should be either numeric or character, check variables", paste(names(types)[!types %in% c("numeric", "character")], collapse=","))
+  types<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"] ; names(types)<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "name"]
+  if (sum( !(types %in% c("numeric", "character", "factor")) )>0) stop("all variables should be either numeric or character or factor, check variables ", paste(names(types)[!types %in% c("numeric", "character")], collapse=","))
   df<-fCreateDay(PARAMSIM$simustart-1)
   df$sCropCult<-sapply(PARAMSIM$cases$rotation,"[[", 1)
   df$sManagement<-sapply(PARAMSIM$cases$management,"[[", 1)
   df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
+  df$sCycleEndType<-factor("not yet", levels=c("normal", "low LAI", "not sowed", "stopDAP", "killed by flood", "not yet"))
     
   #icicici : do it only to initialize with a crop everywhere because crop management hasnt been coded yet
   if(FALSE) {
