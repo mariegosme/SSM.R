@@ -533,7 +533,7 @@ rUpdateManagement<-function(){
   rSowing() #initialize crop variables
   rSetParamsFromCrops() #assign the crop parameters according to the crop present (i.e. do it again fro crops that are just sowed today, but we need it for the other cases as well)
   rFindWhoHarvests()
-  rHarvesting
+  rHarvesting()
   #whofertilizes
   #whoirrigates
 }

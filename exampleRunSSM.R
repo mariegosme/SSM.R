@@ -66,7 +66,7 @@ mymodel$setoptions(paramsim)
 # mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
-mymodel$run(5*365)
+mymodel$run(3*365)
 
 #plot the dynamics of some variables
 #checking weather module
@@ -83,7 +83,22 @@ if (FALSE) {
 
 #checking Management module
 if (FALSE) {
-  mymodel$extractVariable("sLastSowing")
+  #mymodel$extractVariable("sLastSowing")
+  dynamiques<-mymodel$plot("sLastSowing", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  dynamiques<-mymodel$plot("sLastHarvest", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  dynamiques<-mymodel$plot("sCycleEndType", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
 }
 
 #checking stresses module
