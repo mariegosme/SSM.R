@@ -71,7 +71,7 @@ rCreateDay0<-function() {
   df$sCropCult<-sapply(PARAMSIM$cases$rotation,"[[", 1)
   df$sManagement<-sapply(PARAMSIM$cases$management,"[[", 1)
   df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
-  df$sCycleEndType<-factor("not yet", levels=c("normal", "low LAI", "not sowed", "stopDAP", "killed by flood", "not yet"))
+  df$cCycleEndType<-factor("not yet", levels=c("normal", "low LAI", "not sowed", "stopDAP", "killed by flood", "not yet"))
     
   #icicici : do it only to initialize with a crop everywhere because crop management hasnt been coded yet
   if(FALSE) {

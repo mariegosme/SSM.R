@@ -337,7 +337,7 @@ rWeatherDay<-function(){
 #### Management module 
 rFindWhoSows<-function(){
   doy<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
-  sCycleEndType<-ALLDAYDATA$sCycleEndType
+  cCycleEndType<-ALLDAYDATA$cCycleEndType
   sLastSowing<-ALLDAYDATA$sLastSowing
   #find the sowing window for each case
   sowingwindowstart<-rep(Inf, nrow(ALLDAYDATA))
@@ -405,9 +405,9 @@ rFindWhoSows<-function(){
   #update sLastSowing
   sLastSowing[sowingday]<-length(ALLSIMULATEDDATA) #ALLDAYDATA$iDate[1] 
   ##if the sowing window end is reached and nothing is sowed, go to next crop in the rotation, i.e. do the "harvest" operation
-  sCycleEndType[sowingwindowend==doy & sLastSowing<ALLDAYDATA$sLastHarvest]<-"not sowed"
+  cCycleEndType[sowingwindowend==doy & sLastSowing<ALLDAYDATA$sLastHarvest]<-"not sowed"
     
-  ALLDAYDATA[, c("sLastSowing", "sCycleEndType")]<<-data.frame(sLastSowing, sCycleEndType)
+  ALLDAYDATA[, c("sLastSowing", "cCycleEndType")]<<-data.frame(sLastSowing, cCycleEndType)
 }
 rSowing<-function(){
   whosows<-ALLDAYDATA$sLastSowing==length(ALLSIMULATEDDATA) #ALLDAYDATA$iDate[1]
@@ -416,7 +416,7 @@ rSowing<-function(){
     splits<-strsplit(df$sCropCult, split=".", fixed=TRUE)
     df$sCrop<-sapply(splits,"[[", 1)
     df$sCultivar<-sapply(splits,"[[", 2)
-    #update crop parameters according to crop and cultivar
+    #update crop parameters according to crop and cultivar (do it now even if usually it is done just after sowing, because... I don't remember why)
     cropparameters<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel =="CropParameter", "name"]
     cultivars<-paste(df$sCrop, df$sCultivar, sep=".")
     possiblecrops<-unique(cultivars)
@@ -424,6 +424,8 @@ rSowing<-function(){
     if(length(missing)>0) warning("the following parameters are mising from crop parameters: ", paste(missing, collapse=", "))
     paramstobechanged<-intersect(cropparameters, names(ALLCROPS))
     df[, paramstobechanged]<-ALLCROPS[cultivars, paramstobechanged]
+    #initialize management
+    #df$cCycleEndType<-"not yet"
     #initialize phenology
     df$sGrowthStageNumber<-1
     df$sGrowthStage<-mapply(function(thresh, num) return(names(thresh)[num]),
@@ -458,8 +460,9 @@ rSowing<-function(){
 }
 
 rFindWhoHarvests<-function(){
-  sCycleEndType<-ALLDAYDATA$sCycleEndType
   sLastHarvest<-ALLDAYDATA$sLastHarvest
+  cCycleEndType<-factor(NA, levels=c("normal", "low LAI", "not sowed", "stopDAP", "killed by flood", "not yet"))
+  cCycleEndType[sLastHarvest<ALLDAYDATA$sLastSowing]<-"not yet"
   harvestday<-rep(FALSE, nrow(ALLDAYDATA))
   #last stage reached
   cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
@@ -482,16 +485,16 @@ rFindWhoHarvests<-function(){
   #For now I leave it here because the explaination of MATYP says "Flood kill"
   flooding[is.na(flooding)]<-FALSE
   
-  sCycleEndType[reachedMaturity]<-"normal"
-  sCycleEndType[LowLAI]<-"low LAI"
-  #sCycleEndType[FALSE]<-"not sowed" #done in the rFindWhoSows procedure
-  sCycleEndType[reachedStopDAP]<-"stopDAP"
-  sCycleEndType[flooding]<-"killed by flood"
-  harvestday[!is.na(sCycleEndType) & sCycleEndType!="not yet"]<-TRUE
+  cCycleEndType[reachedMaturity]<-"normal"
+  cCycleEndType[LowLAI]<-"low LAI"
+  #cCycleEndType[FALSE]<-"not sowed" #done in the rFindWhoSows procedure
+  cCycleEndType[reachedStopDAP]<-"stopDAP"
+  cCycleEndType[flooding]<-"killed by flood"
+  harvestday[!is.na(cCycleEndType) & cCycleEndType!="not yet"]<-TRUE
   #update sLastHarvest
   sLastHarvest[harvestday]<-length(ALLSIMULATEDDATA)#ALLDAYDATA$iDate[1] 
   
-  ALLDAYDATA[,c("sCycleEndType", "sLastHarvest")]<<-data.frame(sCycleEndType, sLastHarvest)
+  ALLDAYDATA[,c("cCycleEndType", "sLastHarvest")]<<-data.frame(cCycleEndType, sLastHarvest)
 }
 rHarvesting<-function(){
   whoharvests<-ALLDAYDATA$sLastHarvest==length(ALLSIMULATEDDATA) #ALLDAYDATA$iDate[1]
@@ -501,20 +504,22 @@ rHarvesting<-function(){
     rotations<-PARAMSIM$cases$rotation[whoharvests]
     nextnum<-ALLDAYDATA$sCropNum[whoharvests]+1
     nextnum[nextnum>sapply(rotations, length)]<-1 #last crop finished=>we start again the rotation
-    #state variables remain the same, except the ones indicating that there is a crop (sCrop and sCultivar)
-    # reset all crop parameters and state variables to their default values
-    # cropparam<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel =="CropParameter", "name"]
-    # df[,cropparam]<-VARIABLEDEFINITIONS[cropparam, "defaultInitialvalue]
-    # variablestoinitialize<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable"
-    #                       & VARIABLEDEFINITIONS$module %in% c(
-    #                         "rUpdateStresses", "rUpdatePhenology", "rUpdateLAI",
-    #                         "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth"
-    #                       ), "name"]
-    # numericvariables<-variablestoinitialize[VARIABLEDEFINITIONS[variablestoinitialize,"typeR"]=="numeric"]
-    # df[,variablestoinitialize]<-VARIABLEDEFINITIONS[variablestoinitialize, "defaultInitialvalue"]
-    # df[,numericvariables]<-lapply(df[,numericvariables],as.numeric)
-    df$sCrop<-NA
-    df$sCultivar<-NA
+    #reset all crop parameters and state variables to their default values
+    cropparam<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel =="CropParameter", "name"]
+    numericparam<-cropparam[VARIABLEDEFINITIONS[cropparam,"typeR"]=="numeric"]
+    df[,cropparam]<-VARIABLEDEFINITIONS[cropparam, "defaultInitialvalue"]
+    df[,numericparam]<-lapply(df[,numericparam],as.numeric)
+    variablestoinitialize<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable"
+                          & VARIABLEDEFINITIONS$module %in% c(
+                            "rUpdateManagement",  "rUpdateStresses", "rUpdatePhenology", "rUpdateLAI",
+                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth"
+                          ), "name"]
+    variablestoinitialize<-setdiff(variablestoinitialize, c("sLastHarvest", "sLastSowing", "cCycleEndType"))
+    numericvariables<-variablestoinitialize[VARIABLEDEFINITIONS[variablestoinitialize,"typeR"]=="numeric"]
+    df[,variablestoinitialize]<-VARIABLEDEFINITIONS[variablestoinitialize, "defaultInitialvalue"]
+    df[,numericvariables]<-lapply(df[,numericvariables],as.numeric)
+    #df$sCrop<-NA #done by initialization
+    #df$sCultivar<-NA #done by initialization
     #prepare for sowing: indicate the next crop and management
     df$sCropNum<-nextnum
     df$sCropCult<-mapply("[", rotations, nextnum)
