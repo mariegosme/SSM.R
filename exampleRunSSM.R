@@ -98,7 +98,7 @@ if (FALSE) {
                            col=c(Meknes35degresWheat="lightgreen", 
                                  Meknes35degresMaize="cornflowerblue", 
                                  Meknes35degresChickpea="purple"),
-                           whatcol="cases", lty=1, pch="")
+                           whatcol="cases", lty=0, pch=15)
 }
 
 #checking stresses module

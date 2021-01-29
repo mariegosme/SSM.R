@@ -530,6 +530,10 @@ rHarvesting<-function(){
   }
 }
 
+rFindWhoIrrigates<-function(){
+  
+}
+
 rUpdateManagement<-function(){
   #print("Updating crops according to crop management")
   #DOY<-as.POSIXlt(ALLDAYDATA[1,"iDate"])$yday+1

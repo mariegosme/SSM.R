@@ -53,7 +53,28 @@ runModelD4DECLIC<-function(NbDaysToRun){
   mymodel$setoptions(modeloptions)
   #run the model for n timesteps
   mymodel$run(NbDaysToRun)
-  return(mymodel$ExportDataFrame())
+  #export a simple graph as pdf and jpeg
+  pdf(normalizePath("outputplatform/graph1.pdf"), width=5, height = 4)
+  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+                           col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
+                           lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
+                           pch=NA, main="Min and max temperature and solar radiation")
+  dev.off()
+  jpeg(normalizePath("outputplatform/graph1.jpg"), width=500, height = 400)
+  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+                           col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
+                           lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
+                           pch=NA, main="Min and max temperature and solar radiation")
+  dev.off()
+  #export all the model data to csv
+  toto<-mymodel$ExportDataFrame()
+  write.table(toto, file=normalizePath("outputplatform/wholedata.csv"))
+  #create a summary table to return simple data
+  toto$year<-format(toto$iDate, format="%Y")
+  outputdata<-aggregate(toto[,c("sRootFrontDepth", "sLAI", "sAccumulatedGrainDryMatter")], 
+                        by=toto[,c("year", "sCropCult")],
+                        max)
+  return(outputdata)
 }
 
 #toto<-runModelD4DECLIC(10)
