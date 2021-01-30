@@ -192,11 +192,11 @@ fFindRLYER<-function(layers, df) {
 
 #' Computes the WL (water content) or ATSW (available transpirable water) or TTSW (total transpirable soil water) or FTSW (fraction transpirable soil water) in a given layer (one for each case, or in all soil), weighted or not by the fraction of the layer that is colonized by roots
 #' this is not really a function because it accesses global soil parameters
-#' @param layers vector of target soil layer(s) (single value, or one layer per case)
+#' @param layers vector of target soil layer(s) (single value, or one layer per case) if Inf, returns all layers (as matrix: rows=cases, columns = layers) 
 #' @param df data.frame of state variables (ALLDAYDATA or ALLSIMULATEDDATA[[timestep]])
 #' @param what one of "ATSW", "TTSW", "FTSW", "WL"
 #' @param weightedbyroots TRUE or FALSE, depending of wether the value should be weighted by the rooted proportion of the layer
-#' @return vector of ATSW in all cases of df, in the target layers
+#' @return if layers is Inf, a matrix (rows are cases, columns are layers), else a vector of ATSW in all cases of df, in the target layers
 #' @examples
 #'\dontrun{
 #' fFindWater(layers=1, df=ALLDAYDATA, what="ATSW") #ATSW(1)
@@ -225,16 +225,17 @@ fFindWater<-function(layers, df, what=c("ATSW", "TTSW", "FTSW", "WL", "WLUL", "W
   WLUL<-fExtractSoilParameter(paramname="pFieldCapacity", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at field capacity
   WLST<-fExtractSoilParameter(paramname="pSaturation", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at saturation
   if (what=="ATSW") {
-    return(drop((WL-WLLL)*weights))
+    result<-(WL-WLLL)*weights
   } else if (what=="TTSW") {
-    return(drop((WLUL-WLLL)*weights))
+    result<-(WLUL-WLLL)*weights
   } else if (what=="FTSW") {
-    return(drop(((WL-WLLL)/(WLUL-WLLL))*weights)) 
+    result<-((WL-WLLL)/(WLUL-WLLL))*weights
   } else if (what=="WLUL") {
-    return(drop(WLUL*weights)) 
+    result<-WLUL*weights
   } else if (what=="WLST") {
-    return(drop(WLST*weights)) 
+    result<-WLST*weights
   } else stop("what in fFindWater should be either ATSW, TTSW, FTSW, WL, WLUL or WLST")
+  if (any(!is.finite(layers))) return(result) else return(drop(result))
 }
 
 
