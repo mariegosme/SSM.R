@@ -104,3 +104,4 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
 }
 
 #toto<-runModelD4DECLIC(10)
+#toto<-runModelD4DECLIC(3*365, inputsfromplatform=TRUE)
