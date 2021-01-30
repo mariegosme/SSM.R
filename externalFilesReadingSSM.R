@@ -52,10 +52,12 @@ eReadClimate<-function(){
     #do something, e.g. just open the metadata
   } else if (PARAMSIM$climateformat=="D4Declicplatform") {
     csvcontent<-read.csv(normalizePath("inputplatform/climate.csv"))
-    climatevar<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="rWeatherDay" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"]
+    climatevar<-setdiff(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="rWeatherDay" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"], "date")
     missingvariable<-setdiff(climatevar, names(csvcontent))
     if (length(missingvariable)>0) warning(paste("file inputplatform/climate.csv misses variables", paste(missingvariable, collapse=",")))
-    #translate headers if necessary: need "iRSDS"       "iTASMax"     "iTASMin"     "iPr"         "date"        "climatename"
+    #translate headers if necessary: need "iRSDS"       "iTASMax"     "iTASMin"     "iPr"         "date"   
+    #transforms year-DOY into date
+    csvcontent$date<-as.Date(strptime(paste(csvcontent$YEAR, csvcontent$DOY), format="%Y %j"))
     csvcontent$climatename<-"sim1"
     ALLCLIMATES<<-csvcontent
   }
@@ -105,15 +107,11 @@ eReadSoil<-function(){
     }
     topsoildepth<-csvcontent$T_depth
     subsoilthickness<-csvcontent$S.depth-csvcontent$T_depth
-    if (subsoilthickness==0) {
-      ALLSOILS$pNLayer<-1
-      ALLSOILS$pDrainLayer<-1
-    } else {
       ALLSOILS$pNLayer<-2
       ALLSOILS$pDrainLayer<-2
-    }
+    
     ALLSOILS$pSoilAlbedo<-csvcontent$SALB
-    ALLSOILS$U<-NA #I don t know where to find U (parameter of Ritchies's model for soil evaportation)
+    ALLSOILS$U<-31 #I don t know where to find U (parameter of Ritchies's model for soil evaportation)
     ALLSOILS$pSoilCurveNumber<-csvcontent$CN
     ALLSOILS$pVPDcoef<-0.75 # A coefficient to calculate VPD; 0.65 for humid and subhumid climates and 0.75 for arid and semi-arid climates
     ALLSOILS$paramlayers<-array(0, dim=c(1, 14, 10), 
@@ -129,7 +127,7 @@ eReadSoil<-function(){
     ALLSOILS$paramlayers[1,"Layer#",2]<-2
     ALLSOILS$paramlayers[1,names(translationssoil),1]<-unname(unlist(csvcontent[,paste("T_", translationssoil,sep="")]))
     ALLSOILS$paramlayers[1,names(translationssoil),2]<-unname(unlist(csvcontent[,paste("S_", translationssoil,sep="")]))
-    for (l in 1:2) { #the other parameters are fixed until I understand how to compute them from soil data
+    for (n in 1:2) { #the other parameters are fixed until I understand how to compute them from soil data
       ALLSOILS$paramlayers[1,"pSoilDryness",n]<-0.031
       ALLSOILS$paramlayers[1,"iniWL",n]<-0.13
       ALLSOILS$paramlayers[1,"pStones",n]<-0.03
@@ -137,6 +135,9 @@ eReadSoil<-function(){
       ALLSOILS$paramlayers[1,"PFractionMineralizableN",n]<-0.1
       ALLSOILS$paramlayers[1,"pInitialNitrateConcentration",n]<-10
       ALLSOILS$paramlayers[1,"pInitialAmmoniumConcentration",n]<-0
+    }
+    for (n in 3:10) {
+      ALLSOILS$paramlayers[1,"Layer#",n]<-n
     }
     } else  {
     stop("Only standard SSM format or D4Declicplatform is supported for soil data")

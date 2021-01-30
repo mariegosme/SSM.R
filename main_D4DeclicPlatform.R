@@ -45,7 +45,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
     modeloptions$cases<-data.frame(name="sim1", climatename="sim1", soilname="sim1", lat=csvcontent$lat, long=csvcontent$long)
     rownames(modeloptions$cases)<-"sim1"
     #breaks down rotation into crops
-    crops<-lapply(strsplit(simop$rotation, split='"_"'), gsub, pattern='"' , replacement="", fixed=TRUE)[[1]]
+    crops<-lapply(strsplit(csvcontent$rotation, split='"_"'), gsub, pattern='"' , replacement="", fixed=TRUE)[[1]]
     modeloptions$cases$rotation<-list(crops)
     #use a standard crop management for each crop
     standardmanagement<-c("ROTATION_BLE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "ROTATION_POISCHICHE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "Gorgan-RFD")
