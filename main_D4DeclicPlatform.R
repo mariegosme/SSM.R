@@ -1,6 +1,6 @@
 options(stringsAsFactors=FALSE)
 library(openxlsx)
-runModelD4DECLIC<-function(NbDaysToRun){
+runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
   setup<-function() 
   {
     #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
@@ -29,24 +29,50 @@ runModelD4DECLIC<-function(NbDaysToRun){
                 ExportDataFrame=mExportDataFrame
     ))
   }
-  #read the model options from excel file
-  toto<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="generalOptions")
-  rownames(toto)<-toto$name
-  options<-toto$name ; names(options)<-toto$name
-  modeloptions<-lapply(options, function(x) do.call(toto[x, "transformation"], list(toto[x,"value"])))
-  modeloptions<-c(modeloptions, list( 
-    #directory=getwd(), #it will use the input folder already present in the model (used to be exampleinput)
-    climateformat="standardSSM",
-    cropformat="standardSSM",
-    soilformat="standardSSM",
-    managformat="standardSSM",
-    Neffect=FALSE
-  ))
-  mycases<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="cases")
-  rownames(mycases)<-mycases$name
-  mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
-  mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
-  modeloptions$cases<-mycases
+  if (inputsfromplatform) {
+    #read simulation options from csv, declare formats as "platform"
+    modeloptions<-list(climateformat="D4Declicplatform",
+                       cropformat="standardSSM",
+                       soilformat="D4Declicplatform",
+                       managformat="standardSSM",
+                       Neffect=FALSE)
+    
+    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv"), quote="'") #contains lat, long, rotation
+    startingDate<-as.Date(csvcontent$startingDate)
+    if (is.null(csvcontent$startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
+    if (is.na(startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a startingDate in the form yyyy-mm-dd")
+    modeloptions$simustart<-startingDate
+    modeloptions$cases<-data.frame(name="sim1", climatename="sim1", soilname="sim1", lat=csvcontent$lat, long=csvcontent$long)
+    rownames(modeloptions$cases)<-"sim1"
+    #breaks down rotation into crops
+    crops<-lapply(strsplit(simop$rotation, split='"_"'), gsub, pattern='"' , replacement="", fixed=TRUE)[[1]]
+    modeloptions$cases$rotation<-list(crops)
+    #use a standard crop management for each crop
+    standardmanagement<-c("ROTATION_BLE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "ROTATION_POISCHICHE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "Gorgan-RFD")
+    names(standardmanagement)<-c("WHEAT.Ble_Dur_1", "WHEAT.Ble_Tendre_1", "WHEAT.Ble_Tendre_2","Chickpea.Ghab2", "WHEAT.Avoine_Romani", "WHEAT.Cocorit", "MAIZE.bidule")
+    management<-standardmanagement[crops]
+    modeloptions$cases$management<-list(unname(management))
+  } else { #old method 
+    #read the model options from excel file (currently general options contains only simustart)
+    toto<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="generalOptions")
+    rownames(toto)<-toto$name
+    options<-toto$name ; names(options)<-toto$name
+    modeloptions<-lapply(options, function(x) do.call(toto[x, "transformation"], list(toto[x,"value"])))
+    modeloptions<-c(modeloptions, list( 
+      #directory=getwd(), #it will use the input folder already present in the model (used to be exampleinput)
+      climateformat="standardSSM",
+      cropformat="standardSSM",
+      soilformat="standardSSM",
+      managformat="standardSSM",
+      Neffect=FALSE
+    ))
+    mycases<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="cases")
+    rownames(mycases)<-mycases$name
+    mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+    mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+    modeloptions$cases<-mycases
+  }
+  
   #create an instance of the model
   mymodel<-setup()
   #set the simulation options
