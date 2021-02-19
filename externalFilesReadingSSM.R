@@ -51,13 +51,18 @@ eReadClimate<-function(){
     stop("netCDF format not yet supported for climate")
     #do something, e.g. just open the metadata
   } else if (PARAMSIM$climateformat=="D4Declicplatform") {
-    csvcontent<-read.csv(normalizePath("inputplatform/climate.csv"))
+    csvcontent<-read.csv(normalizePath("inputplatform/climates.csv"))
+    csvcontent$date<-as.Date(paste(csvcontent$Year, csvcontent$Month, csvcontent$Day, sep="-"))
+    translations<-c("iRSDS","iTASMax","iTASMin","iPr","date")
+    names(translations)<-c("rsds","tasmax","tasmin","pr", "date") 
+    csvcontent<-csvcontent[,names(translations)]
+    names(csvcontent)<-translations
+    #translate headers : need "iRSDS"       "iTASMax"     "iTASMin"     "iPr"         "date"   
     climatevar<-setdiff(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$module=="rWeatherDay" & VARIABLEDEFINITIONS$typeinthemodel=="input","name"], "date")
     missingvariable<-setdiff(climatevar, names(csvcontent))
     if (length(missingvariable)>0) warning(paste("file inputplatform/climate.csv misses variables", paste(missingvariable, collapse=",")))
-    #translate headers if necessary: need "iRSDS"       "iTASMax"     "iTASMin"     "iPr"         "date"   
     #transforms year-DOY into date
-    csvcontent$date<-as.Date(strptime(paste(csvcontent$YEAR, csvcontent$DOY), format="%Y %j"))
+    #csvcontent$date<-as.Date(strptime(paste(csvcontent$YEAR, csvcontent$DOY), format="%Y %j"))
     csvcontent$climatename<-"sim1"
     ALLCLIMATES<<-csvcontent
   }

@@ -37,12 +37,18 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
                        managformat="standardSSM",
                        Neffect=FALSE)
     
-    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv"), quote="'") #contains lat, long, rotation
+    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv"), quote="'") #contains lat, lon, rotation
     startingDate<-as.Date(csvcontent$startingDate)
     if (is.null(csvcontent$startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
     if (is.na(startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a startingDate in the form yyyy-mm-dd")
     modeloptions$simustart<-startingDate
-    modeloptions$cases<-data.frame(name="sim1", climatename="sim1", soilname="sim1", lat=csvcontent$lat, long=csvcontent$long)
+    if (is.null(csvcontent$lat)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with lat")
+    csvcontent$lat<-as.numeric(csvcontent$lat)
+    if (is.na(csvcontent$lat)) stop("column lat in SimulationOptions.csv for inputsfromplatform must be a numeric")
+    if (is.null(csvcontent$lon)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with lon")
+    csvcontent$lon<-as.numeric(csvcontent$lon)
+    if (is.na(csvcontent$lon)) stop("column lon in SimulationOptions.csv for inputsfromplatform must be a numeric")
+    modeloptions$cases<-data.frame(name="sim1", climatename="sim1", soilname="sim1", lat=csvcontent$lat, long=csvcontent$lon)
     rownames(modeloptions$cases)<-"sim1"
     #breaks down rotation into crops
     crops<-lapply(strsplit(csvcontent$rotation, split='"_"'), gsub, pattern='"' , replacement="", fixed=TRUE)[[1]]
