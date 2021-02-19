@@ -105,9 +105,9 @@ eReadSoil<-function(){
     #other info in database: EXTR OC (organic carbon?), DULg, PO, e
     #missing info for SSM: "pSoilDryness", "iniWL", "pStones", "pOrganicN", "PFractionMineralizableN", "pInitialNitrateConcentration", "pInitialAmmoniumConcentration"
     ALLSOILS<-list()
-    csvcontent<-read.csv(normalizePath("inputplatform/soil.csv"))
+    csvcontent<-read.csv(normalizePath("inputplatform/Soil.csv"))
     if(nrow(csvcontent)>1) {
-      warning("soil.csv in inputplatform contained more than 1 row, only the first row is used")
+      warning("Soil.csv in inputplatform contained more than 1 row, only the first row is used")
       csvcontent<-csvcontent[1,]
     }
     topsoildepth<-csvcontent$T_depth
@@ -116,7 +116,7 @@ eReadSoil<-function(){
       ALLSOILS$pDrainLayer<-2
     
     ALLSOILS$pSoilAlbedo<-csvcontent$SALB
-    ALLSOILS$U<-31 #I don t know where to find U (parameter of Ritchies's model for soil evaportation)
+    ALLSOILS$U<-6 #explication d'Helene: U est un parametre qui ne sert que lorsqu'on active l'option de calcul de l'evaporation selon la formule de Ritchie (evaporation en 2 temps, "semethod=1" dans le code, je crois et dans ce cas-la, on le fixe toujours a 6 (U indique une nombre de jours necessaires depuis la derniere pluie pour la transition  entre les deux stades d'evaporation si je me souviens bien)
     ALLSOILS$pSoilCurveNumber<-csvcontent$CN
     ALLSOILS$pVPDcoef<-0.75 # A coefficient to calculate VPD; 0.65 for humid and subhumid climates and 0.75 for arid and semi-arid climates
     ALLSOILS$paramlayers<-array(0, dim=c(1, 14, 10), 
@@ -133,14 +133,20 @@ eReadSoil<-function(){
     ALLSOILS$paramlayers[1,names(translationssoil),1]<-unname(unlist(csvcontent[,paste("T_", translationssoil,sep="")]))
     ALLSOILS$paramlayers[1,names(translationssoil),2]<-unname(unlist(csvcontent[,paste("S_", translationssoil,sep="")]))
     for (n in 1:2) { #the other parameters are fixed until I understand how to compute them from soil data
-      ALLSOILS$paramlayers[1,"pSoilDryness",n]<-0.031
-      ALLSOILS$paramlayers[1,"iniWL",n]<-0.13
-      ALLSOILS$paramlayers[1,"pStones",n]<-0.03
-      ALLSOILS$paramlayers[1,"pOrganicN",n]<-0.02
-      ALLSOILS$paramlayers[1,"PFractionMineralizableN",n]<-0.1
-      ALLSOILS$paramlayers[1,"pInitialNitrateConcentration",n]<-10
-      ALLSOILS$paramlayers[1,"pInitialAmmoniumConcentration",n]<-0
+      ALLSOILS$paramlayers[1,"pSoilDryness",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n]/3 #explication d'Helene: ADRY est fixe par defaut egal  à LL/3 en l'absence de donnees permettant de faire mieux (meme si dans les sols tres argileux a fentes de retrait cela  peut etre significativement  faux)
+      ALLSOILS$paramlayers[1,"iniWL",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n] #explication d'Helene: iWL est le stock d'eau au demarrage de la simulation... donc ca depend de quand tu demarres la simulation. En general en Mediterranee, on demarre les simulations le 30 aout avec un sol vide (iwL=LL)
+      ALLSOILS$paramlayers[1,"pStones",n]<-0 #explication d'Helene: FG...ne peut pas se deduire de la base de donnees avec cette base la (HSWD). Soit tu le fixes ce parametre à 0 (en considerant que les valeurs de %A,%L et %L fournies dans la bd sont pour la totalite du sol, soit tu le fixes à une valeur constante (e.g; 0.15 si tu as de bonnes raisons de penser que cela sera plus representatif que 0). Dans certaines bases de donnees, %S est divise en deux sous categories "sables grossiers"/"coarse sands" et "sables fins/fine sands" dans ce cas, j'utilise le premier pour definir FG et l'autre pour definir %S et par ricochet SAT, DUL, EXT  etc.
+      ALLSOILS$paramlayers[1,"pOrganicN",n]<-0.02 #explication d'Helene: NORG se calcule a partir de MO avec l'approximation NO=MO/20 (d'apres la composition moyenne de la matiere organique du sol)
+      ALLSOILS$paramlayers[1,"PFractionMineralizableN",n]<-0.1 #explication d'Helene: FMIN est souvent fixé à 0.1, voire 0.01 dans les couches profondes du sols (d'apres plusieurs estimations faites a partir de mesures dans le sols mediterraneens)
+      ALLSOILS$paramlayers[1,"pInitialAmmoniumConcentration",n]<-0 #explication d'Helene: cf ci-dessous
     }
+    #we suppose that the residual nitrate concentration is 35 kgN/ha, 2/3 of which is in the top layer
+    #35 kg over whole soil => 23.3 in top layer (this doesn't make sense to use a constant proportion if the layer thickness is not the same but whatever), and 11.7 in bottom layer
+    #23.3 kg N = 23.3*4.4268 kg NO3
+    #
+    ALLSOILS$paramlayers[1,"pInitialNitrateConcentration",1]<-10 #explication d'Helene: NO3- et NH4+ ne sont pas lisibles dans une base de donnees non plus car hautement variables. Quand je n'ai pas d'info, je mets NH4+=0 et je me concentre sur le NO3-,. Selon le systeme de culture, j'estime qu'il est d'environ 20 a 50 kg de N residuel au semi, dont les 2/3 dans la couche superieure du sol. Je fais la conversion en utilisant la densite apparente pour trouver la valeur en g N. g-1 sol.
+    ALLSOILS$paramlayers[1,"pInitialNitrateConcentration",2]<-10 #explication d'Helene: NO3- et NH4+ ne sont pas lisibles dans une base de donnees non plus car hautement variables. Quand je n'ai pas d'info, je mets NH4+=0 et je me concentre sur le NO3-,. Selon le systeme de culture, j'estime qu'il est d'environ 20 a 50 kg de N residuel au semi, dont les 2/3 dans la couche superieure du sol. Je fais la conversion en utilisant la densite apparente pour trouver la valeur en g N. g-1 sol.
+    
     for (n in 3:10) {
       ALLSOILS$paramlayers[1,"Layer#",n]<-n
     }
