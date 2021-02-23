@@ -37,9 +37,9 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
                        managformat="standardSSM",
                        Neffect=FALSE)
     
-    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv"), quote="'") #contains lat, lon, rotation
-    startingDate<-as.Date(csvcontent$startingDate)
-    if (is.null(csvcontent$startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
+    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv"), quote="'") #contains lat, lon, rotation, date
+    startingDate<-as.Date(csvcontent$date)
+    if (is.null(csvcontent$date)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
     if (is.na(startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a startingDate in the form yyyy-mm-dd")
     modeloptions$simustart<-startingDate
     if (is.null(csvcontent$lat)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with lat")
@@ -110,4 +110,4 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
 }
 
 #toto<-runModelD4DECLIC(10)
-#toto<-runModelD4DECLIC(3*365, inputsfromplatform=TRUE)
+#toto<-runModelD4DECLIC(10, inputsfromplatform=TRUE)
