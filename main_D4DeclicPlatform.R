@@ -37,9 +37,9 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
                        managformat="standardSSM",
                        Neffect=FALSE)
     
-    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv"), quote="'") #contains lat, lon, rotation, date
-    startingDate<-as.Date(csvcontent$date)
-    if (is.null(csvcontent$date)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
+    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv")) #contains lat, lon, rotation, date
+    startingDate<-as.Date(csvcontent$startingDate)
+    if (is.null(csvcontent$startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
     if (is.na(startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a startingDate in the form yyyy-mm-dd")
     modeloptions$simustart<-startingDate
     if (is.null(csvcontent$lat)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with lat")
@@ -51,7 +51,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
     modeloptions$cases<-data.frame(name="sim1", climatename="sim1", soilname="sim1", lat=csvcontent$lat, long=csvcontent$lon)
     rownames(modeloptions$cases)<-"sim1"
     #breaks down rotation into crops
-    crops<-lapply(strsplit(csvcontent$rotation, split='"_"'), gsub, pattern='"' , replacement="", fixed=TRUE)[[1]]
+    crops<-lapply(strsplit(as.character(csvcontent$rotation), split="'_'"), gsub, pattern="'" , replacement="", fixed=TRUE)[[1]]
     modeloptions$cases$rotation<-list(crops)
     #use a standard crop management for each crop
     standardmanagement<-c("ROTATION_BLE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "ROTATION_POISCHICHE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "Gorgan-RFD")
