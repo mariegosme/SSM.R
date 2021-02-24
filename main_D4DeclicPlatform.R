@@ -1,5 +1,9 @@
 options(stringsAsFactors=FALSE)
 library(openxlsx)
+Sys.setlocale("LC_TIME", "English") #on Windows
+Sys.setlocale("LC_TIME", "en_GB.UTF-8") #on Mac
+Sys.setlocale(category = "LC_TIME", locale = "en_US") #on other systems
+Sys.setlocale(category = "LC_TIME", locale = "C") #on other systems
 runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
   setup<-function() 
   {
