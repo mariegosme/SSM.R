@@ -61,7 +61,7 @@ fCreateDay<-function(dateday){
 
 #creation of day 0 
 rCreateDay0<-function() {
-  print("initializing the simulation (with crops because sowing hasnt been coded yet" )
+  print("initializing the simulation" )
   if(is.null(PARAMSIM$simustart)) stop("you didn't define a starting date, use $setoptions to do it")
   types<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "typeR"] ; names(types)<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$name!="iDate", "name"]
   if (sum( !(types %in% c("numeric", "character", "factor")) )>0) stop("all variables should be either numeric or character or factor, check variables ", paste(names(types)[!types %in% c("numeric", "character")], collapse=","))
