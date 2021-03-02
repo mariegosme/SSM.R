@@ -26,7 +26,7 @@ fFunctionstep<-function(x, x1=NA,x2=NA, x3=NA, x4=NA, y1=NA, y2=NA, y3=NA) {
   df[noNA & df$x<df$x1, "toto"]<-df$y1[noNA & df$x<df$x1]
   df[noNA & df$x>df$x2 & df$x<=df$x3, "toto"]<-df$y2[noNA & df$x>df$x2 & df$x<=df$x3]
   df[noNA & df$x>df$x3 & df$x<df$x4, "toto"]<- (df$y2 + (df$x-df$x3)*(df$y3-df$y2)/(df$x4-df$x3))[noNA & df$x>df$x3 & df$x<df$x4]
-  df[noNA & df$x>=df$x4, "toto"]<-y3[noNA & df$x>=df$x4]
+  df[noNA & df$x>=df$x4, "toto"]<-df[noNA & df$x>=df$x4, "y3"]
   df[!noNA, "toto"]<-NA
   return(df$toto)
 }
@@ -426,7 +426,7 @@ rSowing<-function(){
     paramstobechanged<-intersect(cropparameters, names(ALLCROPS))
     df[, paramstobechanged]<-ALLCROPS[cultivars, paramstobechanged]
     #initialize management
-    #df$cCycleEndType<-"not yet"
+    #df$cCycleEndType<-"not yet" #icicici check why this is commented out 
     #initialize phenology
     df$sGrowthStageNumber<-1
     df$sGrowthStage<-mapply(function(thresh, num) return(names(thresh)[num]),
@@ -531,8 +531,56 @@ rHarvesting<-function(){
   }
 }
 
-rFindWhoIrrigates<-function(){
+
+rIrrigation<-function() {
+  cIrrigationWater<-rep(VARIABLEDEFINITIONS["cIrrigationWater", "defaultInitialvalue"], nrow(ALLDAYDATA))
+  sIrrigationNumber<-ALLDAYDATA$sIrrigationNumber
+  waterscenarios<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterScenario") 
+  #codes of water management: 0 = potential production (soil water not necessary to compute), 1 = automated irrigation to keep soil water above a certain threshold, 2: rainfed (no irrigation), 3 fixed according to data frame
   
+  #### 0 (potential production: do nothing
+  #### 1 automatic irrigation of 30 mm if TSWRZ <= IRGLVL And CBD < bdTSG 
+  irrigationThresholds<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterLevel") 
+  FTSWweightedByRoots<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ with water content from yesterday and root length from yesterday
+  ###icicicici FTSWRZ is computed three times, once here and once in waterbudget and once in rUpdateStresses, because we decided not to save layer-related soil variables, except water content
+  ##we won't save it here icicici check that is it saved only by one procedure, and write the name of this procedure in allvariables.xlsx
+  resultfilter<-applyfilters("automaticIrrigation")
+  irrigation1<-waterscenarios==1 & FTSWweightedByRoots<=irrigationThresholds & resultfilter
+  cIrrigationWater[irrigation1]<-30
+  sIrrigationNumber[irrigation1]<-sIrrigationNumber[irrigation1]+1
+  
+  #### 2 rainfed: do nothing
+  
+  #### 3 fixed irrigation
+  irrigationnumberchecked<-ALLDAYDATA$sIrrigationNumber+1 #check if today is the day of the next irrigation (from alldaydata=>from yesterdays irrigation number)
+  thresholds<-mapply(function(df,rownum) return(df[rownum,"DAPorCBDorDOY"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterdf"), rownum=irrigationnumberchecked)
+  amounts<-mapply(function(df,rownum) return(df[rownum,"amount"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterdf"), rownum=irrigationnumberchecked)
+  waterdatetypes<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterDatetype") 
+  DAP<-length(ALLSIMULATEDDATA)-ALLDAYDATA$sLastSowing
+  CBD<-ALLDAYDATA$sBiologicalDaysSinceSowing
+  DOY<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
+  
+  irrigation3.1<-waterscenarios==3 & waterdatetypes==1 & DAP==thresholds # 1 DAP
+  cIrrigationWater[irrigation3.1]<-amounts[irrigation3.1]
+  sIrrigationNumber[irrigation3.1]<-sIrrigationNumber[irrigation3.1]+1
+  
+  irrigation3.2<-waterscenarios==3 & waterdatetypes==2 & CBD>=thresholds # 2 CBD
+  cIrrigationWater[irrigation3.2]<-amounts[irrigation3.2]
+  sIrrigationNumber[irrigation3.2]<-sIrrigationNumber[irrigation3.2]+1
+  
+  irrigation3.3<-waterscenarios==3 & waterdatetypes==3 & thresholds==DOY # 3 DOY
+  cIrrigationWater[irrigation3.3]<-amounts[irrigation3.3]
+  sIrrigationNumber[irrigation3.3]<-sIrrigationNumber[irrigation3.3]+1
+  
+  irrigation3.4<-waterscenarios==3 & waterdatetypes==4 & CBD>=thresholds # 3 CBD with automatic amount to fill to field capacity
+  amounts<-(apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="TTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE)
+            -apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="ATSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE))#TTSWRZ-ATSWRZ with water content from yesterday and root length from yesterday
+  cIrrigationWater[irrigation3.4]<-amounts[irrigation3.4]
+  sIrrigationNumber[irrigation3.4]<-sIrrigationNumber[irrigation3.4]+1
+  
+  #update computed and state variable
+  ALLDAYDATA[,c("cIrrigationWater", "sIrrigationNumber")]<<-data.frame(cIrrigationWater, sIrrigationNumber)
+  return()
 }
 
 rUpdateManagement<-function(){
@@ -545,7 +593,7 @@ rUpdateManagement<-function(){
   rFindWhoHarvests()
   rHarvesting()
   #whofertilizes
-  #whoirrigates
+  rIrrigation()
 }
 
 #### computation of water stresses and N stresses, from water level and nitrogen of the previous day
@@ -553,7 +601,7 @@ rUpdateManagement<-function(){
 rUpdateStresses<-function(){
   sFloodDuration<-ALLDAYDATA$sFloodDuration
   cFTSWweightedByRoots<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
-  ###icicicici this is computed twice, once here and once in waterbudget, because we decided not to save layer-related soil variables, except water content
+  ###icicicici this is computed three times, once here and once in waterbudget, because we decided not to save layer-related soil variables, except water content, and once in rIrrigation to compute FTSWRZ for irrigating or not
   #### and we need it now just to compute AROOT, because in the code, AROOT from last time step is used to compute WUUR before updating aroot, don't know why
   rootLength_L<-fFindRLYER(Inf, ALLDAYDATA) #RLYER
   FTSW_L<-fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE) #FTSW(l)
@@ -1070,7 +1118,6 @@ rUpdateWaterBudget<-function(){
   cTranspiration<-ALLDAYDATA$cTranspiration
   cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
   
-  ##### icicici dont forget to code irrigation in management module
   cIrrigationWater<-ALLDAYDATA$cIrrigationWater
   
   #input rain+melted snow

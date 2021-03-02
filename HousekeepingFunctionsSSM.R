@@ -36,15 +36,13 @@ applyfilters<-function(processname){
     filtertexts<-rep("FALSE", nrow(ALLDAYDATA))
     filtertexts[cultivars %in% possiblecrops]<-ALLCROPS[cultivars[cultivars %in% possiblecrops], paste(processname, "filter", sep=".")]
     names(filtertexts)<-rownames(ALLDAYDATA)
-    #filtertexts<-ALLCROPS[possiblecrops, paste(processname, "filter", sep=".")]
-    #names(filtertexts)<-possiblecrops
     if (any(is.null(filtertexts))) stop(
       "process ", processname, " is not in the filter parameters of cultivars ", paste(
         possiblecrops[is.null(filtertexts)], collapse=", "
       ))
-    filters<-mapply(FUN=evaluatecrop, filtertexts, cultivars, SIMPLIFY=FALSE)
+    filters<-mapply(FUN=evaluatecrop, text=filtertexts, uniquecrop=cultivars, SIMPLIFY=FALSE)
     resultfilter<-mapply(FUN=any, filters)
-    if(any(is.na(resultfilter))) stop("Error in applyfilter for process", processname, ": it returned NAs")
+    if(any(is.na(resultfilter))) stop("Error in applyfilter for process ", processname, ": it returned NAs")
     return(resultfilter)
   } else return(FALSE)
 }
@@ -73,20 +71,20 @@ rCreateDay0<-function() {
   df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
   df$cCycleEndType<-factor("not yet", levels=c("normal", "low LAI", "not sowed", "stopDAP", "killed by flood", "not yet"))
     
-  #icicici : do it only to initialize with a crop everywhere because crop management hasnt been coded yet
-  if(FALSE) {
-    df$sLastSowing<-0
-    df$sLastHarvest<- (-Inf)
-    df$sCrop<-c("WHEAT", "MAIZE", "Chickpea") #written as in the first line in the excel file
-    df$sCultivar<-c("Ble_Dur_1", "bidule", "Ghab2")
-    df$sGrowthStage<-c("germination", "SOW", "SOW")
-    df$sDurationStage<-c(6, 3, 8.5)
-    df$sGrowthStageNumber<-1
-    df$sBiologicalDay<-0
-    df$sPlantdensity<-280
-    df$sStubleWeight<-2
-    df$sRootFrontDepth<-200
-  }
+  #commented out now that crop management has been coded 
+  # if(FALSE) {
+  #   df$sLastSowing<-0
+  #   df$sLastHarvest<- (-Inf)
+  #   df$sCrop<-c("WHEAT", "MAIZE", "Chickpea") #written as in the first line in the excel file
+  #   df$sCultivar<-c("Ble_Dur_1", "bidule", "Ghab2")
+  #   df$sGrowthStage<-c("germination", "SOW", "SOW")
+  #   df$sDurationStage<-c(6, 3, 8.5)
+  #   df$sGrowthStageNumber<-1
+  #   df$sBiologicalDay<-0
+  #   df$sPlantdensity<-280
+  #   df$sStubleWeight<-2
+  #   df$sRootFrontDepth<-200
+  # }
   
     #initialisation of soil water
   df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="iniWL", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
