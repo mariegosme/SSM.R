@@ -8,10 +8,10 @@ mOnetimestep<-function(){
   rUpdateManagement() 
   rUpdateStresses() #compute water stress with water from the day before
   rUpdatePhenology()
-  #rUpdateLAI()
-  #rUpdateDMProduction()
-  #rUpdateDMDistribution() 
-  #rUpdateRootDepth()
+  rUpdateLAI()
+  rUpdateDMProduction()
+  rUpdateDMDistribution() 
+  rUpdateRootDepth()
   rUpdateWaterBudget()
   
   #at the end of the timestep, adds the new day at the end of the list of all variables

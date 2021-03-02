@@ -513,14 +513,18 @@ rHarvesting<-function(){
     variablestoinitialize<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable"
                           & VARIABLEDEFINITIONS$module %in% c(
                             "rUpdateManagement",  "rUpdateStresses", "rUpdatePhenology", "rUpdateLAI",
-                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth"
+                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth", "PlantN" #icicici when it's coded, rename this module with a procedure name
                           ), "name"]
+    #check which one we kep:
+    #setdiff(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable","name"], variablestoinitialize)
+    #should be "sDaysSinceStage2evaporation", "sWater.1" to "sWater.10", "sSnow"                      
     variablestoinitialize<-setdiff(variablestoinitialize, c("sLastHarvest", "sLastSowing", "cCycleEndType"))
     numericvariables<-variablestoinitialize[VARIABLEDEFINITIONS[variablestoinitialize,"typeR"]=="numeric"]
-    df[,variablestoinitialize]<-VARIABLEDEFINITIONS[variablestoinitialize, "defaultInitialvalue"]
+    defaults<-VARIABLEDEFINITIONS[variablestoinitialize, "defaultInitialvalue"] ; names(defaults)<-variablestoinitialize
+    df[,variablestoinitialize]<-lapply(defaults, rep, times=nrow(df))
     df[,numericvariables]<-lapply(df[,numericvariables],as.numeric)
-    #df$sCrop<-NA #done by initialization
-    #df$sCultivar<-NA #done by initialization
+    #df$sCrop<-NA #done by rSowing
+    #df$sCultivar<-NA #done by rSowing
     #prepare for sowing: indicate the next crop and management
     df$sCropNum<-nextnum
     df$sCropCult<-mapply("[", rotations, nextnum)
@@ -590,7 +594,7 @@ rUpdateManagement<-function(){
   rFindWhoSows() #writes the current date into ALLDAYDATA$sLastSowing
   rSowing() #initialize crop variables
   rSetParamsFromCrops() #assign the crop parameters according to the crop present (i.e. do it again fro crops that are just sowed today, but we need it for the other cases as well)
-  rFindWhoHarvests()
+  rFindWhoHarvests() #writes the current date into ALLDAYDATA$sLastHarvest
   rHarvesting()
   #whofertilizes
   rIrrigation()
