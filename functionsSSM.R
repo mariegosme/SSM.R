@@ -604,33 +604,33 @@ rUpdateManagement<-function(){
 #do it now because they are used by several modules
 rUpdateStresses<-function(){
   sFloodDuration<-ALLDAYDATA$sFloodDuration
-  cFTSWweightedByRoots<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
+  cFTSWrootZone<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
   ###icicicici this is computed three times, once here and once in waterbudget, because we decided not to save layer-related soil variables, except water content, and once in rIrrigation to compute FTSWRZ for irrigating or not
   #### and we need it now just to compute AROOT, because in the code, AROOT from last time step is used to compute WUUR before updating aroot, don't know why
   rootLength_L<-fFindRLYER(Inf, ALLDAYDATA) #RLYER
   FTSW_L<-fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE) #FTSW(l)
   waterStressTranspiration_L<-pmax(pmin(FTSW_L/ALLDAYDATA$pThresholdWaterStressGrowth, 1),0 ) #RT(L)
-  cEfficientRootLength<-apply(rootLength_L*waterStressTranspiration_L, 1, sum, na.rm=TRUE) #AROOT
+  cAvailableWaterInRootZone<-apply(rootLength_L*waterStressTranspiration_L, 1, sum, na.rm=TRUE) #AROOT
   
-  cCoefWaterstressGrowth<-pmin(1, cFTSWweightedByRoots/ALLDAYDATA$pThresholdWaterStressGrowth) #WSFG 
-  cCoefWaterstressLeafArea<-pmin(1, cFTSWweightedByRoots/ALLDAYDATA$pThresholdWaterStressLeafArea) #WSFL
+  cCoefWaterstressGrowth<-pmin(1, cFTSWrootZone/ALLDAYDATA$pThresholdWaterStressGrowth) #WSFG 
+  cCoefWaterstressLeafArea<-pmin(1, cFTSWrootZone/ALLDAYDATA$pThresholdWaterStressLeafArea) #WSFL
   cCoefWaterstressDevelopment<-(1-cCoefWaterstressGrowth)*ALLDAYDATA$pCoefWaterStressGrowthToDevelopment+1 #WSFD 
 
   waterWeightedByRoots<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="WL", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #WRZ
   waterFieldCapacityWeightedByRoots<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="WLUL", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #WRZUL
   waterSaturationWeightedByRoots<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="WLST", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #WRZST
   cCoefWaterStressSaturation<-pmin(pmax(((waterSaturationWeightedByRoots - waterWeightedByRoots) / (waterSaturationWeightedByRoots - waterFieldCapacityWeightedByRoots)), 0), 1) #WSXF
-  cCoefWaterstressGrowth[cFTSWweightedByRoots>1]<-cCoefWaterStressSaturation[cFTSWweightedByRoots>1]
-  cCoefWaterstressLeafArea[cFTSWweightedByRoots>1]<-cCoefWaterStressSaturation[cFTSWweightedByRoots>1]
+  cCoefWaterstressGrowth[cFTSWrootZone>1]<-cCoefWaterStressSaturation[cFTSWrootZone>1]
+  cCoefWaterstressLeafArea[cFTSWrootZone>1]<-cCoefWaterStressSaturation[cFTSWrootZone>1]
   saturated<-cCoefWaterStressSaturation<=GENERALPARAMETERS["pWaterStressSaturationFlood", "defaultInitialvalue"]
   saturated[is.na(saturated)]<-FALSE
   sFloodDuration[saturated]<-(sFloodDuration+1)[saturated]
   sFloodDuration[!saturated]<-0
     
-  ALLDAYDATA[,c("cEfficientRootLength", "cFTSWweightedByRoots", "cCoefWaterstressGrowth", 
+  ALLDAYDATA[,c("cAvailableWaterInRootZone", "cFTSWrootZone", "cCoefWaterstressGrowth", 
                 "cCoefWaterstressLeafArea", "cCoefWaterstressDevelopment",
                 "cCoefWaterStressSaturation", "sFloodDuration")]<<-data.frame(
-                  cEfficientRootLength, cFTSWweightedByRoots, cCoefWaterstressGrowth, 
+                  cAvailableWaterInRootZone, cFTSWrootZone, cCoefWaterstressGrowth, 
                   cCoefWaterstressLeafArea, cCoefWaterstressDevelopment,
                   cCoefWaterStressSaturation, sFloodDuration
                 )
@@ -1108,11 +1108,11 @@ rUpdateWaterBudget<-function(){
   sWater<-as.matrix(ALLDAYDATA[,paste("sWater", 1:10, sep=".")])
   
   #icicicic warning  : rootLength_L here is computed after today's root growth,
-  # while cEfficientRootLength (AROOT) was computed with root length from the day before in rUpdateStresses
+  # while cAvailableWaterInRootZone (AROOT) was computed with root length from the day before in rUpdateStresses
   # and waterStressTranspiration_L is also from yesterday variables (FTSW_L is computed at the beginning of the current procedure, and does not weight by root length
   #check in the excel code when each element is updated to do the same
-  yesterdayFTSWweightedByRoots<- ALLDAYDATA$cFTSWweightedByRoots #FTSWRZ (computed in rUpdateStresses)
-  yesterdayEfficientRootLength<- ALLDAYDATA$cEfficientRootLength #AROOT (computed in rUpdateStresses)
+  yesterdayFTSWweightedByRoots<- ALLDAYDATA$cFTSWrootZone #FTSWRZ (computed in rUpdateStresses)
+  yesterdayEfficientRootLength<- ALLDAYDATA$cAvailableWaterInRootZone #AROOT (computed in rUpdateStresses)
   FTSW_L<- fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE) #FTSW(L)
   ATSW_1<- fFindWater(layers=1, df=ALLDAYDATA, what="ATSW")
   WLUL_L<- fExtractSoilParameter(paramname="pFieldCapacity", Inf)*fExtractSoilParameter(paramname="pLayerThickness", Inf) #water amount above the field capacity
