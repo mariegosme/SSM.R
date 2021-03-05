@@ -1157,7 +1157,9 @@ rUpdateWaterBudget<-function(){
   cPotentialSoilEvaporation[cPET > minimalSoilEvaporation & cPotentialSoilEvaporation<minimalSoilEvaporation]<-minimalSoilEvaporation
   #modify to take into account the effect of mulch 
   #icicic this equation has hard-coded parameters
-  cPotentialSoilEvaporation <- cPotentialSoilEvaporation * (1.5 - 0.2 * log((100 * ALLDAYDATA$sStubleWeight)))
+  #cPotentialSoilEvaporation <- cPotentialSoilEvaporation * (1.5 - 0.2 * log((100 * ALLDAYDATA$sStubleWeight))) #old version of SSM.xlsx
+  cPotentialSoilEvaporation <- cPotentialSoilEvaporation * exp(-0.22 * ALLDAYDATA$sStubleWeight/10) #(Salado and sinclair 2013)
+  
   #real soil evaporation 
   cActualSoilEvaporation<-cPotentialSoilEvaporation
   sDaysSinceStage2evaporation[rain + cIrrigationWater > soilWettingWaterQuantity]<-0
