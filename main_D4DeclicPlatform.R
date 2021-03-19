@@ -105,6 +105,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
   #export all the model data to csv
   toto<-mymodel$ExportDataFrame()
   write.table(toto, file=normalizePath("outputplatform/wholedata.csv"))
+  write.table(toto[,c("sCrop", "sLAI", "sGrowthStage", "sRootFrontDepth", "sAccumulatedGrainDryMatter")], file=normalizePath("outputplatform/dataForOutput.csv"))
   #create a summary table to return simple data
   toto$year<-format(toto$iDate, format="%Y")
   outputdata<-aggregate(toto[,c("sRootFrontDepth", "sLAI", "sAccumulatedGrainDryMatter")], 

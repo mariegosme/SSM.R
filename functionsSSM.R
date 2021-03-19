@@ -230,6 +230,7 @@ fFindWater<-function(layers, df, what=c("ATSW", "TTSW", "FTSW", "WL", "WLUL", "W
     result<-(WLUL-WLLL)*weights
   } else if (what=="FTSW") {
     result<-((WL-WLLL)/(WLUL-WLLL))*weights
+    ###### icicici issue #4 not yet solved "FTSWRZ=ATSWRZ/TTSWRZ instead of FTSWRZ=sum(FTSW*weights)" i don't remember what I meant....
   } else if (what=="WLUL") {
     result<-WLUL*weights
   } else if (what=="WLST") {
