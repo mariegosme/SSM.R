@@ -1,0 +1,2 @@
+id,cell_id,dominant_s,lat,long,id_soil,share_,ref_depth,root_depth,t_depth,s_depth,t_gravel,t_sand,t_silt,t_clay,t_bulk_den,s_gravel,s_sand,s_silt,s_clay,cn,s_bulk_den,salb,t_sat,t_dul,t_extr,t_ll,t_drainf,t_ref_bulk,t_oc,t_dulg,t_po,t_e,s_sat,s_dul,s_extr,s_ll,s_drainf,s_ref_bulk,s_oc ,s_dulg,s_po,s_e
+203,742.0,1125.0,35.5,0.5,38462,70,100,100,30,100,10,38,41,21,0,10,36,41,23,81,1.46,0.12,0.409,0.243,0.132,0.111,0.3,1.4,0.63,0.171,0.464,0.056,0.395,0.255,0.132,0.123,0.3,1.38,0.43,0.175,0.449,0.054

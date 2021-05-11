@@ -4,11 +4,12 @@ Sys.setlocale("LC_TIME", "English") #on Windows
 Sys.setlocale("LC_TIME", "en_GB.UTF-8") #on Mac
 Sys.setlocale(category = "LC_TIME", locale = "en_US") #on other systems
 Sys.setlocale(category = "LC_TIME", locale = "C") #on other systems
-runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
+runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
   setup<-function() 
   {
     #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
     ICI<-environment()
+    if(!is.null(userid)) USERID<-userid
     source("headersSSM.R", local=TRUE)
     source("initialisationEnvironmenVariablesSSM.R", local=TRUE)
     source("externalFilesReadingSSM.R", local=TRUE)
@@ -41,7 +42,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
                        managformat="standardSSM",
                        Neffect=FALSE)
     
-    csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv")) #contains lat, lon, rotation, date
+    csvcontent<-read.csv(normalizePath("inputplatform", paste0("user_", USERID), "SimulationOptions.csv")) #contains lat, lon, rotation, date
     startingDate<-as.Date(csvcontent$startingDate)
     if (is.null(csvcontent$startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
     if (is.na(startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a startingDate in the form yyyy-mm-dd")
@@ -105,6 +106,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=FALSE){
   #export all the model data to csv
   toto<-mymodel$ExportDataFrame()
   write.table(toto, file=normalizePath("outputplatform/wholedata.csv"))
+  write.table(toto[,c("sCrop", "sLAI", "sGrowthStage", "sRootFrontDepth", "sAccumulatedGrainDryMatter")], file=normalizePath("outputplatform/dataForOutput.csv"))
   #create a summary table to return simple data
   toto$year<-format(toto$iDate, format="%Y")
   outputdata<-aggregate(toto[,c("sRootFrontDepth", "sLAI", "sAccumulatedGrainDryMatter")], 
