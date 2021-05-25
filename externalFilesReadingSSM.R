@@ -51,9 +51,12 @@ eReadClimate<-function(){
     stop("netCDF format not yet supported for climate")
     #do something, e.g. just open the metadata
   } else if (PARAMSIM$climateformat=="D4Declicplatform") {
-   # csvcontent<-read.csv(normalizePath("inputplatform/climates.csv"))
-    csvcontent<-read.csv(normalizePath("inputplatform", paste0("user_", USERID), "SimulationOptions.csv")) #contains lat, lon, rotation, date
-    
+    if(!exists("USERID", envir=ICI)) {
+      csvcontent<-read.csv(normalizePath("inputplatform/climates.csv"))
+    } else {
+      csvcontent<-read.csv(normalizePath(paste(paste0("user_", USERID), "inputplatform/climates.csv", sep="/"))) #contains lat, lon, rotation, date
+    }
+   
     csvcontent$date<-as.Date(paste(csvcontent$Year, csvcontent$Month, csvcontent$Day, sep="-"))
     translations<-c("iRSDS","iTASMax","iTASMin","iPr","date")
     names(translations)<-c("rsds","tasmax","tasmin","pr", "date") 
@@ -107,9 +110,11 @@ eReadSoil<-function(){
     #other info in database: EXTR OC (organic carbon?), DULg, PO, e
     #missing info for SSM: "pSoilDryness", "iniWL", "pStones", "pOrganicN", "PFractionMineralizableN", "pInitialNitrateConcentration", "pInitialAmmoniumConcentration"
     ALLSOILS<-list()
-    #csvcontent<-read.csv(normalizePath("inputplatform/Soil.csv"))
-    csvcontent<-read.csv(normalizePath("inputplatform", paste0("user_", USERID), "soil")) #contains lat, lon, rotation, date
-    
+    if(!exists("USERID", envir=ICI)) {
+      csvcontent<-read.csv(normalizePath("inputplatform/Soil.csv"))
+    } else {
+      csvcontent<-read.csv(normalizePath(paste(paste0("user_", USERID), "inputplatform/Soil.csv", sep="/"))) #contains lat, lon, rotation, date
+    } 
     if(nrow(csvcontent)>1) {
       warning("Soil.csv in inputplatform contained more than 1 row, only the first row is used")
       csvcontent<-csvcontent[1,]

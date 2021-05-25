@@ -165,3 +165,5 @@ mExportDataFrame<-function(){
   #return(do.call(rbind, lapply(ALLSIMULATEDDATA, function(x) return(cbind(PARAMSIM$cases, x)))))
   return(do.call(rbind, lapply(ALLSIMULATEDDATA, function(x){ x$case<-PARAMSIM$cases$name ; return(x)} )))
 }
+
+

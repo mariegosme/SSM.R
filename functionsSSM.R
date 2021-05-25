@@ -1219,4 +1219,20 @@ rUpdateWaterBudget<-function(){
                 ))
 }
 
+##### some output functions specific to SSM
 
+fExportStageDates<-function(){
+  #datestages<-data.frame(date=mExtractVariable("sGrowthStage"), crop=mExtractVariable("sGrowthStage"), stage=mExtractVariable("sGrowthStage"))
+  return(data.frame(case=NA, crop=NA, stage=NA, date=NA))
+}
+
+
+fExportSynthesis<-function() {
+  alldf<-mExportDataFrame()
+  synthesis<-aggregate(list(maxLAI=alldf$sLAI, maxRootDepth=alldf$sRootFrontDepth,  yield=alldf$sAccumulatedGrainDryMatter, harvestDate=alldf$iDate),
+            by=alldf[,c("case", "sLastSowing", "sLastHarvest", "sCropCult")],
+            max)
+  synthesis<-synthesis[order(synthesis$harvestDate),]
+  synthesis<-synthesis[synthesis$sLastHarvest<synthesis$sLastSowing,]
+  return(synthesis[,c("case", "harvestDate", "sCropCult", "maxLAI", "maxRootDepth", "yield")])
+}

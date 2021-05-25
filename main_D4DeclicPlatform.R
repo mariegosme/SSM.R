@@ -5,7 +5,7 @@ Sys.setlocale("LC_TIME", "en_GB.UTF-8") #on Mac
 Sys.setlocale(category = "LC_TIME", locale = "en_US") #on other systems
 Sys.setlocale(category = "LC_TIME", locale = "C") #on other systems
 runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
-  setup<-function() 
+  setup<-function(userid=NULL) 
   {
     #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
     ICI<-environment()
@@ -14,8 +14,8 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
     source("initialisationEnvironmenVariablesSSM.R", local=TRUE)
     source("externalFilesReadingSSM.R", local=TRUE)
     source("HousekeepingFunctionsSSM.R", local=TRUE)
-    source("functionsSSM.R", local=TRUE)
     source("handlersSSM.R", local=TRUE)
+    source("functionsSSM.R", local=TRUE)
     return(list(contains=mContains, # fonction qui liste les objets présents dans le modèle (contains) et les extrait (getglobal),
                 #doinside=evalICI,
                 #getparam=getparam, #fonction qui renvoie les paramètres du modèle pour vérification (getparam), et qui les modifie (setparam),
@@ -25,24 +25,31 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
                 getglobal=mGetGlobal,
                 setglobal=mSetGlobal,
                 extractVariable=mExtractVariable,
-                #setoptions=setoptions, #fonction qui règle les options d'affichage et de mémorisation (setoptions),
-                #restart=print("reverifier restart, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #restart, #fonction qui remet le modele à 0 (restart),
+                #setoptions=setoptions, #fonction qui regle les options d'affichage et de memorisation (setoptions),
+                #restart=print("reverifier restart, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #restart, #fonction qui remet le modele a 0 (restart),
                 run=mRun,  #fonction qui lance la simu pour n pas de temps (run),
                 #map=cartesorties,
-                plot=mPlotDynamics,#fonction qui plote la dynamique d'une ou plusieurs variables enregistréées (plot)
-                summary=mSummary, #fonction qui résume l état du modèle: nombre de pas de temps et gamme de dates,
-                ExportDataFrame=mExportDataFrame
+                plot=mPlotDynamics,#fonction qui plote la dynamique d'une ou plusieurs variables enregistrees (plot)
+                summary=mSummary, #fonction qui resume l etat du modele: nombre de pas de temps et gamme de dates,
+                ExportDataFrame=mExportDataFrame, #puts all data into one dataframe (long format with column case)
+                ExportSynthesis=fExportSynthesis # synthesis of main variables (maxLAI, maxrootdepth, yield) for each cropping season
+                
+                
     ))
   }
   if (inputsfromplatform) {
     #read simulation options from csv, declare formats as "platform"
+    if (!is.null(userid)) {
+      csvcontent<-read.csv(normalizePath(paste(paste0("user_", userid), "inputplatform/SimulationOptions.csv", sep="/"))) #contains lat, lon, rotation, date
+    } else {
+      csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv")) #contains lat, lon, rotation, date
+    }
     modeloptions<-list(climateformat="D4Declicplatform",
                        cropformat="standardSSM",
                        soilformat="D4Declicplatform",
                        managformat="standardSSM",
                        Neffect=FALSE)
     
-    csvcontent<-read.csv(normalizePath("inputplatform", paste0("user_", USERID), "SimulationOptions.csv")) #contains lat, lon, rotation, date
     startingDate<-as.Date(csvcontent$startingDate)
     if (is.null(csvcontent$startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
     if (is.na(startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a startingDate in the form yyyy-mm-dd")
@@ -90,29 +97,55 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
   mymodel$setoptions(modeloptions)
   #run the model for n timesteps
   mymodel$run(NbDaysToRun)
-  #export a simple graph as pdf and jpeg
-  pdf(normalizePath("outputplatform/graph1.pdf"), width=5, height = 4)
+  
+  
+  #exports
+  filesexport<-list(synthesis="outputplatform/synthesictable.csv",
+                    graph1="outputplatform/graph1.jpg",
+                    graph2="outputplatform/graph2.jpg",
+                    graph3="outputplatform/graph3.jpg",
+                    wholedata="outputplatform/wholedata.csv"
+                    )
+  if (is.null(userid)) {
+    filesexport<-lapply(filesexport, normalizePath)
+  } else {
+    filesexport<-lapply(filesexport, function(x) normalizePath(paste(paste0("user_", userid), x, sep="/"), mustWork = FALSE))
+  } 
+  #export a simple graph as jpeg
+  jpeg(filesexport$graph1, width=500, height = 400)
   dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
                            col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
                            lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
                            pch=NA, main="Min and max temperature and solar radiation")
   dev.off()
-  jpeg(normalizePath("outputplatform/graph1.jpg"), width=500, height = 400)
-  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
-                           col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
-                           lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
-                           pch=NA, main="Min and max temperature and solar radiation")
+  #export a 2nd simple graph as  jpeg
+  jpeg(filesexport$graph2, width=500, height = 400)
+  summar<-mymodel$summary()
+  couleurs<-rainbow(summar$ncases) ; names(couleurs)<-summar$casenames
+  dynamiques<-mymodel$plot(c("sGrowthStageNumber"),
+                           col=couleurs, whatcol="cases",
+                           lty=1,
+                           pch=NA, main="Growth stages")
+  dev.off()
+  #export a simple graph as jpeg
+  jpeg(filesexport$graph3, width=500, height = 400)
+  dynamiques<-mymodel$plot(c("sWater.1", "sWater.2"),
+                           col=c(sWater.1="blue", sWater.2="red"), whatcol="variables",
+                           lty=1,
+                           pch=NA, main="Water content in top (blue) and bottom (red) soil layers")
   dev.off()
   #export all the model data to csv
   toto<-mymodel$ExportDataFrame()
-  write.table(toto, file=normalizePath("outputplatform/wholedata.csv"))
-  write.table(toto[,c("sCrop", "sLAI", "sGrowthStage", "sRootFrontDepth", "sAccumulatedGrainDryMatter")], file=normalizePath("outputplatform/dataForOutput.csv"))
+  write.table(toto, file=filesexport$wholedata, row.names=FALSE)
   #create a summary table to return simple data
   toto$year<-format(toto$iDate, format="%Y")
   outputdata<-aggregate(toto[,c("sRootFrontDepth", "sLAI", "sAccumulatedGrainDryMatter")], 
                         by=toto[,c("year", "sCropCult")],
                         max)
-  return(outputdata)
+  #export synthesis table
+  synthesis<-mymodel$ExportSynthesis()
+  write.table(synthesis, file=filesexport$synthesis, row.names=FALSE)
+  return(synthesis)
 }
 
 #toto<-runModelD4DECLIC(10)
