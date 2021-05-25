@@ -41,6 +41,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
     #read simulation options from csv, declare formats as "platform"
     if (!is.null(userid)) {
       csvcontent<-read.csv(normalizePath(paste(paste0("user_", userid), "inputplatform/SimulationOptions.csv", sep="/"))) #contains lat, lon, rotation, date
+      if (!dir.exists(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))) { dir.create(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))}
     } else {
       csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv")) #contains lat, lon, rotation, date
     }
@@ -149,4 +150,5 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
 }
 
 #toto<-runModelD4DECLIC(10)
+#toto<-runModelD4DECLIC(700, userid=2)
 #toto<-runModelD4DECLIC(10, inputsfromplatform=TRUE)
