@@ -1,0 +1,37 @@
+------------------ Jun 16 2021 ------------------
+
+## Updated: "allvariables.xlsx". Setting the frame for the soil nitrogen submodel implementation
+## All additions/changes are in red font (NOT red highlighting!)
+## Additionnally, existing values that got modified are in bold italic
+
+- Added / modified variables related to the upcoming addition of the Soil Nitrogen module
+  Name for corresponding R module in the excel is "rSoilNitrogen"
+
+- Changed some soil-specific variable types in allvariables.xslx for variables that are dependent on soil layer.
+  A lot were single "numeric" data while we would actually need either a data.frame or 10 different variables, one
+  for each possible soil layer (i.e pSoilOrganicN.1, pSoilOrganicN.2 ... pSoilOrganicN.10 )
+
+- Presently, some layer-dependent variables are represented as 10 different ones, while some are composed of a single
+  data.frame (supposedly 1-dimensional). What would the convention be if we were to decide what variable should
+  be represented as a data.frame and which should be split into 10 numeric variables ?
+  For now, I decided to implement state variables (subject to vary during the simulation) as different numeric variables and
+  soil parameters (
+
+- Specifically, pSoilCurveNumber, parameter allowing calculation of the drainage factor, would be considered layer-specific,
+  changed its type from "numeric" to "data.frame"
+
+- iniWL, U, and DRAINF new names were changed so they fit the naming convention (cf. "Translation of SSM into R.pdf")
+
+- VPDF type is "SoilParameter"
+  The excel model did not consider it a soil parameter but it was instead in the "Location" tab
+  So it would seem it's rather a parameter of Latitude / Longitude
+  Description explains it's a parameter depending on climate, that varies from 0.65 for humid/sub-humid climates to 0.75 for arid ones
+  Thus, changed its type from "SoilParameter" to "LocationParameter" although none other variables are of this type
+  Might fit into a better type.
+
+- 
+
+
+
+
+
