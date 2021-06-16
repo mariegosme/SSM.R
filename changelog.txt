@@ -1,3 +1,5 @@
+############### CHANGELOG AND QUESTIONS #################
+
 ------------------ Jun 16 2021 ------------------
 
 ## Updated: "allvariables.xlsx". Setting the frame for the soil nitrogen submodel implementation
@@ -15,7 +17,7 @@
   data.frame (supposedly 1-dimensional). What would the convention be if we were to decide what variable should
   be represented as a data.frame and which should be split into 10 numeric variables ?
   For now, I decided to implement state variables (subject to vary during the simulation) as different numeric variables and
-  soil parameters (
+  soil parameters (that will remain constant throughout) as data frames
 
 - Specifically, pSoilCurveNumber, parameter allowing calculation of the drainage factor, would be considered layer-specific,
   changed its type from "numeric" to "data.frame"
@@ -29,7 +31,19 @@
   Thus, changed its type from "SoilParameter" to "LocationParameter" although none other variables are of this type
   Might fit into a better type.
 
-- 
+- There is an ambiguity for certain variables that represent INITIAL values. Should they be considered as inputs or parameters ?
+  For instance, initial amount of soluble N in L layer...
+  There also is some ambiguity for variables that represent the sum of each layer's value
+  For example total amount of soluble N in soil being the sum of each layer's amount
+  Should the be considered as computed variables or state variables ?
+  Probably needs to have it figured out for each single variable specifically.
+
+- U, renamed to "pU", is a parameter for calculating evaporation, shouldn't it be specific to each layer ? Or are
+  we assuming that evaporation only happens in the very top layer, no matter how thin it could be ?
+
+- In the excel, organic N amount and organic N percentage were considered "parameters". Changed their types to state variables
+  as we will be interested in tracking their values, and their changes, especially when implementing the break down of legume crops
+  as a way to recycle their fixated N into organic N for the soil
 
 
 
