@@ -1,10 +1,11 @@
 ############### CHANGELOG AND QUESTIONS #################
 
------------------- Jun 16 2021 ------------------
 
-## Updated: "allvariables.xlsx". Setting the frame for the soil nitrogen submodel implementation
+## Started updating "allvariables.xlsx". Setting the frame for the soil nitrogen submodel implementation
 ## All additions/changes are in red font (NOT red highlighting!)
 ## Additionnally, existing values that got modified are in bold italic
+
+------------------ Jun 16 2021 ------------------
 
 - Added / modified variables related to the upcoming addition of the Soil Nitrogen module
   Name for corresponding R module in the excel is "rSoilNitrogen"
@@ -33,10 +34,15 @@
 
 - There is an ambiguity for certain variables that represent INITIAL values. Should they be considered as inputs or parameters ?
   For instance, initial amount of soluble N in L layer...
+
+  UPDATE : Initial values, of N for instance, are considered inputs for now
+
   There also is some ambiguity for variables that represent the sum of each layer's value
   For example total amount of soluble N in soil being the sum of each layer's amount
   Should the be considered as computed variables or state variables ?
   Probably needs to have it figured out for each single variable specifically.
+
+  UPDATE : Variables that are summed from each layer each timestep are considered computed for now
 
 - U, renamed to "pU", is a parameter for calculating evaporation, shouldn't it be specific to each layer ? Or are
   we assuming that evaporation only happens in the very top layer, no matter how thin it could be ?
@@ -44,6 +50,38 @@
 - In the excel, organic N amount and organic N percentage were considered "parameters". Changed their types to state variables
   as we will be interested in tracking their values, and their changes, especially when implementing the break down of legume crops
   as a way to recycle their fixated N into organic N for the soil
+
+
+------------------ Jun 17 2021 ------------------
+
+- ADDED sNMineralization.L for NMIN, sTotalNMineralization for SNMIN, sCumulatedNMineralization for CNMIN
+  The second being the sum of each layer's net mineralization, would it be computed or state variable
+  Cumulated being the sum of every daily NMIN, computed ? or state variable ?
+
+  UPDATE :Variables being the sum of each layer are set to 0 at the beginning of each timestep -> COMPUTED
+          Cumulated variables keep their values from one timestep to the next -> STATE VARIABLE
+
+- ADDED soil temperature as "sSoilTemp". Should it be considered a computed variable or a state variable?
+  It is computed from air temperature as parameter, but it does represent a state of the system
+
+  UPDATE: For now, decided to consider it computed, since it's computed at the beginning of each timestep
+
+- For soil variables that are computed from the sum of each layer at each timestep, ambiguity between computed
+  or state variable solved from "Translation of SSM into R.pdf"
+  Since they are set to 0 at the beginning of each timestep (at least in VBA model), we can consider them computed and not state variables
+
+- Variable named "WFNDNIT" is ambiguous. It seems unused in the original VBA model since it's commented out the code.
+  Should we account for it in the R model ? I cannot find it in the SSM documentation pdf although it probably is a 
+  "Water Factor for Nitrogen Denitrification".
+  I also know there's a factor to account for in denitrification being how long through the day will there be enough water
+  for denitrification ? For example you'd have NDNIT multiplied by 0.25 if you assumed there would be enough water during 6 hours.
+  WFNDNIT might represent this particular factor, although I am still unsure. For now, the corresponding line in the excel is
+  left blank and highlighted in yellow.
+
+- Finished adding the variables into the Excel. There remains some ambiguities so it might be reworked a little.
+
+
+
 
 
 
