@@ -280,9 +280,8 @@ fComputeRunoff<-function(vectorRain,
 #' @param calb crop albedo
 #' @param ket canopy extinction coefficient
 #' @param etlai LAI used for PET calculation (takes into account senesced leaves still attached to the plant and/or on the soil)
-#' @param salb #soil albedo
+#' @param salb soil albedo
 #' @return vector of PET (one element per case)
-#' @examples
 fComputePETsimplifiedPenman<-function(tmax, tmin, srad, calb, ket, etlai, salb) {
   td = 0.6 * tmax + 0.4 * tmin
   albedo = calb * (1 - exp(-ket * etlai)) + salb * exp(-ket * etlai)
@@ -296,6 +295,127 @@ fComputePETsimplifiedPenman<-function(tmax, tmin, srad, calb, ket, etlai, salb) 
 fComputeSoilEvaporationTwoStages<-function(vectorPet, vectorCanopyExtinctionCoefficient, vectorEtlai, atomicMinimalSoilEvaporation, 
                                            vectorStubbleWeight, vectorRain, vectorIrrigation, atomicpSoilWettingWaterQuantity) {
   
+}
+
+
+#' KN factor for mineralization computation
+#' This factor models the response of the mineralization to soil temperature
+#' The function allows its computation for a specific layer
+#' That is, function inputs must be layer-specific values
+#' @param soilTemp soil temperature
+#' You would get soil temperature from either crown temperature : fComputeCrownTemperature(...)
+#' or just assume it equal to daily mean temperature cTemp (if there's no snow)
+#' @return computed KN based on soil temperature
+fComputeKNforMineralization <- function(soilTemp){
+  # soilTemp = cCrownTemperature (which computation function already exists)
+  # icicici /!\ Hard-coded parameters in a quite obscure equation
+  # Clarification of the equation would be welcome for code transparency
+  return(24 * exp(17.753 - 6350.5/(soilTemp + 273)) / 168)
+  # soilTemp likely converted from degrees to Kelvin with "+ 273" (Why though?)
+}
+
+#' RN factor for mineralization computation
+#' This factor models the response of the mineralization process to soil moisture
+#' The function allows its computation for a specific layer
+#' That is, function inputs must be layer-specific values
+#' @param fractionTranspirableSoilWater Fraction of transpirable soil water in the studied layer
+#' Computed as the ratio of actual transpirable soil water (ATSW) to total(potential) transpirable soil water (TTSW)
+#' You would get this parameter for the studied layer L with fFindWater(layer=L, df=ALLDAYDATA, what="FTSW")
+#' @return computed RN based on soil moisture
+fComputeRNforMineralization <- function(fractionTranspirableSoilWater) {
+  # get fractionTranspirableSoilWater of current layer L with
+  # fFindWater(layer=L, df=ALLDAYDATA, what="FTSW")
+  if (fractionTranspirableSoilWater < 0.9) {
+    RN <- 1.111 * fractionTranspirableSoilWater
+    # Can't be negative unless there's a bug in FTSW computation
+  } else {
+    RN <- max(0, 10 - 10*fractionTranspirableSoilWater)
+  }
+  return (RN)
+}
+
+
+#' Computation of N mineralization in specific layer
+#' This function computes the net mineralization amount the present day for a specific layer
+#' That is, function inputs must be layer-specific values
+#' @param mineralizableN Amount of organic N readily mineralizable (MNORG) in studied layer
+#' @param solubleNconcentration Concentration of soluble N in the layer's soil solution (NCON)
+#' @param RN Factor of soil temperature on mineralization
+#' @param KN Factor of soil moisture on mineralization
+#' @return Net mineralization amount for the given layer inputs
+fComputeNMineralization <- function(mineralizableN, solubleNconcentration, RN, KN) {
+  return(max(0, mineralizableN * RN * (1 - exp(-KN)) * (0.0002 - solubleNconcentration) / 0.0002))
+}
+
+
+#' Computation of daily N drainage out of a specific layer
+#' Computes the amount of soluble N that drains out a specific layer into the layer below because of water downward flux
+#' That is, function inputs must be layer-specific values
+#' If that layer is the last of the system, then it represents the N leaching out the system (into the environment)
+#' The model considers that at very-low concentration, N drainage is non-existent
+#' The threshold accounting for this limitation is the minCon argument, defaulted to 0.000001 mg.L-1
+#' @param solubleNAmount the amount of soluble N present in the layer's soil solution (NSOL)
+#' @param waterDrainage the amount of water drained out the layer into the layer below (FLOUT)
+#' @param waterContent the amount of water present in the current layer (WL)
+#' @param minCon minimum concentration threshold below which N drainage is likely non-existent (defaulted to 0.000001 mg.L-1)
+#' @param solubleNConcentration the concentration of soluble N in the current layer soil solution (NCON)
+#' @return Amount of N drained out and below the layer which corresponding inputs were given (NOUT, g.m-2)
+fComputeNDrainage <- function(solubleNAmount, waterDrainage, waterContent, solubleNConcentration, minCon = 0.000001) {
+  if (solubleNConcentration <= minCon) {
+    NOUT = 0
+  } else {
+    NOUT = solubleNAmount * (waterDrainage / (waterContent+waterDrainage) )
+  }
+  return (NOUT)
+}
+
+#' XNCON computation for denitrification
+#' When computing denitrification, soluble N concentration in the layer is not directly used
+#' Instead, it is limited to a maximum threshold since further increase has limited to no effect
+#' This threshold is set to 0.0004 mg.L-1 by default (as in the model documentation)
+#' This function returns the NCON for a specific layer which specific NCON has been given for input
+#' @param solubleNConcentration soluble N concentration of the layer (NCON)
+#' @param threshold concentration threshold over which further increase has little to no effect on process (default = 0.0004 mg.L-1)
+#' @return max(solubleNConcentration, threshold) (XNCON, mg.L-1)
+fComputeXNCONforDenit <- function(solubleNConcentration, threshold=0.0004) {
+  return(max(solubleNConcentration, threshold))
+}
+
+
+#' KDNIT factor computation for denitrification
+#' Computes the KDNIT factor modeling the effect of soil temperature on the denitrification process
+#' @param soilTemp the soil temperature
+#' You would get this from fComputeCrownTemperature or just set it equal to the air temperature if there's no snow to account for
+#' @return computed KDNIT factor for computation of N denitrification
+fComputeKDNIT <- function (soilTemp) {
+  # icicici /!\ Hard-coded parameters results in an obscure code line
+  # Clarification would be welcome
+  return (6 * exp(0.07735 * TMPS - 6.593))
+}
+
+#' N denitrification in a given layer
+#' @param fractionTranspirableWater fraction of transpirable soil water in the layer (FTSW)
+#' @param KDNIT the KDNIT rate factor (fComputeKDNIT) modeling the effect of soil temperature on denitrification
+#' @param effectiveNConcentration soluble N concentration in the layer, limited to a maximum threshold (default=0.0004 mg.L-1)
+#' @param waterContent the amount of water in the giver layer (mm)
+#' @param waterFactor icicicicici /!\ Supposdely /!\ the fraction of the day where there's enough water for denitrification (FTSW > 1)
+#' @return computed amount of N denitrification in the layer (g.m-2)
+fComputeNDenitrification <- function (fractionTranspirableWater, KDNIT, effectiveNConcentration, waterContent, waterFactor = 1) {
+  return (ifelse(fractionTranspirableWater>1, # if FTSW > 1
+                 effectiveNConcentration * (1 - exp(-KDNIT)) * waterContent * 1000 * waterFactor,
+                 #                                               * 1000 used for unit conversion
+                 0)) # else, no N denitrification
+}
+
+#' N removal by uptake computation
+#' Computes the amount of N absorbed out a given soil layer by the plant roots (uptake)
+#' @param layerAvailableSoilN studied layer's N ressources that crop has access to (NAVL, g.m-2)
+#' @param totalAvailableSoilN whole soil N ressources that crop has access to (SNAVL, g.m-2)
+#' @param plantNUptake the crop's demand in N uptake (NUP, g.m-2)
+#' @param plantNFixation the crop's air nitrogen fixation (BNF, g.m-2, 0 for non-legume crops)
+#' @return Amount of N loss by plant uptake in the given layer (NU, g.m-2)
+fComputeNRemovalByUptake <- function (layerAvailableSoilN, totalAvailableSoilN, plantNUptake, plantNFixation) {
+  return ( (layerAvailableSoilN / (totalAvailableSoilN + 0.000001)) * (plantNUptake - plantNFixation) )
 }
 
 #' function (but with access to global variables) to compute the variables needed to determine sowing
@@ -319,6 +439,8 @@ fVariablesForSowing<-function(whichcases=TRUE, what=c("cumuRain5days", "temp", "
     return(apply(fFindWater(layers=Inf, df=ALLDAYDATA[whichcases,, drop=FALSE], what="ATSW"),1,sum, na.rm=TRUE))
   } else stop("function fVariablesForSowing cannot compute", what)
 }
+
+
 ################################ procedures
 
 #####Weather module
