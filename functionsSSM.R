@@ -418,6 +418,35 @@ fComputeNRemovalByUptake <- function (layerAvailableSoilN, totalAvailableSoilN, 
   return ( (layerAvailableSoilN / (totalAvailableSoilN + 0.000001)) * (plantNUptake - plantNFixation) )
 }
 
+#' Computation of soluble N amount in a specific layer (NSOL)
+#' @param soilMass soil mass (SOILML, g m-2) computed from bulk density BDL, coarse fraction FG and layer thickness DLYER
+#' @param ppmNO3L ppm concentration of NO3 nitrate in the layer
+#' @param ppmNH4L ppm concentration of NH4 nitrate in the layer
+#' @return the amount of soluble N (NO3+NH4) in the given layer (g (of N) .m-2)
+fComputeSolubleN <- function (soilMass, ppmNO3L, ppmNH4L) {
+  NO3L <- ppmNO3L * (14/62) * 0.000001 * soilMass
+  NH4L <- ppmNH4L * (14/18) * 0.000001 * soilMass
+  return (NO3L + NH4L)
+}
+
+#' Computation of soil mass of a specific layer (SOILML, g.m-2)
+#' @param layerThickness the depth/thickness of the given layer (DLYER, mm)
+#' @param bulkDensity the layer's bulk density (BDL, g.cm-3)
+#' @param coarseFraction the fraction of gross particles (>2mm) in the soil (FG)
+#' @return the soil mass of a specific layer (SOILML, g.m-2)
+fComputeSoilMass <- function (layerThickness, bulkDensity, coarseFraction) {
+  return (layerThickness * bulkDensity * (1-coarseFraction) * 1000)
+}
+
+#' Computation of mineralizable N amount in a specific layer
+#' @param soilMass soil mass of the layer (SOILML, g m-2)
+#' @param organicNPercentage percentage of organic N in the soil total mass
+#' @param FMIN estimate fraction of organic N that's mineralizable
+#' @return amount of N that's readily available for mineralization
+fComputeMineralizableN <- function (soilMass, organicNPercentage, FMIN) {
+  return (organicNPercentage * 0.01 * soilMass * FMIN)
+}
+
 #' function (but with access to global variables) to compute the variables needed to determine sowing
 #'
 #' @param whichcases logical vector indicating which cases to use for computing
@@ -1340,6 +1369,24 @@ rUpdateWaterBudget<-function(){
                   cTranspiration, cDrain
                 ))
 }
+
+
+rUpdateSoilNitrogen <- function (iniSNB) {
+  # ----- INITIALIZATION OF THE MODULE -----
+  # ---- getting and computing parameters and inputs ----
+  # ---- computing and saving initial values ----
+  # ---- initialization of cumulative values ----
+  
+  # --------------- EACH DAY ---------------
+  # ---- N net mineralization ----
+  # ---- N application & volatilization ----
+  # ---- N downward movement ----
+  # ---- N denitrification ----
+  # ---- N removal by plant uptake ----
+  # ---- Updating soil N balance ----
+}
+
+
 
 ##### some output functions specific to SSM
 

@@ -1,7 +1,7 @@
 #mXXXX: Model interface (e.g. mrun, mplot)
 
 mOnetimestep<-function(){
-  rCreateDay() #creates ALLDAYDATA with the values initialised at their default values, except stat variables that are initialised at their value from the day before
+  rCreateDay() #creates ALLDAYDATA with the values initialised at their default values, except state variables that are initialised at their value from the day before
 
   rWeatherDay()
   #rUpdatePAR() not coded, and I don't know what is was supposed to be, maybe it was to update PAR depending on tree interception once the agroforestry module would be added?

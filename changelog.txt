@@ -7,7 +7,7 @@
 ------------------ Jun 16 2021 ------------------
 
 - Added / modified variables related to the upcoming addition of the Soil Nitrogen module
-  Name for corresponding R module in the excel is "rSoilNitrogen"
+  Name for corresponding R module in the excel is "rUpdateSoilNitrogen"
 
 - Changed some soil-specific variable types in allvariables.xslx for variables that are dependent on soil layer.
   A lot were single "numeric" data while we would actually need either a data.frame or 10 different variables, one
@@ -153,15 +153,41 @@
   crop's demand in N uptake (NUP) and crop's nitrogen fixation (BNF) (= 0 in any case but a legume crop)
   Also added roxygen documentation
 
-### TODO:
+
+## TODO:
+        - CODE the rUpdateSoilNitrogen procedure
 	- ADD examples to documentations once the whole module is completed and running (once I know exactly how I will
-  use the small functions)
+   use the small functions)
         - ADD units and corresponding original variable name to every function parameter (in the documentation)
+        - ADD other functions 
 
 
+------------------ Jun 18 2021 ------------------
 
+- ADDED fComputeSolubleN that returns the amount of soluble N in a given layer (in g (of N) .m-2 ) from the ppm concentrations
+  of NO3 and NH4 in this layer
+  Also added roxygen documentation
 
+- ADDED fComputeSoilMass that returns a given layer's soil mass (SOILML, in g.m-2) from the layer's fraction of
+  coarse particles (FG), its bulk density (BDL, g.cm-3) and its thickness/depth (DLYER, mm)
+  Also added roxygen documentation
 
+- ADDED fComputeMineralizableN that returns the amount of mineralizable organic N (MNORG, g.m-2) in a given layer
+  from its percentage of N that's organic (NORGP), the layer's soil mass (SOILML, g.m-2) and the mineralizable fraction of
+  the organic N (FMIN).
+  Also added roxygen documentation
+
+- ADDED skeleton for rUpdateSoilNitrogen procedure. Could likely change.
+
+## PROBLEM: Need to figure out:
+	- How exactly do I extract inputs and parameters values from the input sheets ?
+	- How exactly do I get state variables from previous timestep ?
+	- How exactly do I get and modify these global variables
+	- How do I access / write in ALLDAYDATA ? I need to know what the data frame looks like.
+		^ I can try and run from the website and get the output sheets to have a look at the structure
+
+## PROBLEM: R model on D4Declic webpage doesn't seem to work, as I always get the same results no matter the crops I choose,
+or the number of days I run, the weather data and starting year I choose (took screenshots if needed)
 
 
 
