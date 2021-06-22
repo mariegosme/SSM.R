@@ -162,7 +162,7 @@
         - ADD other functions 
 
 
------------------- Jun 18 2021 ------------------
+------------------ Jun 21 2021 ------------------
 
 - ADDED fComputeSolubleN that returns the amount of soluble N in a given layer (in g (of N) .m-2 ) from the ppm concentrations
   of NO3 and NH4 in this layer
@@ -188,6 +188,37 @@
 
 ## PROBLEM: R model on D4Declic webpage doesn't seem to work, as I always get the same results no matter the crops I choose,
 or the number of days I run, the weather data and starting year I choose (took screenshots if needed)
+
+
+
+------------------ Jun 22 2021 ------------------
+
+# There is still amibiguity between inputs and parameters ? What would be which ?
+
+- I now consider inputs to be daily, changing values, such as precipitation, radiation, temperature, etc... Most of them being weather. Consequently,
+  I changed some variable types from input to parameter, of which :
+    * iInitialWater -> pInitialWater
+    * iInitialNO3Concentration -> pInitialNO3Concentration
+    * iInitialNH4Concentration -> pInitialNH4Concentration
+    * iNumberOfApplications -> pNumberOfApplications
+
+# icicicic
+## PROBLEM: Do we need to extract soil parameters (such as bulk density, coarse soil fraction, layer thickness...)
+	    on every timestep, despite the fact that it's assumed not to change over time ??
+	    Quite tedious having to extract them each day, is it not ?
+            Question is: are their values being reset to default values at the start of every timestep ? 
+            or do they keep their previous values ? 
+            Anyway, it would seem more efficient to just have them loaded at simulation start, and keep them
+            in a "drawer" for quick use throughout simulation.
+
+## Apparently, soil parameters are loaded into ALLSOILS from allvariables.xlsx sheet "other", as I thought
+and type in the model must be "SoilParameter" for it to be loaded into ALLSOILS
+	- VPD type in the model changed back to SoilParameter
+	- Moved computed and state variables that were in this sheet to savedEachDay
+          Those consisted of soil nitrogen variables
+	- Changed sheet name from "other" to "soilParameters" since it now only contains soil parameters
+	- Changed R code to import from sheet called "soilParameters" and not "other" anymore
+
 
 
 

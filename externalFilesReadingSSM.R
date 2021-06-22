@@ -80,8 +80,8 @@ eReadSoil<-function(){
     if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/soils.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/soils.xlsx")
     locations<-getSheetNames(pathtoExcel)
     if (any(! PARAMSIM$cases$soilname %in% locations)) stop("soils", setdiff(PARAMSIM$cases$soilname, locations), "are not in the soils.xlsx file")
-    #read the new names of soil parameters from sheet "other" of allvariables.xlsx
-    trad<-read.xlsx("allvariables.xlsx", sheet="other")
+    #read the new names of soil parameters from sheet "soilParameters" of allvariables.xlsx
+    trad<-read.xlsx("allvariables.xlsx", sheet="soilParameters")
     trad<-trad[trad$typeinthemodel=="SoilParameter",]
     newnames<-trad$name ; names(newnames)<-trad$translationSSM
     ALLSOILS<-list()

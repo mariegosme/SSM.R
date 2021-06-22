@@ -87,7 +87,7 @@ rCreateDay0<-function() {
   # }
   
     #initialisation of soil water
-  df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="iniWL", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
+  df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="pInitialWater", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
 
 
   

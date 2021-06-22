@@ -1371,11 +1371,18 @@ rUpdateWaterBudget<-function(){
 }
 
 
-rUpdateSoilNitrogen <- function (iniSNB) {
+rUpdateSoilNitrogen <- function (initialization = FALSE) {
   # ----- INITIALIZATION OF THE MODULE -----
-  # ---- getting and computing parameters and inputs ----
-  # ---- computing and saving initial values ----
-  # ---- initialization of cumulative values ----
+  # icicici /!\ Do we have to extract parameters on every timestep or can we
+  # only extract them once ? cf. changelog
+  if (initialization == TRUE) {
+    # ---- getting and computing parameters and inputs ----
+      
+    # ---- computing and saving initial values ----
+      
+    # ---- initialization of cumulative values ---
+  }
+
   
   # --------------- EACH DAY ---------------
   # ---- N net mineralization ----
