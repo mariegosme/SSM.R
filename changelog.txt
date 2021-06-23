@@ -138,15 +138,17 @@
   although I'm still unsure what it represented. I assume it's the fraction of the day where there's sufficient
   water for denitrification. Since this issue is seemingly not accounted for in the VBA model, the parameter is
   defaulted to 1.
-  VBA model code that has been commented out a calculation of this WFDNIT variable. It could easily be included
+  Also added comments and roxygen documentation
+
+## PROBLEM
+  	- VBA model code that has been commented out a calculation of this WFDNIT variable. It could easily be included
   as a function to compute it in the R code too. We have to figure out why it was commented out in the first place.
   There is another source of ambiguity for this function.
-  In the original model, it's assumed denitrification only happens in the uppermost 2 layers of the soil and layers
+  	- In the original model, it's assumed denitrification only happens in the uppermost 2 layers of the soil and layers
   underneath have their NDNIT set to 0, regardless of how thin they possibly can be.
   This is kind of arbitrary. It is also assumed that denitrification only occurs at soil depths shorter than
   250 mm. We could use this quantitative condition in the larger soil nitrogen procedure: have a maximum depth
   below which denitrification does not occur at all. This parameter could be defaulted to 250 mm.
-  Also added comments and roxygen documentation
 
 - ADDED fComputeRemovalByUptake which computes the amount of N loss in a layer via plant uptake/absorption based on
   the layer's N that's acessible to the plant (NAVL), the whole soil's accessible N ressources (SNAVL), the 
@@ -220,7 +222,34 @@ and type in the model must be "SoilParameter" for it to be loaded into ALLSOILS
 	- Changed R code to import from sheet called "soilParameters" and not "other" anymore
 
 
+------------------ Jun 22 2021 ------------------
 
+## How are soil datas being extracted from soils.xlsx ? I assume we use fExtractSoilParameter with paramname
+equal to the new name in allvariables.xlsx and that it fetches corresponding parameter in soils.xlsx based on
+the "translationSSM" name in allvariables.xlsx.
+Thus I changed pInitialOrgNPercentage translation "INORGP" to "NORG" as it is named in soils.xlsx
 
+## TO-DO : Update variable names in eReadSoil to their new updated names (allvariables.xlsx)
+
+## PROBLEM icici: is daily temp not a global variable ? it should be computed at the very beginning of a timestep,
+in rWeatherDay() for example, for easy use in the other modules
+Apparently, cTemp: daily mean temperature is computed in rUpdatePhenology ?
+
+## QUESTION: Some values are worth considering if they should be saved in ALLDAYDATA or not
+Such values as computed factors and coefficients for calculating amount of denitrification, mineralization
+Those values are only computed in order to compute an estimation of an ACTUAL meaningful process
+Those values are not really relevant by themselves.
+In the R code, I have not been saving these values in ALLDAYDATA for now.
+Should I ? If not, should we remove those from "allvariables.xlsx" ?
+
+- Almost COMPLETED rSoilNitrogen. Remains the part for N fertilization.
+  Also remains to figure how initial values for the soils are set, whether it's in createDay0() or not...
+  Some things remain to discuss and change. It's only a first version.
+
+- ADDED fComputeNConcentration() that computes soluble N concentration in a specific layer
+	from given solubleNAmount and waterContent
+# TO-DO still need to add the documentation for this function, as simple as it is
+
+- ADDED rUpdateSoilNitrogen() at the end of mOneTimeStep function in handlersSSM.R
 
 
