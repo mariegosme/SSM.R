@@ -12,15 +12,18 @@
 - Changed some soil-specific variable types in allvariables.xslx for variables that are dependent on soil layer.
   A lot were single "numeric" data while we would actually need either a data.frame or 10 different variables, one
   for each possible soil layer (i.e pSoilOrganicN.1, pSoilOrganicN.2 ... pSoilOrganicN.10 )
+  =>response from marie 24/06/2021: code on the visualisation/use of the model relies on the fact that "savedeachday" variables in allvariables are atomic values=>they cannot be vectors. Therefore the layer-specific variables that are saved each day (in particular state variables) must be repeated for each layer (e.g. sSoilMineralN.1 ... sSoilMineralN.10). These variables must be kept to a reasonnably small number. So soil parameters are not saved each day (they are "looked at" in the PARAMSSOILS global object each time they are needed with function fExtractSoilParameter (in file HousekeepingFunctionsSSM.R), and they do not change through time.
 
 - Presently, some layer-dependent variables are represented as 10 different ones, while some are composed of a single
   data.frame (supposedly 1-dimensional). What would the convention be if we were to decide what variable should
   be represented as a data.frame and which should be split into 10 numeric variables ?
   For now, I decided to implement state variables (subject to vary during the simulation) as different numeric variables and
   soil parameters (that will remain constant throughout) as data frames
+  =>marie 24/06/2021 see my answer above: you are right, and furthermore soil parameters data.frames are local objects inside a procedure, not saved in the global variables (the global list PARAMSSOILS is fixed after reading in the soil model inputs)
 
 - Specifically, pSoilCurveNumber, parameter allowing calculation of the drainage factor, would be considered layer-specific,
   changed its type from "numeric" to "data.frame"
+  =>marie 24/06/2021 No: pSoilCurveNumber has a unique value for the soil : see the excel file example https://github.com/mariegosme/SSM.R/blob/master/input/soils.xlsx
 
 - iniWL, U, and DRAINF new names were changed so they fit the naming convention (cf. "Translation of SSM into R.pdf")
 
@@ -30,9 +33,13 @@
   Description explains it's a parameter depending on climate, that varies from 0.65 for humid/sub-humid climates to 0.75 for arid ones
   Thus, changed its type from "SoilParameter" to "LocationParameter" although none other variables are of this type
   Might fit into a better type.
+  =>marie 24/06/2021 I dont really know, maybe there's no point in having a new parameter type just for 1 parameter. for now, just leave it as a (1-value) soil parameter
 
 - There is an ambiguity for certain variables that represent INITIAL values. Should they be considered as inputs or parameters ?
   For instance, initial amount of soluble N in L layer...
+  =>marie 24/06/2021 conceptually initial values are different from parameters, but since we read them in from the same file as soil parameters, I kept them as parameters. soil values are initialised in procedure rCreateDay0 in file HouseKeepingFunctionsSSM.R:
+  #initialisation of soil water
+  df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="iniWL", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
 
   UPDATE : Initial values, of N for instance, are considered inputs for now
 
@@ -42,13 +49,16 @@
   Probably needs to have it figured out for each single variable specifically.
 
   UPDATE : Variables that are summed from each layer each timestep are considered computed for now
+  =>marie 24/06/2021 for the water module, I did not save these variables each day, I just compute them "on the fly" (with function fFindWater) when they are needed, that is not the most efficient way to do it if they are needed many times in many different parts of the code, but I found that for water it was not the case (e.g. computed only once and used only in the same procedure most of the time). 
 
 - U, renamed to "pU", is a parameter for calculating evaporation, shouldn't it be specific to each layer ? Or are
   we assuming that evaporation only happens in the very top layer, no matter how thin it could be ?
+  =>marie 24/06/2021 yes: see structure of the soil input excel file to see which parameters are for each layer and which parameters are for the whole soil
 
 - In the excel, organic N amount and organic N percentage were considered "parameters". Changed their types to state variables
   as we will be interested in tracking their values, and their changes, especially when implementing the break down of legume crops
   as a way to recycle their fixated N into organic N for the soil
+  =>marie 24/06/2021 OK
 
 
 ------------------ Jun 17 2021 ------------------
@@ -59,6 +69,7 @@
 
   UPDATE :Variables being the sum of each layer are set to 0 at the beginning of each timestep -> COMPUTED
           Cumulated variables keep their values from one timestep to the next -> STATE VARIABLE
+	  
 
 - ADDED soil temperature as "sSoilTemp". Should it be considered a computed variable or a state variable?
   It is computed from air temperature as parameter, but it does represent a state of the system
