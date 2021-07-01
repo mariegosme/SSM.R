@@ -7,12 +7,10 @@
 
 fComputePAR<-function(globalradiation, CoefPAR) {
   return(CoefPAR*globalradiation)
-
 }
 
 fComputeTemp<-function(tasmax,tasmin) {
-  return(cTemp = (tasmax+tasmin)/2)
-
+  return((tasmax+tasmin)/2)
 }
 
 fFunctionstep<-function(x, x1=NA,x2=NA, x3=NA, x4=NA, y1=NA, y2=NA, y3=NA) {
@@ -315,22 +313,75 @@ fComputeKNforMineralization <- function(soilTemp){
 }
 
 #' RN factor for mineralization computation
+#' 
 #' This factor models the response of the mineralization process to soil moisture
-#' The function allows its computation for a specific layer
-#' That is, function inputs must be layer-specific values
-#' @param fractionTranspirableSoilWater Fraction of transpirable soil water in the studied layer
-#' Computed as the ratio of actual transpirable soil water (ATSW) to total(potential) transpirable soil water (TTSW)
+#' @param fractionTranspirableSoilWater Fraction of transpirable soil water
 #' You would get this parameter for the studied layer L with fFindWater(layer=L, df=ALLDAYDATA, what="FTSW")
+#' Can either be a single numeric value, for a specific case and layer
+#' A vector, for different layers OR different cases
+#' A matrix, as returned by fFindWater
 #' @return computed RN based on soil moisture
+#' Returned object has the same structure as given input (single value, vector, or matrix)
+#' Returns NA if input is NA
+#' 
+#' @examples
+#' \dontshow{
+#' FTSWs <- matrix(c(0.1231773, 0.1250420, 0.1250420,
+#'                   0.2000000, 0.2000000, 0.2000000,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA),
+#'                  nrow = 3,
+#'                  dimnames=c("case1","case2","case3"),
+#'                           paste("FTSW", 1:10, sep="."))
+#' }
+#' FTSWs
+#' fComputeRNforMineralization(FTSWs["case2", "FTSW.1"])
+#' fComputeRNforMineralization(FTSWs["case1",])
+#' fComputeRNforMineralization(FTSWs)
+#' 
 fComputeRNforMineralization <- function(fractionTranspirableSoilWater) {
   # get fractionTranspirableSoilWater of current layer L with
   # fFindWater(layer=L, df=ALLDAYDATA, what="FTSW")
-  if (fractionTranspirableSoilWater < 0.9) {
-    RN <- 1.111 * fractionTranspirableSoilWater
-    # Can't be negative unless there's a bug in FTSW computation
-  } else {
-    RN <- max(0, 10 - 10*fractionTranspirableSoilWater)
+  
+  ## Case: input is a scalar or NA
+  if (length(fractionTranspirableSoilWater) == 1) {
+    if (is.na(fractionTranspirableSoilWater)) {return(NA)}
+    else if (fractionTranspirableSoilWater < 0.9) {
+      RN <- 1.111 * fractionTranspirableSoilWater
+      # Can't be negative unless there's a bug in FTSW computation
+    } 
+    else {
+      RN <- max(0, 10 - 10*fractionTranspirableSoilWater)
+    }
   }
+  
+  ## Case: input is a vector
+  else if (is.vector(fractionTranspirableSoilWater)) {
+    RN <- c() # create empty vector
+    for (FTSWL in fractionTranspirableSoilWater) {
+      RN <- c(RN, fComputeRNforMineralization(FTSWL))
+      # apply function to every element of the input vector as a scalar value
+    }
+  }
+  
+  ## Case: input is a matrix
+  else if (is.matrix(fractionTranspirableSoilWater)) {
+    RN <- matrix(fractionTranspirableSoilWater,
+                 nrow = nrow(fractionTranspirableSoilWater),
+                 dimnames = list(rownames(fractionTranspirableSoilWater),
+                                 paste("RN", 1:10, sep=".")))
+    for (i in 1:nrow(fractionTranspirableSoilWater)) {
+      RN[i,] <- fComputeRNforMineralization(RN[i,])
+      # apply function to every row of the input matrix as a vector (see above)
+    }
+  }
+  
   return (RN)
 }
 
@@ -344,12 +395,61 @@ fComputeRNforMineralization <- function(fractionTranspirableSoilWater) {
 #' @param KN Factor of soil moisture on mineralization
 #' @return Net mineralization amount for the given layer inputs
 fComputeNMineralization <- function(mineralizableN, solubleNconcentration, RN, KN) {
-  return(max(0, mineralizableN * RN * (1 - exp(-KN)) * (0.0002 - solubleNconcentration) / 0.0002))
+  if (is.data.frame(mineralizableN)) {
+    mineralizableN <- as.matrix(mineralizableN)
+  }
+  
+  if (is.data.frame(solubleNconcentration)) {
+    solubleNconcentration <- as.matrix(solubleNconcentration)
+  }
+  
+  if (is.data.frame(RN)) {
+    RN <- as.matrix(RN)
+  }
+  if (is.vector(mineralizableN) && is.vector(solubleNconcentration) && is.vector(RN) &&
+      (length(mineralizableN) == length(solubleNconcentration) || length(solubleNconcentration == 1)) &&
+      (length(mineralizableN) == length(RN) || length(RN) == 1)) {
+    return(pmax(0, mineralizableN * RN * (1 - exp(-KN)) * (0.0002 - solubleNconcentration) / 0.0002))
+  }
+  
+  else if (is.matrix(mineralizableN) && is.matrix(solubleNconcentration) &&
+           nrow(mineralizableN) == nrow(solubleNconcentration) &&
+           nrow(mineralizableN) == nrow(RN) &&
+           ncol(mineralizableN) == ncol(solubleNconcentration) &&
+           ncol(mineralizableN) == ncol(RN)) {
+    
+    NMINs <- matrix(nrow = nrow(mineralizableN),
+                    ncol = ncol(mineralizableN),
+                    dimnames = list (
+                      rownames(mineralizableN),
+                      paste("NMineralization", 1:10, sep=".")
+                    )
+                    )
+    
+    for (i in 1:nrow(mineralizableN)) {
+      NMINs[i,] <-fComputeNMineralization(mineralizableN[i,],solubleNconcentration[i,],RN[i,],KN)
+    }
+    
+    return(NMINs)
+  }
+  
+  else {
+    print("Uncompatible mineralizable N and N concentration input structure.")
+    return (NULL)
+  }
 }
 
+
+
+#' Compute N concentration
+#'
+#' @param solubleNAmount amount of soluble N in a layer
+#' @param waterContent amount of water in this layer
+#'
+#' @return the corresponding concentration in g(N).g-1(H2O)
 fComputeNConcentration <- function (solubleNAmount, waterContent) {
-  #           g.m-2              mm3.(m?)m-2
-  return (solubleNAmount / (waterContent*1000)) # mg.L-1
+  #           g.m-2              mm3.mm-2
+  return (solubleNAmount / (waterContent*1000)) # g.g-1 
 }
 
 #' Computation of daily N drainage out of a specific layer
@@ -357,11 +457,11 @@ fComputeNConcentration <- function (solubleNAmount, waterContent) {
 #' That is, function inputs must be layer-specific values
 #' If that layer is the last of the system, then it represents the N leaching out the system (into the environment)
 #' The model considers that at very-low concentration, N drainage is non-existent
-#' The threshold accounting for this limitation is the minCon argument, defaulted to 0.000001 mg.L-1
+#' The threshold accounting for this limitation is the minCon argument, defaulted to 0.000001 mg.L-1... or g.g-1 icicici ?
 #' @param solubleNAmount the amount of soluble N present in the layer's soil solution (NSOL)
 #' @param waterDrainage the amount of water drained out the layer into the layer below (FLOUT)
 #' @param waterContent the amount of water present in the current layer (WL)
-#' @param minCon minimum concentration threshold below which N drainage is likely non-existent (defaulted to 0.000001 mg.L-1)
+#' @param minCon minimum concentration threshold below which N drainage is likely non-existent (defaulted to 0.000001 mg.L-1 icicici g.g-1 ?)
 #' @param solubleNConcentration the concentration of soluble N in the current layer soil solution (NCON)
 #' @return Amount of N drained out and below the layer which corresponding inputs were given (NOUT, g.m-2)
 fComputeNDrainage <- function(solubleNAmount, waterDrainage, waterContent, solubleNConcentration, minCon = 0.000001) {
@@ -380,9 +480,9 @@ fComputeNDrainage <- function(solubleNAmount, waterDrainage, waterContent, solub
 #' This function returns the NCON for a specific layer which specific NCON has been given for input
 #' @param solubleNConcentration soluble N concentration of the layer (NCON)
 #' @param threshold concentration threshold over which further increase has little to no effect on process (default = 0.0004 mg.L-1)
-#' @return max(solubleNConcentration, threshold) (XNCON, mg.L-1)
+#' @return pmax(solubleNConcentration, threshold) (XNCON, mg.L-1) icicici g.g-1 ?
 fComputeXNCONforDenit <- function(solubleNConcentration, threshold=0.0004) {
-  return(max(solubleNConcentration, threshold))
+  return(pmax(solubleNConcentration, threshold))
 }
 
 
@@ -394,13 +494,13 @@ fComputeXNCONforDenit <- function(solubleNConcentration, threshold=0.0004) {
 fComputeKDNIT <- function (soilTemp) {
   # icicici /!\ Hard-coded parameters results in an obscure code line
   # Clarification would be welcome
-  return (6 * exp(0.07735 * TMPS - 6.593))
+  return (6 * exp(0.07735 * soilTemp - 6.593))
 }
 
 #' N denitrification in a given layer
 #' @param fractionTranspirableWater fraction of transpirable soil water in the layer (FTSW)
 #' @param KDNIT the KDNIT rate factor (fComputeKDNIT) modeling the effect of soil temperature on denitrification
-#' @param effectiveNConcentration soluble N concentration in the layer, limited to a maximum threshold (default=0.0004 mg.L-1)
+#' @param effectiveNConcentration soluble N concentration in the layer, limited to a maximum threshold (default=0.0004 mg.L-1) icicici g.g-1
 #' @param waterContent the amount of water in the giver layer (mm)
 #' @param waterFactor icicicicici /!\ Supposdely /!\ the fraction of the day where there's enough water for denitrification (FTSW > 1)
 #' @return computed amount of N denitrification in the layer (g.m-2)
@@ -427,7 +527,7 @@ fComputeNRemovalByUptake <- function (layerAvailableSoilN, totalAvailableSoilN, 
 #' @param ppmNO3L ppm concentration of NO3 nitrate in the layer
 #' @param ppmNH4L ppm concentration of NH4 nitrate in the layer
 #' @return the amount of soluble N (NO3+NH4) in the given layer (g (of N) .m-2)
-fComputeSolubleN <- function (soilMass, ppmNO3L, ppmNH4L) {
+fComputeInitialSolubleN <- function (soilMass, ppmNO3L, ppmNH4L) {
   NO3L <- ppmNO3L * (14/62) * 0.000001 * soilMass
   NH4L <- ppmNH4L * (14/18) * 0.000001 * soilMass
   return (NO3L + NH4L)
@@ -449,6 +549,18 @@ fComputeSoilMass <- function (layerThickness, bulkDensity, coarseFraction) {
 #' @return amount of N that's readily available for mineralization
 fComputeMineralizableN <- function (soilMass, organicNPercentage, FMIN) {
   return (organicNPercentage * 0.01 * soilMass * FMIN)
+}
+
+#' Computing available N for crop uptake
+#'
+#' @param NCON soluble N concentration (gN.g-1H20)
+#' @param ATSW actual transpirable soil water (mm)
+#' @param RLYER root depth into the layer (mm)
+#' @param DLYER layer thickness (mm)
+#'
+#' @return available N for crop uptake in soil layer (NAVL, g.m-2)
+fComputeNAVL <- function(NCON, ATSW, RLYER, DLYER) {
+  return((NCON - 0.000001) * ATSW * 1000 * (RLYER / DLYER))
 }
 
 #' function (but with access to global variables) to compute the variables needed to determine sowing
@@ -1338,7 +1450,7 @@ rUpdateWaterBudget<-function(){
   #distribute soil evaporation in different soil layers
   soilEvaporation_L<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
   WLAD_L<-fExtractSoilParameter("pSoilDryness", layers=Inf)*fExtractSoilParameter("pLayerThickness", layers=Inf)
-  DRAINF_L<-fExtractSoilParameter("pDrainedFraction", layers=Inf)
+  DRAINF_L<-fExtractSoilParameter("pSoilDrainageFactor", layers=Inf)
   toBeEvaporated<-cActualSoilEvaporation #TSE
   for (l in 1:10) {
     evapHere<-pmax(0, pmin(toBeEvaporated, (sWater[,l]-WLAD_L[l])*DRAINF_L[l]))
@@ -1348,7 +1460,7 @@ rUpdateWaterBudget<-function(){
   soilEvaporation_L[is.na(soilEvaporation_L)] <-0
   
   #water budget
-  FLOUT<-pmax((sWater - WLUL_L)*fExtractSoilParameter(paramname="pDrainedFraction", Inf), 0) #flow of water downward
+  FLOUT<-pmax((sWater - WLUL_L)*fExtractSoilParameter(paramname="pSoilDrainageFactor", Inf), 0) #flow of water downward
   FLIN<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
   FLIN[,1]<-rain + cIrrigationWater - cRunoff
   FLIN[,2:10]<-FLOUT[,1:9]
@@ -1375,29 +1487,27 @@ rUpdateWaterBudget<-function(){
 }
 
 
-rUpdateSoilNitrogen <- function (initialization = FALSE) {
+rUpdateSoilNitrogen <- function () {
   # ----- INITIALIZATION OF THE MODULE -----
-  # icicici /!\ Do we have to extract parameters on every timestep or can we
-  # only extract them once ? cf. changelog
   # if (initialization == TRUE) { ... import parameters
     # ---- getting and computing parameters and inputs ----
     NLYER <- fExtractSoilParameter("pNLayer") # number of layers
     
     # All of this is only used to compute initial organic N and MNORG (for mineralization)
-    # layerThicknesses = fExtractSoilParameter("pLayerThickness", 1:NLYER)
-    # bulkDensities <- fExtractSoilParameter("pSoilBulkDensity", 1:NLYER)
-    # coarseFractions <- fExtractSoilParameter("pCoarseSoilFraction", 1:NLYER) # vector containing FG for each layer
+    # layerThicknesses = fExtractSoilParameter("pLayerThickness", 1:10)
+    # bulkDensities <- fExtractSoilParameter("pSoilBulkDensity", 1:10)
+    # coarseFractions <- fExtractSoilParameter("pCoarseSoilFraction", 1:10) # vector containing FG for each layer
     # soilMasses <- fComputeSoilMass(layerThicknesses, bulkDensities, coarseFractions)
     
-    # NORGP <- fExtractSoilParameter("pInitialOrgNPercentage", 1:NLYER)
-    # FMIN <- fExtractSoilParameter("pFractionMineralizableN", 1:NLYER)
+    # NORGP <- fExtractSoilParameter("pInitialOrgNPercentage", 1:10)
+    # FMIN <- fExtractSoilParameter("pFractionMineralizableN", 1:10)
     # initialMineralizableOrganicN <- fComputeMineralizableN(soilMasses, NORGP, FMIN)
     
     # All of this is only used to compute initial soluble N concentration
-    # initialPpmNO3 <- fExtractSoilParameter("pInitialNO3Concentration", 1:NLYER)
-    # initialPpmNH4 <- fExtractSoilParameter("pInitialNH4Concentration", 1:NLYER)
-    # solubleN <- fComputeSolubleN(soilMasses, initialPpmNO3, initialPpmNH4)
-    # waterContents <- fFindWater(what="WL", layers=1:NLYER, df=ALLDAYDATA)
+    # initialPpmNO3 <- fExtractSoilParameter("pInitialNO3Concentration", 1:10)
+    # initialPpmNH4 <- fExtractSoilParameter("pInitialNH4Concentration", 1:10)
+    # solubleN <- fComputeInitialSolubleN(soilMasses, initialPpmNO3, initialPpmNH4)
+    # waterContents <- fFindWater(what="WL", layers=1:10, df=ALLDAYDATA)
     # solubleNConcentration <- fComputeNConcentration(solubleN, waterContents)
 
       
@@ -1409,32 +1519,39 @@ rUpdateSoilNitrogen <- function (initialization = FALSE) {
 
   
   # --------------- EACH DAY ---------------
-  soilTemp <- ALLDAYDATA$cCrownTemp
+  #soilTemp <- ALLDAYDATA$cCrownTemp
   # OR
-  # soilTemp <- max(35, ALLDAYDATA$cTemp)
-  WLs <- ALLDAYADATA[,c(paste("sWater"), 1:NLYER, sep=".")]
-  FLOUTs <- ALLDAYDATA[,c(paste("cDownwardWaterFlux"), 1:NLYER, sep=".")]
+  #soilTemp <- pmax(35, ALLDAYDATA$cTemp)
+  soilTemp <- runif(1,0,35) # icicici temporary for debugging purposes only
+  ##### DEBUGGING
+  
+  WLs <- ALLDAYDATA[,paste("sWater", 1:10, sep=".")]
+  FLOUTs <- ALLDAYDATA[,paste("cDownwardWaterFlux", 1:10, sep=".")]
   
   # get value of NSOL from the end of the previous timestep's soil nitrogen module
-  NSOLs <- ALLDAYDATA[,c(paste("sSolubleN", 1:NLYER, sep="."))]
+  NSOLs <- ALLDAYDATA[,paste("sSolubleN", 1:10, sep=".")]
   
   # Since water content may have changed in module rUpdateWaterBudget,
   # need to re-compute concentration compared to previous timestep
-  NCONs <- fComputeNConcentration(NSOLs, WLs)
+  #NCONs <- fComputeNConcentration(NSOLs, WLs)
+  NCONs <- ALLDAYDATA[,paste("sSolubleNConcentration", 1:10, sep=".")]
+  # ACTUALLY, IT MAKES MORE SENSE TO LOOK AT CONCENTRATION FROM THE END OF PREVIOUS TIMESTEP
+  # SINCE WATER AND NITROGEN PROCESSES OCCUR AT THE SAME TIME IN REALITY, NOT SEQUENTIALLY LIKE IN THE CODE
+  
   # Update it into ALLDAYDATA
   #icicici problem: it's concentration from AFTER updating the water but BEFORE
   # updating the change in nitrogen balance
   # what value should we keep into ALLDAYDATA, value at the beginning of the nitrogen module ?
   # or value that's changed after execution of the soil nitrogen module ? (resulting of change in NSOL..)
-  ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:NLYER, sep="."))] <<- NCONs
+  # ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:10, sep="."))] <<- NCONs
   
   # ---- N net mineralization ----
   # COMPUTING NET N MINERALIZATION FOR EACH LAYER (NMINs)
   
   KN <- fComputeKNforMineralization(soilTemp) # One single value for KN
-  FTSWs <- fFindWater(what="FTSW", df=ALLDAYDATA, layers=1:NLYER) # Vector of FTSW for each layer
+  FTSWs <- fFindWater(what="FTSW", df=ALLDAYDATA, layers=Inf) # Vector of FTSW for each layer
   RNs <- fComputeRNforMineralization(FTSWs) # One value of RN for each layer
-  MNORGs <- ALLDAYDATA[,c(paste("sMineralizableN", 1:NLYER, sep="."))] # Get mineralizable
+  MNORGs <- ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] # Get mineralizable
   # organic N content from each layer
   NMINs <- fComputeNMineralization(MNORGs, NCONs, RNs, KN) # Compute net amount of N
   
@@ -1442,9 +1559,9 @@ rUpdateSoilNitrogen <- function (initialization = FALSE) {
   MNORGs <- MNORGs - NMINs # Withdraw mineralization from mineralizable N bank
   
   # save N mineralization in ALLDAYDATA
-  ALLDAYDATA[,c(paste("cNMineralization", 1:NLYER, sep="."))] <<- NMINs
+  ALLDAYDATA[,paste("cNMineralization", 1:10, sep=".")] <<- NMINs
   # update mineralizable N bank in ALLDAYDATA
-  ALLDAYDATA[,c(paste("sMineralizableN", 1:NLYER, sep="."))] <<- MNORGs
+  ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] <<- MNORGs
   # Increase CNMIN (cumulated mineralization in the whole soil)
   ALLDAYDATA$sCumulatedNMineralization <<- ALLDAYDATA$sCumulatedNMineralization + sum(NMINs)
   
@@ -1452,27 +1569,25 @@ rUpdateSoilNitrogen <- function (initialization = FALSE) {
   # ---- N application & volatilization ----
   # icicici how do I know if application on present day ?
   # how do I then get access to the amount and such ?
-  NFERT <- c(nAmount, rep(0,NLYER-1))
-  NVOL <- c(volatilizationFrac, rep(0,NLYER-1))
+  # NFERT <- c(nAmount, rep(0,9)< )
+  # NVOL <- c(volatilizationFrac, rep(0,9))
   
   
   # ---- N downward movement ----
   NOUTs <- fComputeNDrainage(NSOLs, FLOUTs, WLs, NCONs)
-  #icici Where is NSOL going to be computed in the module ?
-  #      Beginning or end of the module ???
-  NLEACH <- NOUTs[NLYER]
+  NLEACH <- NOUTs[NLYER] #icicici will it work ?
   
   # save N drainage values in ALLDAYDATA
-  ALLDAYDATA[,c(paste("cDownwardNFlux", 1:NLYER, sep="."))] <<- NOUTs
+  ALLDAYDATA[,paste("cDownwardNFlux", 1:10, sep=".")] <<- NOUTs
   # save N leaching OUT THE SYSTEM in ALLDAYDATA
   ALLDAYDATA$cNLeaching <<- NLEACH
   # increasing cumulative leaching
-  ALLDAY$sCumulatedNLeaching <<- ALLDAY$sCumulatedNLeaching + NLEACH
+  ALLDAYDATA$sCumulatedNLeaching <<- ALLDAYDATA$sCumulatedNLeaching + NLEACH
 
   
   # ---- N denitrification ----
   DENIT_MAX_DEPTH <- 250
-  DLYERs <- fExtractSoilParameter(paramname="pSoilThickness", layers=1:NLYER)
+  DLYERs <- fExtractSoilParameter(paramname="pLayerThickness", layers=Inf)
   dnitLayers <- length(which((cumsum(DLYERs) - DLYERs) < DENIT_MAX_DEPTH)) # icicic Hard-coded parameters
   # It is assumed no denitrification occurs in layers below 250 mm
   # That gives us the number of layers which upper limit is located above 250mm underground
@@ -1496,7 +1611,7 @@ rUpdateSoilNitrogen <- function (initialization = FALSE) {
   # without the program having to do anything
   
   # Save N denitrification for each layer in ALLDAYDATA
-  ALLDAYDATA[,c(paste("cNDenitrification", 1:NLYER, sep="."))] <<- NDNITs
+  ALLDAYDATA[,paste("cNDenitrification", 1:10, sep=".")] <<- NDNITs
   # Increase cumulated denitrification in ALLDAYDATA
   ALLDAYDATA$sCumulatedNDenitrification <<- ALLDAYDATA$sCumulatedNDenitrification +
                                             sum(NDNITs)
@@ -1504,17 +1619,17 @@ rUpdateSoilNitrogen <- function (initialization = FALSE) {
   # ---- N removal by plant uptake ----
   NUP <- ALLDAYDATA$cDemandNAccumulation
   BNF <- ALLDAYDATA$cBiologicalNFixation
-  NAVLs <- ALLDAYDATA[,c(paste("sAvailableUptakeN", 1:NLYER, sep="."))]
+  NAVLs <- ALLDAYDATA[,paste("sAvailableUptakeN", 1:10, sep=".")]
   SNAVL <- sum(NAVLs) # ou ALLDAYDATA$sTotalAvailableUptakeN
   
   NUs <- fComputeNRemovalByUptake(NAVLs, SNAVL, NUP, BNF)
   
   # Save N removal by uptake into ALLDAYDATA
-  ALLDAYDATA[,c(paste("cNSoilUptake", 1:NLYER, sep="."))] <<- NUs
+  ALLDAYDATA[,paste("cNSoilUptake", 1:10, sep=".")] <<- NUs
   
   
   # ---- Updating soil N balance for each layer ----
-  NINs <- c(0, NOUTs[1:NLYER-1])
+  NINs <- c(0, NOUTs[1:10-1])
   # righ-shift NOUTs and first element set to 0
   # represents the income in N via drainage from the upper layer
   
@@ -1524,15 +1639,15 @@ rUpdateSoilNitrogen <- function (initialization = FALSE) {
   NCONs <- fComputeNConcentration(NSOLs, WLs)
   # new value of NCONs, after variation of N balance in the soil
   
-  ATSWs <- fFindWater(what="ATSW", layer=1:NLYER, df=ALLDAYDATA)
-  #RLYERs <- ALLDAYDATA[,c(paste("sRootDepthInsideLayer", 1:NLYER, sep="."))]
-  RLYERs <- fFindRLYER(1:NLYER, ALLDAYDATA)
-  NAVLs <- (NCONs - 0.000001) * ATSWs * 1000 * (RLYERs / DLYERs)
+  ATSWs <- fFindWater(what="ATSW", layer=Inf, df=ALLDAYDATA)
+  #RLYERs <- ALLDAYDATA[,c(paste("sRootDepthInsideLayer", 1:10, sep="."))]
+  RLYERs <- fFindRLYER(Inf, ALLDAYDATA)
+  NAVLs <- fComputeNAVL(NCONs, ATSWs, RLYERs, DLYERs)
   
   # Update into ALLDAYDATA
-  ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:NLYER, sep="."))] <<- NCONs
-  ALLDAYDATA[,c(paste("sSolubleN", 1:NLYER, sep="."))] <<- NSOLs
-  ALLDAYDATA[,c(paste("sAvailableUptakeN", 1:NLYER, sep="."))] <<- NAVLs
+  ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:10, sep="."))] <<- NCONs
+  ALLDAYDATA[,c(paste("sSolubleN", 1:10, sep="."))] <<- NSOLs
+  ALLDAYDATA[,c(paste("sAvailableUptakeN", 1:10, sep="."))] <<- NAVLs
 }
 
 

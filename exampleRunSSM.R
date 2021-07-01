@@ -49,7 +49,7 @@ paramsim<-list(
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
   #directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
   #directory="/Users/user/Documents/b_maison/congeMat/D4DECLIC/runSSM",#directory where your input (with climates and soils files) and output folders are
-  directory="/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM",
+  directory="/Users/Achille/Documents/GitHub/SSM.R",
   climateformat="standardSSM",
   cropformat="standardSSM",
   soilformat="standardSSM",
@@ -59,10 +59,10 @@ paramsim<-list(
 
 #build the model
 #mymodel<-setup("/Users/user/Documents/a_System/modelisation/SSM/traductionSSM_R/")
-mymodel<-setup("/Users/user/Documents/b_maison/congeMat/D4DECLIC/SSM/")
+mymodel<-setup("/Users/Achille/Documents/GitHub/SSM.R/")
 #set the simulation options
 mymodel$setoptions(paramsim)
- mymodel$run(0) #just to initialise the model
+mymodel$run(0) #just to initialise the model
 # mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
