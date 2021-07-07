@@ -319,7 +319,7 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
   # UPDATE - Jun 25 - Achille
 	## Nevermind, conversion works just fine (removed the comments)
 
-- ADDED the section ---- initialization of soil nitrogen ---- in the rCreateDat0() procedure
+- ADDED the section ---- initialization of soil nitrogen ---- in the rCreateDay0() procedure
 
 - CHANGED fComputeSolubleN name to fComputeInitialSolubleN since it's an equation that's only used to compute N amount
   given the INITIAL ppm concentration given as inputs
@@ -455,4 +455,95 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
             How are we going to get around this issue ? 
             Either we use as.matrix(input) as parameter of the function, or we write code in the function that automatically
             converts data frame input to matrix.
+
+
+------------------ Jul 01 2021 ------------------
+
+- FIXED fComputeRNforMineralization and fComputeNMineralization for data.frame inputs
+        (simply converts to matrix if input is a data.frame, with as.matrix(...) )
+
+## NOTE: I discovered ifelse(test,returniftrue,returniffalse) and
+                       var[test] <- value 
+         which could greatly improve the code for the functions I just fixed. It's a much
+         simple way to support vector, matrix, and data.frame inputs.
+
+- SIMPLIFIED fComputeRNforMineralization and fComputeNMineralization.
+             I have been able to reduce them down to one single line of code...
+             There's only one additional line for df to matrix conversion in fComputeRNforMinerization since
+             I wasn't able to make "ifelse" quite work on dataframes.
+
+## PROBLEM: I need FLOUTs for computation of N drainage, but it is not saved into ALLDAYDATA.
+            How do I access it ?
+            ## SOLVED: I made rUpdateWaterBudget save cDownWaterFlux.1:10 (FLOUTs) into ALLDAYDATA
+
+## PROBLEM: sum(NMINs) doesn't work in module since NMINs is a matrix/df
+            I want sum() to be applied to each ROW of this matrix/df
+	    (i.e sum of each layer for a given case)
+	    ## SOLVED: I now have a loop for (case in 1:NCASE) NCASE being the number of cases
+                       that sums concernedVariableMatrix[case, ] for every case, saves
+                       this sum as the total for the whole soil, and also adds it to sCumulatedVariable[case]
+
+
+----------- Jul 02 2021 -> Jul 07 2021 -----------
+
+## PROBLEM: For many variables there's ambiguity whether I should save in ALLDAYDATA the value at the beginning of the timestep,
+	    or value at the end of the timestep
+
+- ADDED cTemp saving into ALLDAYDATA in the rWeatherDay() module (it was only saved in rPhenology() depending on plant filters,
+  as a result it wasn't saved into ALLDAYDATA before sowing. That way it will be saved at every timestep, regardless of plant.
+
+- CHANGED availableUptakeN.1:10 (NAVL) and totalAvailableUptakeN (SNAVL) to state variables so that we can
+  pick up their values from the end of previous timestep... clear of the effects of current timestep's water module
+  changes.
+  NAVL is initialized at 0 in rCreateDay0 (instead of using the excel initial default value), so that we can set
+  values for layers not concerned by the simulation to NA instead of 0.
+
+## NOTE: In my opinion, layers not concerned by the simulation (#LYER > NLYER) should have corresponding values be "NA"
+   so that it's clear it's not of concern. Furthermore, we could even want no to save / load variables that are not of concern
+   for the simulation, when reading the original excel.
+   For instance if you'd have NLYER: c(2,2,3) then you'd have only soil variables of layer 1:3
+   while variables for layers 4:10 would not be present in the data frame.
+   Values corresponding to layer 3 of case 1 & 2 would be NA since it's not of concern.
+
+- UPDATED a lot of f Functions concerning soil N module so that they'd be compatible with data frames / matrices
+  (I had originally designed them for single values and vectors, but had forgotten to account for different cases / rows at the same time)
+	- fComputeRNforMineralization
+	- fComputeNMineralization
+	- fComputeNDrainage
+	- fComputeNDenitrification
   
+
+- ADDED rFertilization module, directly inspired from rIrrigation (had to make a few changes)
+  Soil nitrogen modules now accounts for N application and volatilization effects.
+
+- ADDED rFertilization to the rUpdateManagement routine
+
+- ADDED nitrogen applications to default cases of exampleRunSSM.R in "managementPlans.xlsx" in order to
+  test rFertilization module
+
+- STARTED debugging code, trying to run simulations
+  As a result I made sure to save into ALLDAYDATA the variables I use in the rUpdateSoilNitrogen module
+
+- UPDATED rUpdateSoilNitrogen accordingly, made a few tweaks and improvements.
+  Now, simulation can run for 700+ days and not break.
+
+- UPDATED exampleRunSSM.R so that it fits my workspace (directory address...)
+  Also ADDED plots to track evolution of soil nitrogen variables under "checking nitrogen module"
+  Also CHANGED "Neffect = FALSE" to "Neffect = TRUE" in "paramsim <- list(...)"
+  although I don't think it's used anywhere else in the simulation...
+
+## CREATED ISSUE #13 after witnessing FTSW take negative values
+## Also: how can FTSW have value > 1 ? Isn't it a fraction ?
+
+## TO-DO NEXT:
+	- Fix NAVLs going negative
+	- Improve documentation for f functions after their update to support matrices / df
+	- Keep debugging to find other weird values to fix
+	- Have unconcerned layer-specific variables not loaded? (see above ##NOTE)
+	- Fix issue #13 on FTSW and debug water budget module
+	- Make that return matrices of f nitrogen functions have relevant dimnames
+	- Once plantNitrogen module is coded, merge the two to work together (getting NUP and BNF)
+	- After it's really working properly, we can consider removing variables off ALLDAYDATA,
+          variables that are not relevant to keep track of.
+
+## COMMITED under "Soil nitrogen: 1st working version"

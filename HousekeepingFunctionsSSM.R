@@ -86,6 +86,9 @@ rCreateDay0<-function() {
   #   df$sRootFrontDepth<-200
   # }
   
+  NCASE <- nrow(PARAMSIM$cases) # number of cases
+  NLYER <- fExtractSoilParameter("pNLayer") # number of layers
+  
   # ---- initialization of soil water ----
   df[,paste("sWater", 1:10, sep=".")]<- lapply(
     1:10, function(x) 
@@ -119,6 +122,18 @@ rCreateDay0<-function() {
     df[,paste("sSolubleN", 1:10, sep=".")],
     df[,paste("sWater", 1:10, sep=".")]
   )
+  
+  # -- initialization of NAVL and SNAVL
+  for (case in 1:NCASE) {
+    df[case,paste("sAvailableUptakeN", 1:NLYER[case], sep=".")] <- 0
+    df[case,paste("sOrganicN", 1:NLYER[case], sep=".")] <- 0
+  }
+  # SNAVL is initialized at 0 thanks to its default value in excel = 0
+  
+  # -- initialization of NORG --
+  
+  
+
   
   
   ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)

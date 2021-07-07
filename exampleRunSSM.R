@@ -54,7 +54,7 @@ paramsim<-list(
   cropformat="standardSSM",
   soilformat="standardSSM",
   managformat="standardSSM",
-  Neffect=FALSE
+  Neffect=TRUE
 )
 
 #build the model
@@ -63,7 +63,7 @@ mymodel<-setup("/Users/Achille/Documents/GitHub/SSM.R/")
 #set the simulation options
 mymodel$setoptions(paramsim)
 mymodel$run(0) #just to initialise the model
-# mymodel$GetAllForDebuggingPurposes()
+mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
 mymodel$run(2*365)
@@ -293,4 +293,100 @@ if(FALSE){
                            col=cols, 
                            pch="") 
   
+}
+
+# checking nitrogen module
+if (FALSE) {
+  dynamiques<-mymodel$plot("cSoilTemp", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("cSoilTempOnDenitrification", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("cSoilTempOnMineralization", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("cTotalSolubleN", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("sSolubleN", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sSolubleN", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  dynamiques<-mymodel$plot("sCumulatedNMineralization", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cMoistureOnMineralization", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cMoistureOnMineralization", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  dynamiques<-mymodel$plot("sCumulatedNDenitrification", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  
+  cols<-1:2 ; names(cols)<-paste("sMineralizableN", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sMineralizableN", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("sAvailableUptakeN", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sAvailableUptakeN", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  dynamiques<-mymodel$plot("sTotalAvailableUptakeN", 
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cNSoilUptake", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cNSoilUptake", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
 }
