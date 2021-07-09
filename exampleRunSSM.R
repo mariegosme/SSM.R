@@ -66,7 +66,7 @@ mymodel$run(0) #just to initialise the model
 mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
-mymodel$run(2*365)
+mymodel$run(100)
 
 #plot the dynamics of some variables
 #checking weather module
@@ -382,6 +382,26 @@ if (FALSE) {
   
   cols<-1:2 ; names(cols)<-paste("cNSoilUptake", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("cNSoilUptake", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cActualTranspirableWater", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cActualTranspirableWater", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cFractionTranspirableWater", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cFractionTranspirableWater", 1:2, sep="."), 
                            lty=c(Meknes35degresWheat=1, 
                                  Meknes35degresMaize=2, 
                                  Meknes35degresChickpea=3),

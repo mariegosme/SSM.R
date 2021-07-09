@@ -547,3 +547,18 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
           variables that are not relevant to keep track of.
 
 ## COMMITED under "Soil nitrogen: 1st working version"
+
+
+------------------ Jul 08 2021 ------------------
+
+## For now, only unexpected values are a result of issue #13 (bugs in calculation of FTSW, and ATSW, that become negative for some reason)
+   That is: NAVL, SNAVL, thus NUP, but also RN (moisture effect on mineralization) thus NMIN have incorrect values since they're computed
+   from FTSW or ATSW.
+	## ISSUE 13 ON FTSW AND ATSW COMPUTATION BUGS HENCE BECOMES PRIORITY
+
+- ADDED a #DEBUGGING WATER MODULE segment in rUpdateSoilNitrogen() where I save FTSW and ATSW
+  into ALLDAYDATA to track its value over the simulation easier.
+
+## why does water content stagnate at 9.3 in both layers ? It doesn't go below ever ?
+## layer 1 happens to have pWiltingPoint = 0.093 so that's probably linked
+## however it is equal to 0.109 for layer 2 so it doesn't make sense for it to floor at 9.3
