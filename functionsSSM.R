@@ -474,7 +474,7 @@ rFindWhoHarvests<-function(){
   #lowLAI
   duringSeedGrowth<-applyfilters("DMDistribution_SeedGrowing")
   LowLAI<-duringSeedGrowth & ALLDAYDATA$sLAI<GENERALPARAMETERS["pTresholdLowLAIdeath", "defaultInitialvalue"]
-  LowLAI[is.na(LowLAI)<-FALSE]
+  LowLAI[is.na(LowLAI)]<-FALSE
   #stopDAP parameter reached
   doy<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
   stopDAP<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], function(x) x$dfSowing$StopDAP)
