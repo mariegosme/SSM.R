@@ -223,11 +223,11 @@ fFindWater<-function(layers, df, what=c("ATSW", "TTSW", "FTSW", "WL", "WLUL", "W
   WLUL<-fExtractSoilParameter(paramname="pFieldCapacity", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at field capacity
   WLST<-fExtractSoilParameter(paramname="pSaturation", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at saturation
   if (what=="ATSW") {
-    result<-(WL-WLLL)*weights
+    result<-pmax(WL-WLLL,0)*weights
   } else if (what=="TTSW") {
     result<-(WLUL-WLLL)*weights
   } else if (what=="FTSW") {
-    result<-((WL-WLLL)/(WLUL-WLLL))*weights
+    result<-(pmax(WL-WLLL,0)/(WLUL-WLLL))*weights ### added pmax() 16/7 achille icicici
     ###### icicici issue #4 not yet solved "FTSWRZ=ATSWRZ/TTSWRZ instead of FTSWRZ=sum(FTSW*weights)" i don't remember what I meant....
   } else if (what=="WLUL") {
     result<-WLUL*weights
@@ -285,8 +285,8 @@ fComputePETsimplifiedPenman<-function(tmax, tmin, srad, calb, ket, etlai, salb) 
   albedo = calb * (1 - exp(-ket * etlai)) + salb * exp(-ket * etlai)
   eeq = srad * (0.004876 - 0.004374 * albedo) * (td + 29)
   pet = eeq * 1.1
-  pet[tmax > 34]<- eeq * ((tmax - 34) * 0.05 + 1.1)
-  pet[tmax < 5]<- eeq * 0.01 * exp(0.18 * (tmax + 20))
+  pet[tmax > 34]<- (eeq * ((tmax - 34) * 0.05 + 1.1))[tmax > 34]
+  pet[tmax < 5]<- (eeq * 0.01 * exp(0.18 * (tmax + 20)))[tmax < 5]
   return(pet)
 }
 
@@ -605,7 +605,8 @@ fComputeMineralizableN <- function (soilMass, organicNPercentage, FMIN) {
 #'
 #' @return available N for crop uptake in soil layer (NAVL, g.m-2)
 fComputeNAVL <- function(NCON, ATSW, RLYER, DLYER) {
-  return((NCON - 0.000001) * ATSW * 1000 * (RLYER / DLYER))
+  return(pmax(NCON - 0.000001, 0) * 1000 * ATSW  * (RLYER / DLYER))
+  #           peut être < 0
 }
 
 #' function (but with access to global variables) to compute the variables needed to determine sowing
@@ -857,7 +858,8 @@ rHarvesting<-function(){
 rIrrigation<-function() {
   cIrrigationWater<-rep(VARIABLEDEFINITIONS["cIrrigationWater", "defaultInitialvalue"], nrow(ALLDAYDATA))
   sIrrigationNumber<-ALLDAYDATA$sIrrigationNumber
-  waterscenarios<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterScenario") 
+  waterscenarios<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterScenario")
+  totalIrrigationNumber <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterNumber")
   #codes of water management: 0 = potential production (soil water not necessary to compute), 1 = automated irrigation to keep soil water above a certain threshold, 2: rainfed (no irrigation), 3 fixed according to data frame
   
   #### 0 (potential production: do nothing
@@ -882,19 +884,19 @@ rIrrigation<-function() {
   CBD<-ALLDAYDATA$sBiologicalDaysSinceSowing
   DOY<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
   
-  irrigation3.1<-waterscenarios==3 & waterdatetypes==1 & DAP==thresholds # 1 DAP
+  irrigation3.1<-waterscenarios==3 & waterdatetypes==1 & DAP==thresholds & irrigationnumberchecked<=totalIrrigationNumber # 1 DAP
   cIrrigationWater[irrigation3.1]<-amounts[irrigation3.1]
   sIrrigationNumber[irrigation3.1]<-sIrrigationNumber[irrigation3.1]+1
   
-  irrigation3.2<-waterscenarios==3 & waterdatetypes==2 & CBD>=thresholds # 2 CBD
+  irrigation3.2<-waterscenarios==3 & waterdatetypes==2 & CBD>=thresholds & irrigationnumberchecked<=totalIrrigationNumber# 2 CBD
   cIrrigationWater[irrigation3.2]<-amounts[irrigation3.2]
   sIrrigationNumber[irrigation3.2]<-sIrrigationNumber[irrigation3.2]+1
   
-  irrigation3.3<-waterscenarios==3 & waterdatetypes==3 & thresholds==DOY # 3 DOY
+  irrigation3.3<-waterscenarios==3 & waterdatetypes==3 & thresholds==DOY & irrigationnumberchecked<=totalIrrigationNumber# 3 DOY
   cIrrigationWater[irrigation3.3]<-amounts[irrigation3.3]
   sIrrigationNumber[irrigation3.3]<-sIrrigationNumber[irrigation3.3]+1
   
-  irrigation3.4<-waterscenarios==3 & waterdatetypes==4 & CBD>=thresholds # 3 CBD with automatic amount to fill to field capacity
+  irrigation3.4<-waterscenarios==3 & waterdatetypes==4 & CBD>=thresholds & irrigationnumberchecked<=totalIrrigationNumber# 3 CBD with automatic amount to fill to field capacity
   amounts<-(apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="TTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE)
             -apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="ATSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE))#TTSWRZ-ATSWRZ with water content from yesterday and root length from yesterday
   cIrrigationWater[irrigation3.4]<-amounts[irrigation3.4]
@@ -1463,8 +1465,10 @@ rUpdateRootDepth<-function(){
                  ALLDAYDATA$sRootFrontDepth #vecteur (cases) de profondeur de racines
     ) #vector (one element per case) of number of the lowest layer with roots
     grtd[fFindWater(layer=rtln, what="ATSW", df=ALLDAYDATA)==0]<-0 #in case the lowest layer with roots (=the layer of root tips) is dry, no growth
+    # ALLDAYDATA$tempRLYERDebugging <<- fFindRLYER(1, ALLDAYDATA) # icicicici debugging purposes only
     ALLDAYDATA$sRootFrontDepth<<-ALLDAYDATA$sRootFrontDepth+grtd
   }
+  
 }
 
 
@@ -1515,7 +1519,7 @@ rUpdateWaterBudget<-function(){
   cPET<-fComputePETsimplifiedPenman(tmax=ALLDAYDATA[,"iTASMax"], 
                                    tmin=ALLDAYDATA[,"iTASMin"], 
                                    srad=ALLDAYDATA[,"iRSDS"], 
-                                   calb=canopyExtinctionCoefficient, 
+                                   calb=cropAlbedo, 
                                    ket=canopyExtinctionCoefficient, 
                                    etlai=etlai , salb=fExtractSoilParameter("pSoilAlbedo"))
   #compute soil evaporation
@@ -1551,7 +1555,7 @@ rUpdateWaterBudget<-function(){
   DRAINF_L<-fExtractSoilParameter("pSoilDrainageFactor", layers=Inf)
   toBeEvaporated<-cActualSoilEvaporation #TSE
   for (l in 1:10) {
-    evapHere<-pmax(0, pmin(toBeEvaporated, (sWater[,l]-WLAD_L[l])*DRAINF_L[l]))
+    evapHere<-pmax(0, pmin(toBeEvaporated, (sWater[,l]-WLAD_L[,l])*DRAINF_L[,l])) # changed [l] to [,l] icicici 16/7 achille
     soilEvaporation_L[,l]<-evapHere
     toBeEvaporated<-pmax(0, toBeEvaporated-evapHere)
   }
@@ -1562,7 +1566,7 @@ rUpdateWaterBudget<-function(){
   FLIN<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
   FLIN[,1]<-rain + cIrrigationWater - cRunoff
   FLIN[,2:10]<-FLOUT[,1:9]
-  sWater<-sWater + FLIN - FLOUT - waterUptake_L - soilEvaporation_L
+  sWater <- sWater + FLIN - FLOUT - waterUptake_L - soilEvaporation_L
   
   #drainage
   drainLayer<-fExtractSoilParameter("pDrainLayer")
@@ -1590,45 +1594,13 @@ rUpdateWaterBudget<-function(){
 
 
 rUpdateSoilNitrogen <- function () {
-  # ----- INITIALIZATION OF THE MODULE -----
-  # if (initialization == TRUE) { ... import parameters
-    # ---- getting and computing parameters and inputs ----
-    NLYER <- fExtractSoilParameter("pNLayer") # number of layers
-    NCASE <- nrow(PARAMSIM$cases) # number of cases
-    
-    # All of this is only used to compute initial organic N and MNORG (for mineralization)
-    # layerThicknesses = fExtractSoilParameter("pLayerThickness", 1:10)
-    # bulkDensities <- fExtractSoilParameter("pSoilBulkDensity", 1:10)
-    # coarseFractions <- fExtractSoilParameter("pCoarseSoilFraction", 1:10) # vector containing FG for each layer
-    # soilMasses <- fComputeSoilMass(layerThicknesses, bulkDensities, coarseFractions)
-    
-    # NORGP <- fExtractSoilParameter("pInitialOrgNPercentage", 1:10)
-    # FMIN <- fExtractSoilParameter("pFractionMineralizableN", 1:10)
-    # initialMineralizableOrganicN <- fComputeMineralizableN(soilMasses, NORGP, FMIN)
-    
-    # All of this is only used to compute initial soluble N concentration
-    # initialPpmNO3 <- fExtractSoilParameter("pInitialNO3Concentration", 1:10)
-    # initialPpmNH4 <- fExtractSoilParameter("pInitialNH4Concentration", 1:10)
-    # solubleN <- fComputeInitialSolubleN(soilMasses, initialPpmNO3, initialPpmNH4)
-    # waterContents <- fFindWater(what="WL", layers=1:10, df=ALLDAYDATA)
-    # solubleNConcentration <- fComputeNConcentration(solubleN, waterContents)
-
-      
-    # ---- computing and saving initial values ----
-    # createDay0 ?  
-    # ---- initialization of cumulative values ---
-    # done with createDay0 ?
-  #}
-
+  # ----------------------------------------   SOIL NITROGEN MODULE
+  
+  NLYER <- fExtractSoilParameter("pNLayer") # number of layers
+  NCASE <- nrow(PARAMSIM$cases) # number of cases
   
   # --------------- EACH DAY ---------------
-  #soilTemp <- ALLDAYDATA$cCrownTemp
-  # OR
-  #soilTemp <- pmax(35, ALLDAYDATA$cTemp)
-  #soilTemp <- runif(NCASE,0,35) # icicici temporary for debugging purposes only
-  soilTemp <- ALLDAYDATA$cTemp
-  ##### DEBUGGING
-  ALLDAYDATA$cSoilTemp <<- soilTemp
+  soilTemp <- pmin(ALLDAYDATA$cTemp, 35)
   
   WLs <- ALLDAYDATA[,paste("sWater", 1:10, sep=".")]
   FLOUTs <- ALLDAYDATA[,paste("cDownwardWaterFlux", 1:10, sep=".")]
@@ -1655,15 +1627,12 @@ rUpdateSoilNitrogen <- function () {
   
   KNs <- fComputeKNforMineralization(soilTemp) # value of KNs for each case
   # save effect of soil temp on mineralization
-  ALLDAYDATA$cSoilTempOnMineralization <<- KNs
   
   FTSWs <- fFindWater(what="FTSW", df=ALLDAYDATA, layers=Inf) # matrix of FTSW (each layer in each case)
   colnames(FTSWs) <- paste("FTSW", 1:10, sep=".")
   
   RNs <- fComputeRNforMineralization(FTSWs) # matrix of RNs (each layer in each case)
   colnames(RNs) <- paste("RN", 1:10, sep=".")
-  # save effect of soil moisture on mineralization
-  ALLDAYDATA[,paste("cMoistureOnMineralization", 1:10, sep=".")] <<- RNs
   
 
   MNORGs <- ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] # Get mineralizable
@@ -1675,23 +1644,6 @@ rUpdateSoilNitrogen <- function () {
   
   MNORGs <- MNORGs - NMINs # Withdraw mineralization from mineralizable N bank
   
-  # save N mineralization in ALLDAYDATA
-  ALLDAYDATA[,paste("cNMineralization", 1:10, sep=".")] <<- NMINs
-  # update mineralizable N bank in ALLDAYDATA
-  ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] <<- MNORGs
-  
-    
-
-  for (case in 1:NCASE) {
-    totalNMin <- sum(NMINs[case,], na.rm = TRUE)
-    
-    # Save total soil mineralization
-    ALLDAYDATA[case,"cTotalNMineralization"] <<- totalNMin
-    
-    # Increase CNMIN (cumulated mineralization in the whole soil)
-    ALLDAYDATA[case,"sCumulatedNMineralization"] <<- ALLDAYDATA[case,"sCumulatedNMineralization"] +
-                                                     totalNMin
-  }
   
   
   # ---- N application & volatilization ----
@@ -1708,21 +1660,10 @@ rUpdateSoilNitrogen <- function () {
   # ---- N downward movement ----
   NOUTs <- fComputeNDrainage(NSOLs, FLOUTs, WLs, NCONs)
   colnames(NOUTs) <- paste("downwardNFlux", 1:10, sep=".")
-  
-  # save N downward flux in the soil into ALLDAYDATA
-  ALLDAYDATA[,paste("cDownwardNFlux", 1:10, sep=".")] <<- NOUTs
-  
-  for (case in 1:NCASE) {
-    NLEACH <- NOUTs[case,NLYER[case]] #icicici will it work ?
-  # save N leaching OUT THE SYSTEM in ALLDAYDATA
-    ALLDAYDATA[case,"cNLeaching"] <<- NLEACH
-  # increasing cumulative leaching
-    ALLDAYDATA[case,"sCumulatedNLeaching"] <<- ALLDAYDATA[case,"sCumulatedNLeaching"] + NLEACH
-  }
 
   
   # ---- N denitrification ----
-  DENIT_MAX_DEPTH <- 250
+  DENIT_MAX_DEPTH <- 250 #icicici to put into general parameters /!\ hard-coded
   DLYERs <- fExtractSoilParameter(paramname="pLayerThickness", layers=Inf)
   
   dnitLayers <- vector()
@@ -1731,7 +1672,6 @@ rUpdateSoilNitrogen <- function () {
                     length(which((cumsum(DLYERs[case,]) - DLYERs[case,]) < DENIT_MAX_DEPTH))
                     )# icicic Hard-coded parameters  
   }
-  #maxDnitLayer <- max(dnitLayers)
   
   # It is assumed no denitrification occurs in layers below 250 mm
   # That gives us the number of layers which upper limit is located above 250mm underground
@@ -1739,6 +1679,7 @@ rUpdateSoilNitrogen <- function () {
   
   XNCONs <- matrix(ncol = 10,
                    nrow = NCASE)
+  
   for (case in 1:NCASE) {
     XNCONs[case,] <- c(fComputeXNCONforDenit(NCONs[case,1:dnitLayers[case]]),
                       rep(0, NLYER[case] - dnitLayers[case]),
@@ -1747,8 +1688,6 @@ rUpdateSoilNitrogen <- function () {
   }
   
   KDNITs <- fComputeKDNIT(soilTemp) # One value for each case
-  # Save effect of soil temp on denitrification
-  ALLDAYDATA$cSoilTempOnDenitrification <<- KDNITs
   
   NDNITs <- fComputeNDenitrification(FTSWs, KDNITs, XNCONs, WLs)
                                     # waterFactor ? icicici see changelog about WFNDNIT  
@@ -1761,25 +1700,13 @@ rUpdateSoilNitrogen <- function () {
   # that way, cNDenitrification stays at 0 in the layers where denitrification doesn't occur
   # without the program having to do anything
   
-  # Save N denitrification for each layer in ALLDAYDATA
-  ALLDAYDATA[,paste("cNDenitrification", 1:10, sep=".")] <<- NDNITs
-  
-  for (case in 1:NCASE) {
-  totalNDenit <- sum(NDNITs[case,], na.rm = TRUE)
-  
-  # Save total soil N denitrification
-  ALLDAYDATA[case,"cTotalNDenitrification"] <<- totalNDenit
-  
-  # Increase cumulated denitrification in ALLDAYDATA
-  ALLDAYDATA[case,"sCumulatedNDenitrification"] <<- ALLDAYDATA[case,"sCumulatedNDenitrification"] + 
-                                                    totalNDenit
-  }
+  RLYERs <- fFindRLYER(Inf, ALLDAYDATA)
   
   # ---- N removal by plant uptake ----
-  #NUP <- ALLDAYDATA$cDemandNAccumulation # vector for each case ?
-  NUP <- rep(0.5, NCASE)
-  #BNF <- ALLDAYDATA$cBiologicalNFixation # vector for each case ?
-  BNF <- rep(0.1, NCASE)
+  #NUP <- ALLDAYDATA$cDemandNAccumulation # vector for each case
+  NUP <- rep(0.045, NCASE)
+  #BNF <- ALLDAYDATA$cBiologicalNFixation # vector for each case
+  BNF <- rep(0.008, NCASE)
   
   NAVLs <- ALLDAYDATA[,paste("sAvailableUptakeN", 1:10, sep=".")]
   SNAVL <- ALLDAYDATA$sTotalAvailableUptakeN
@@ -1787,11 +1714,8 @@ rUpdateSoilNitrogen <- function () {
   NUs <- fComputeNRemovalByUptake(NAVLs, SNAVL, NUP, BNF)
   colnames(NUs) <- paste("NSoilUptake", 1:10, sep=".")
   
-  # Save N removal by uptake into ALLDAYDATA
-  ALLDAYDATA[,paste("cNSoilUptake", 1:10, sep=".")] <<- NUs
   
-  
-  # ---- Updating soil N balance for each layer ----
+  # ---- soluble N balance ----
   NINs <- matrix(ncol=10,
                  nrow=NCASE,
                  dimnames= list(rownames(NOUTs),
@@ -1817,25 +1741,60 @@ rUpdateSoilNitrogen <- function () {
   NSOLs[NSOLs<0] <- 0
   # NSOLs can't be negative
   
-  # updating the N balance in the soil (vector containing each layer's value)
-  for (case in 1:NCASE) {
-    ALLDAYDATA[case,"cTotalSolubleN"] <<- sum(NSOLs[case,], na.rm = TRUE)
-  }
-  
   NCONs <- fComputeNConcentration(NSOLs, WLs)
   # new value of NCONs, after variation of N balance in the soil
   
   ATSWs <- fFindWater(what="ATSW", layer=Inf, df=ALLDAYDATA)
   #RLYERs <- ALLDAYDATA[,c(paste("sRootDepthInsideLayer", 1:10, sep="."))]
-  RLYERs <- fFindRLYER(Inf, ALLDAYDATA)
   NAVLs <- fComputeNAVL(NCONs, ATSWs, RLYERs, DLYERs)
   
-  # Update into ALLDAYDATA
+  # ---- SAVE INTO ALLDAYDATA ----
+  ALLDAYDATA$cSoilTemp <<- soilTemp
+  
+  # - N mineralization -
+  ALLDAYDATA[,paste("cNMineralization", 1:10, sep=".")] <<- NMINs
+  ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] <<- MNORGs
+  ALLDAYDATA$cSoilTempOnMineralization <<- KNs
+  ALLDAYDATA[,paste("cMoistureOnMineralization", 1:10, sep=".")] <<- RNs
+  
+  # - N downward flux -
+  ALLDAYDATA[,paste("cDownwardNFlux", 1:10, sep=".")] <<- NOUTs
+  
+  # - N denitrification -
+  ALLDAYDATA[,paste("cNDenitrification", 1:10, sep=".")] <<- NDNITs
+  ALLDAYDATA$cSoilTempOnDenitrification <<- KDNITs
+  
+  # - N removal by plant uptake -
+  ALLDAYDATA[,paste("cNSoilUptake", 1:10, sep=".")] <<- NUs
+  
+  ### DEBUGGING WATER BUDGET ###
+  ALLDAYDATA[,paste("cActualTranspirableWater", 1:10, sep=".")] <<- ATSWs
+  ALLDAYDATA[,paste("cFractionTranspirableWater", 1:10, sep=".")] <<- FTSWs
+  ###---###---###---###---###---
+  
+  # - Updating soluble N balance -
   ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:10, sep="."))] <<- NCONs
   ALLDAYDATA[,c(paste("sSolubleN", 1:10, sep="."))] <<- NSOLs
   ALLDAYDATA[,c(paste("sAvailableUptakeN", 1:10, sep="."))] <<- NAVLs
+  
+  # - for each case loop -
   for (case in 1:NCASE) {
     ALLDAYDATA[case,"sTotalAvailableUptakeN"] <<- sum(NAVLs[case,], na.rm = TRUE)
+    ALLDAYDATA[case,"cTotalSolubleN"] <<- sum(NSOLs[case,], na.rm = TRUE)
+    
+    totalNDenit <- sum(NDNITs[case,], na.rm = TRUE)
+    ALLDAYDATA[case,"cTotalNDenitrification"] <<- totalNDenit
+    ALLDAYDATA[case,"sCumulatedNDenitrification"] <<- ALLDAYDATA[case,"sCumulatedNDenitrification"] + 
+      totalNDenit
+    
+    NLEACH <- NOUTs[case,NLYER[case]]
+    ALLDAYDATA[case,"cNLeaching"] <<- NLEACH
+    ALLDAYDATA[case,"sCumulatedNLeaching"] <<- ALLDAYDATA[case,"sCumulatedNLeaching"] + NLEACH
+    
+    totalNMin <- sum(NMINs[case,], na.rm = TRUE)
+    ALLDAYDATA[case,"cTotalNMineralization"] <<- totalNMin
+    ALLDAYDATA[case,"sCumulatedNMineralization"] <<- ALLDAYDATA[case,"sCumulatedNMineralization"] +
+      totalNMin
   }
 }
 

@@ -85,44 +85,74 @@ if (FALSE) {
 if (FALSE) {
   #mymodel$extractVariable("sLastSowing")
   dynamiques<-mymodel$plot("sLastSowing", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
+  
   dynamiques<-mymodel$plot("sLastHarvest", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
+  
   dynamiques<-mymodel$plot("cCycleEndType", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=0, pch=15)
 }
 
 #checking stresses module
 if (FALSE) {
   dynamiques<-mymodel$plot("sWater.1", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
+  cols<-1:2 ; names(cols)<-paste("sWater", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sWater", 1:2, sep="."), 
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
   dynamiques<-mymodel$plot("sRootFrontDepth", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cEfficientRootLength", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cFTSWweightedByRoots", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot(c("cCoefWaterstressGrowth", "cCoefWaterstressLeafArea", "cCoefWaterstressDevelopment"),
                            casestoplot=c("Meknes35degresWheat"),
                            col=c(cCoefWaterstressGrowth="orange", 
@@ -135,15 +165,21 @@ if (FALSE) {
 #checking phenology module
 if (FALSE) {
   dynamiques<-mymodel$plot("sGrowthStageNumber", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
-  dynamiques<-mymodel$plot("sBiologicalDay", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+  
+  dynamiques<-mymodel$plot("sBiologicalDaysSinceSowing", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
                            casestoplot=c("Meknes35degresWheat"),
                            col=c(cCoefPhotoPeriod="orange", 
@@ -151,6 +187,7 @@ if (FALSE) {
                                  cCoefWaterstressDevelopment="red",
                                  cBiologicalDay="black"),
                            whatcol="variables", lty=1, pch=NA)
+  
   #conc: photoperiod stops wheat growth
   dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
                            casestoplot=c("Meknes35degresWheat"),
@@ -181,29 +218,43 @@ if (FALSE) {
 #checking LAI module : decrease without N
 if (FALSE) {
   dynamiques<-mymodel$plot("sLAI", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cDecreaseLAI", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
+  
   dynamiques<-mymodel$plot("cDecreaseLAI", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="", ylim=c(0,3000))
+  
   dynamiques<-mymodel$plot("cHeat", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
-                           whatcol="cases", lty=1, pch="", ylim=c(0,2500))
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
   dynamiques<-mymodel$plot("cFrost", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="", ylim=c(0,2500))
   
 }
@@ -211,14 +262,18 @@ if (FALSE) {
 #checking DMProduction module
 if(FALSE){
   dynamiques<-mymodel$plot("cRUE", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   dynamiques<-mymodel$plot("cDryMatterProduction", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
 }
@@ -226,19 +281,25 @@ if(FALSE){
 #checking DMDistribution module
 if(FALSE){
   dynamiques<-mymodel$plot("sAccumulatedLeafDryMatter", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   dynamiques<-mymodel$plot("sAccumulatedStemDryMatter", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   dynamiques<-mymodel$plot("sAccumulatedGrainDryMatter", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
 }
@@ -254,40 +315,54 @@ if(FALSE){
 
 #checking water module
 if(FALSE){
-  mymodel$extractVariable("sWater.1")
-  
   dynamiques<-mymodel$plot("cRunoff", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cPET", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cActualSoilEvaporation", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cTranspiration", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cDrain", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
   
   cols<-1:2 ; names(cols)<-paste("sWater", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("sWater", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
@@ -297,68 +372,93 @@ if(FALSE){
 
 # checking nitrogen module
 if (FALSE) {
+  # pour les couleurs:
+  # réparties sur le spectre: rainbow(n)
+  # contigues: heat.colors(n)
   dynamiques<-mymodel$plot("cSoilTemp", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
   dynamiques<-mymodel$plot("cSoilTempOnDenitrification", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
   dynamiques<-mymodel$plot("cSoilTempOnMineralization", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
   dynamiques<-mymodel$plot("cTotalSolubleN", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
   cols<-1:2 ; names(cols)<-paste("sSolubleN", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("sSolubleN", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
                            pch="")
   
   dynamiques<-mymodel$plot("sCumulatedNMineralization", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
-  cols<-1:2 ; names(cols)<-paste("cMoistureOnMineralization", 1:2, sep=".")
-  dynamiques<-mymodel$plot(paste("cMoistureOnMineralization", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+  cols<-1:2 ; names(cols)<-paste("cNMineralization", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cNMineralization", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
                            pch="")
   
-  dynamiques<-mymodel$plot("sCumulatedNDenitrification", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
-                           whatcol="cases", lty=1, pch="")
+  cols<-1:2 ; names(cols)<-paste("cMoistureOnMineralization", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cMoistureOnMineralization", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
   
   
   cols<-1:2 ; names(cols)<-paste("sMineralizableN", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("sMineralizableN", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
@@ -366,35 +466,44 @@ if (FALSE) {
   
   cols<-1:2 ; names(cols)<-paste("sAvailableUptakeN", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("sAvailableUptakeN", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
                            pch="")
   
   dynamiques<-mymodel$plot("sTotalAvailableUptakeN", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
   cols<-1:2 ; names(cols)<-paste("cNSoilUptake", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("cNSoilUptake", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
-                           pch="")
+                           pch="",
+                           )
   
   cols<-1:2 ; names(cols)<-paste("cActualTranspirableWater", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("cActualTranspirableWater", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
@@ -402,11 +511,30 @@ if (FALSE) {
   
   cols<-1:2 ; names(cols)<-paste("cFractionTranspirableWater", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("cFractionTranspirableWater", 1:2, sep="."), 
-                           lty=c(Meknes35degresWheat=1, 
-                                 Meknes35degresMaize=2, 
-                                 Meknes35degresChickpea=3),
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
                            pch="")
+  
+  dynamiques<-mymodel$plot("cFractionTranspirableWater.1", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  
+  dynamiques<-mymodel$plot("cFractionTranspirableWater.2", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
 }

@@ -549,11 +549,11 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
 ## COMMITED under "Soil nitrogen: 1st working version"
 
 
------------------- Jul 08 2021 ------------------
+----------- Jul 08 2021 -> Jul 15 2021 -----------
 
 ## For now, only unexpected values are a result of issue #13 (bugs in calculation of FTSW, and ATSW, that become negative for some reason)
-   That is: NAVL, SNAVL, thus NUP, but also RN (moisture effect on mineralization) thus NMIN have incorrect values since they're computed
-   from FTSW or ATSW.
+   That is: NAVL, SNAVL, thus NUP, but also RN (moisture effect on mineralization) thus NMIN,
+   and also NDNITs have incorrect values since they're computed either from FTSW or ATSW.
 	## ISSUE 13 ON FTSW AND ATSW COMPUTATION BUGS HENCE BECOMES PRIORITY
 
 - ADDED a #DEBUGGING WATER MODULE segment in rUpdateSoilNitrogen() where I save FTSW and ATSW
@@ -562,3 +562,76 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
 ## why does water content stagnate at 9.3 in both layers ? It doesn't go below ever ?
 ## layer 1 happens to have pWiltingPoint = 0.093 so that's probably linked
 ## however it is equal to 0.109 for layer 2 so it doesn't make sense for it to floor at 9.3
+
+## ABNOMALY: simulation day 22 : soluble N in 1st layer goes from 3.xx g m-2 straight to 0 in a single day.
+## this is due to denitrification being abnormally high (going straight from 0 to 3.xx in a single day)
+## Also, we observe n mineralization going straight down to 0 on the same day (in layer 1)
+## Both are computed from FTSWs
+## THING IS, FTSW goes over 1 at day 22 for layer 1, while it remains under 1 for layer 2
+## CONCLUSION: Abnormal values comes from FTSW being superior to 1 when it should not be able to
+
+## FTSWs becoming superior to 1 when it should be in [0;1] 
+	## Created Git Issue #17
+## FTSWs and ATSWs becoming negative
+## DESPITE water never being negative...
+
+## There is a problem with water though:
+## Water in second layer stuck at 9.3 for layer 2 too in spite of a wilting point != 0.093
+## ?? BUG second layer seen as having the same wilting point as layer 1 for some reason ??
+	## Created Git Issue #18
+
+- MOVED every instruction that updates ALLDAYDATA content in "rUpdateSoilNitrogen" to the end of the procedure
+  So that every modification to the ALLDAYDATA df are done at once.
+
+
+------------------ Jul 16 2021 ------------------
+
+- CHANGED (WL - WLLL) to pmax(WL - WLLL) in fFindWater to solve FTSWs and ATSWs becoming negative.
+  If water is at wilting point or less (evaporation), then ATSW & FTSW = 0.
+
+- FIXED water decreasing way below what it should in layer 2, as if it inherited first layer
+  lowermost limit for water.
+  It was due to a typo in the code: matrix[l] instead of matrix[,l] in the 
+  "#distribute soil evaporation in different soil layers" section of rUpdateWaterBudget.
+  Now, water can't decrease below residual water at dryness, for any layer.
+
+
+------------------ Jul 19 2021 ------------------
+
+ - Had a placeholder "NUP" value to compute N removal by plant uptake.
+   It seemed weird that it was a constant so
+   I changed it to be dependent of root extension in the layer.
+
+ - ADDED 4 new additional climate data in the climates.xlsx
+	- Mauguio, France
+	- Turgutlu, Turkey
+	- Bizerte, Tunisia
+	- Sidi Kacem, Morocco
+   I haven't added "altitude" and "wind height" values yet although
+   I don't know whether they're relevant or not in the simulation.
+
+   Also, still need to add the different corresponding soil inputs in soils.xlsx
+
+   # THESE DATAS COME FROM CliPick AND EXPAND OVER THE 1995-2015 TIMESPAN, 
+   # THEY ARE SOURCED FROM THE "AR4 A1B HadCM3Q0: 1951->2100" DATASET
+
+
+------------------ Jul 19 2021 ------------------
+	
+ - ADDED the new climates as cases of the simulation (in input/SimulationOptions.xlsx)
+   Now, simulation contains 5 cases being:
+	- Ain Hamra - Meknes, Morocco
+	- Sidi Kacem, Morocco
+	- Turgutlu, Turkey
+	- Bizerte, Tunisia
+	- Mauguio, France
+
+ - Changed the plot commands in the exampleRunSSM.R file to be compatible with the new cases.
+
+ - FIXED fComputePETsimplifiedPenman
+   FIXED its usage in the rUpdateWaterBudget module.
+
+ - FIXED the irrigation module that started bugging when I ran the simulation with the new cases.
+
+
+## COMMITED under "FIXED water module & ADDED 4 climates"

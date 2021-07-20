@@ -123,18 +123,12 @@ rCreateDay0<-function() {
     df[,paste("sWater", 1:10, sep=".")]
   )
   
-  # -- initialization of NAVL and SNAVL
+  # -- initialization of NAVL and NORG
   for (case in 1:NCASE) {
     df[case,paste("sAvailableUptakeN", 1:NLYER[case], sep=".")] <- 0
     df[case,paste("sOrganicN", 1:NLYER[case], sep=".")] <- 0
   }
   # SNAVL is initialized at 0 thanks to its default value in excel = 0
-  
-  # -- initialization of NORG --
-  
-  
-
-  
   
   ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)
   return()
