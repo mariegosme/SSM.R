@@ -1414,48 +1414,10 @@ fExportSynthesis<-function() {
 }
 
 
-##### PlantNitrogen 
 
 
-rUpdateDMProduction <-function(){
-  
-  # ----- Corps du Module --------
-  
-  
-  
-  # ----- Used parameters --------
-  
-  # @param pSpecLeafNGreenLeaf: Specific leaf nitrogen in green leaves (target) (SLNG)
-  # @param pSpecLeafNSenescenceLeaf : Specific leaf nitrogen in senesced leaves (minimum) (SLNS)
-  # @param pContentStemN : N content per unit stem weight (SNCG)
-  # @param pStemMinimumNconcentration : minimum stem N concentration (SNCS)
-  # @param pGrainMinConcentrationN : Grain min N concentration (GNCmin)
-  # @param pGrainMaxConcentrationN: Grain max N concentration (GNCmax)
-  # @param pcDemandNAccumulationMaxRate : cDemandNAccumulation maximum rate (MXcDemandNAccumulation)
-  
-  
-  sAccumulatedNStem <- sAccumulatedStemDryMatter * pContentStemN
-  # NST = WST * SNCG on VBA version
-  #sAccumulatedStemDryMatter already coded in rUpdateDMDistribution
-  
-  sAccumulatedLeafNitrogen <- sLAI * pSpecLeafNGreenLeaf
-  # sLAI already coded in rUpdateLAI
-  # NLF = LAI * SLNG on VBA version
-  
-  sNitrogenAccumulation <- rep(1,lenght(sAccumulatedNStem))
-  # WSFN = 1 ON VBA version don't know why this value
-  # Create a vector of 1 (lenght of sAccumulatedNStem chosen arbitrarily)
-  
-  sAccumulatedAboveGroundN = sAccumulatedNStem + sAccumulatedLeafNitrogen
-  # CcDemandNAccumulation = NST + NLF on VBA version
-  
-  cDailySeedsNDemands <- numeric(length(sAccumulatedNStem))
-  # INGRN = 0 on VBA version
-  # Create a vector of 1 (lenght of sAccumulatedNStem chosen arbitrarily))
-  
-  sCumulativeNFixation <- numeric(length(sAccumulatedNStem))
-  # CUMBNF = 0 on VBA version
-  # Create a vector of 1 (lenght of sAccumulatedNStem chosen arbitrarily))
+
+
 
 ##### PlantNitrogen 
 
@@ -1481,27 +1443,6 @@ fComputeNAvailableatBeginningseedFill<-function(lai,slns, slng, nst, wst, sncs){
   # Equation 17.4 on the PDF, p228
 }
 
-
-
-# ---- function which returns the estimate of supply vegs -------
-
-fEstimateOfSupplyVegs <- function(cBSGMobilizable,sBdFromSowingToTerminationLeaf,sBdFromSowingToSeedGrowth, bd,cDailySeedWeightIncrease,cUptakeNGrain,pGrainMinConcentrationN,pGrainMaxConcentrationN, cDemandNAccumulation){
-  ## bd not defined in all-variables, but calculated previously : bd = ppfun*verfun*tempfun
-  cEstimateSupplyVeg <- cBSGMobilizable/(sBdFromSowingToTerminationLeaf-sBdFromSowingToSeedGrowth)*bd
-  SeedGrowthCond <- (cDailySeedWeightIncrease == 0)
-  cEstimateSupplyVeg[SeedGrowthCond] <- 0
-  cDailySeedsNDemands <- pmax(cDailySeedWeightIncrease*pGrainMinConcentrationN,pmin(cEstimateSupplyVeg + cDemandNAccumulation*cUptakeNGrain,cDailySeedWeightIncrease*pGrainMaxConcentrationN))
-  
-  ###   If INGRN < (SGR * GNCmin) Then
-  ###     INGRN = SGR * GNCmin
-  ###   ElseIf INGRN >= (SGR * GNCmax) Then
-  ###     INGRN = SGR * GNCmax
-  
-  cEstimateSupplyVeg <- cDailySeedsNDemands - cDemandNAccumulation
-  return (cEstimateSupplyVeg) 
-}  
-
-
 # ---- function which returns the proportion of the daily N transfer from the leaves ------
 
 #' Title : function which returns the proportion of the daily N transfer from the leaves 
@@ -1522,6 +1463,24 @@ fComputeDailyNTransferFromleaves <- function(lai, slng, sncs, TRLN){
 }
 
 
+
+# ---- function which returns the estimate of supply vegs -------
+
+fEstimateOfSupplyVegs <- function(cBSGMobilizable,sBdFromSowingToTerminationLeaf,sBdFromSowingToSeedGrowth, bd,cDailySeedWeightIncrease,cUptakeNGrain,pGrainMinConcentrationN,pGrainMaxConcentrationN, cDemandNAccumulation){
+  ## bd not defined in all-variables, but calculated previously : bd = ppfun*verfun*tempfun
+  cEstimateSupplyVeg <- cBSGMobilizable/(sBdFromSowingToTerminationLeaf-sBdFromSowingToSeedGrowth)*bd
+  SeedGrowthCond <- (cDailySeedWeightIncrease == 0)
+  cEstimateSupplyVeg[SeedGrowthCond] <- 0
+  cDailySeedsNDemands <- pmax(cDailySeedWeightIncrease*pGrainMinConcentrationN,pmin(cEstimateSupplyVeg + cDemandNAccumulation*cUptakeNGrain,cDailySeedWeightIncrease*pGrainMaxConcentrationN))
+  
+  ###   If INGRN < (SGR * GNCmin) Then
+  ###     INGRN = SGR * GNCmin
+  ###   ElseIf INGRN >= (SGR * GNCmax) Then
+  ###     INGRN = SGR * GNCmax
+  
+  cEstimateSupplyVeg <- cDailySeedsNDemands - cDemandNAccumulation
+  return (cEstimateSupplyVeg) 
+}  
 
 
 # ---- function which returns the Daily demand for N accumulation when the cumulative biological days or less than the biological day before N fixation----
@@ -1569,6 +1528,34 @@ fDemandNAccumulationWhenBNFHigherBSG <- function(cDemandNAccumulation, sTotalAva
   # for non legum
   # Function which occurs if BNF > BSG in a non-legum case
   
+}
+
+#-------------------- function which occurs when the cumulative biological days or less the the date of sowing or larger than the date of termination seed growth ---------------
+
+BeforeSowingOrAfterTerminationLeafGrowth <- function(cDemandNAccumulation, sDailyRateNFromLeave, sDailyRateNFromStem, sDailyAccumulationleavesN, sDailyAccumulationStemN, cDailySeedsNDemands){
+  cDemandNAccumulation <- numeric(lenght(cDemandNAccumulation))
+  sDailyRateNfromLeave <- numeric(lenght(sDailyRateNfromLeave))
+  sDailyRateNFromStem <- numeric(lenght(sDailyRateNFromStem))
+  sDailyAccumulationLeavesN <- numeric(lenght(sDailyAccumulationLeavesN))
+  sDailyAccumulationStemN <- numeric(lenght(sDailyAccumulationStemN))
+  cDailySeedsNDemends <- numeric(lenght(cDailySeedsNDemends))
+  # There is no nitrogen exchange between the stem and the leaves if it is before sowing or after the growth phase of the seeds
+  #----------------Filtre à appliquer dans le Excel--------------- #
+  
+  #BeforeSowingOrAfterTerminationLeafGrowth.filter is.before('EMR',0) & is.after('R7',0)
+}
+
+
+#---------------------- function which returns the Daily demand for N accumulation when the cumulative biological days or less than the biological day before N fixation--------------------
+
+
+
+fDailyNDemandBeforNFixation <- function(cDemandNAccumulation ,sTotalAvailableUptakeN){
+  return (pmin(cDemandNAccumulation, sTotalAvailableUptakeN))
+  # If sBiologicalDaysSinceSowing < sBdFromSowingToFixation , the Daily demand for N accumulation is limited by sTotalAvailableUptakeN)
+  #----------------Filtre à appliquer dans le Excel--------------- #
+  
+  # DailyNDemandBeforNFixation.filter is.before('EMR',3,5) 
 }
 
 
@@ -1639,363 +1626,8 @@ fNFixationDuringVegetativeGrowth <- function(sAccumulatedStemDryMatter, pContent
   # Condition 
   cBiologicalNFixation[LimitationCropUptake] <- pmax(cDemandNAccumulation[LimitationCropUptake]-sTotalAvailableUptakeN[sTotalAvailableUptakeN],0)
   
-  #-------------------- function which occurs when the cumulative biological days or less the the date of sowing or larger than the date of termination seed growth ---------------
-  
-  BeforeSowingOrAfterTerminationLeafGrowth <- function(cDemandNAccumulation, sDailyRateNFromLeave, sDailyRateNFromStem, sDailyAccumulationleavesN, sDailyAccumulationStemN, cDailySeedsNDemands){
-    cDemandNAccumulation <- numeric(lenght(cDemandNAccumulation))
-    sDailyRateNfromLeave <- numeric(lenght(sDailyRateNfromLeave))
-    sDailyRateNFromStem <- numeric(lenght(sDailyRateNFromStem))
-    sDailyAccumulationLeavesN <- numeric(lenght(sDailyAccumulationLeavesN))
-    sDailyAccumulationStemN <- numeric(lenght(sDailyAccumulationStemN))
-    cDailySeedsNDemends <- numeric(lenght(cDailySeedsNDemends))
-    # There is no nitrogen exchange between the stem and the leaves if it is before sowing or after the growth phase of the seeds
-  }
-  
+ 
 
-  
-  #----------------Filtre à appliquer dans le Excel--------------- #
-  
-  #BeforeSowingOrAfterTerminationLeafGrowth.filter is.before('EMR',0) & is.after('R7',0)
-  
-  
-  
-  
-  
-  
-  #---------------------- function which returns the Daily demand for N accumulation when the cumulative biological days or less than the biological day before N fixation--------------------
-  
-  
-  
-  fDailyNDemandBeforNFixation <- function(cDemandNAccumulation ,sTotalAvailableUptakeN){
-    return (pmin(cDemandNAccumulation, sTotalAvailableUptakeN))
-    # If sBiologicalDaysSinceSowing < sBdFromSowingToFixation , the Daily demand for N accumulation is limited by sTotalAvailableUptakeN)
-  }
-  
-  #----------------Filtre à appliquer dans le Excel--------------- #
-  
-  # DailyNDemandBeforNFixation.filter is.before('EMR',3,5) 
-  
-  
-  #---------------------- function which apply during Vegetative Growth ----------------------- #
-  
-  NFixationDuringVegetativeGrowth <- function(cAccumulatedStemDryMatter,cAccumulated, pContentStemN, cGrowthLAI, pSpecLeafNGreenLeaf, pcDemandNAccumulationmax, cDailyDryMatterforLeavesAndStems,sTotalAvailableUptakeN ){
-    
-    cDailySeedsNDemands <- numeric(lenght(cAccumulatedStemDryMatter))
-    cDemandResultDeficiencies <- pmax((sAccumulatedStemDryMatter * pContentStemN) - sAccumulatedNStem, 0)
-    cDemandNAccumulation <- pmin((cDailyStemWeightIncrease * pContentStemN) + (cGrowthLAI * pSpecLeafNGreenLeaf) + cDemandResultDeficiencies, pcDemandNAccumulationmax)
-    cCoefBiologicalNFixation <- cCoefBiologicalNFixation*(3/4) + (cDemandNAccumulation/sAccumulatedVegetativeDryMatter)*(1/4) ### ICICICIICICIC pas de sens physique à cette équation
-    ### 3/4 and 1/4 seem to be like ponderation coefficients
-    cDemandNAccumulation <- pmax(cDemandNAccumulation*sNitrogenAccumulation, 0) 
-    
-    
-    ConditionFTSWRZ <- cFTSWRrootZone > 1
-    cDemandNAccumulation[ConditionFTSWRZ] <- cDemandNAccumulation[ConditionFTSWRZ]*cCoefWaterStressSaturation[ConditionFTSWRZ]
-    
-    
-    cDailyDryMatterforLeavesAndStems <- numeric(lenght(cDailyDryMatterforLeavesAndStems))
-   
-    cDemandNAccumulation <- pmin(cDemandNAccumulation,sTotalAvailableUptakeN)
-    
-    
-    ## cBiologicalNFixation : BNF
-    ## other syntax which maybe works
-    
-    LimitationCropUptake <- cDemandNAccumulation > sTotalAvailableUptakeN
-    # Condition 
-    cBiologicalNFixation[LimitationCropUptake] <- pmax(cDemandNAccumulation[LimitationCropUptake]-sTotalAvailableUptakeN[sTotalAvailableUptakeN],0)
-    
-    
-    
-    
-    sCumulativeNFixation <- sCumulativeNFixation + cBiologicalNFixation
-    ## sCumulativeNFixation : CUMBNF
-    # Variable updated at each time step 
-    
-    
-    
-    # ------------------------- Beginning of translation of the Diagramm of the PDF which describes the repartition of nitrogen exchanges during seed growth ------------------- #
-    
-    
-   
-
-  
-  ## Initialisation for the calcul of the 4 principal variables : 
-  
-  sDailyAccumulationStemN <- sDailyRateNFromStem <- sDailyAccumulationLeavesN <- sDailyRateNfromLeave <- numeric(length(sAccumulatedStemDryMatter))
-  
-  # sDailyAccumulationStemN : Daily rate of nitrogen accumulation in stems (INST)
-  # sDailyAccumulationLeavesN : Daily rate of nitrogen accumulation in leaves (INLF)
-  # sDailyRateNFromLeave : Daily rate of nitrogen mobilized from leaves (XNLF)
-  # sDailyRateNFromStem : Daily rate of nitrogen mobilized from stems (XNST)
-  
-  
-  
-  
-  StemDryMatterCondition <- sAccumulatedNStem < sAccumulatedStemDryMatter*pStemMinimumNconcentration
-  
-  # StemDryMatterCondition = First Condition : NST < WST * SNCS
-  
-  sDailyAccumulationLeavesN[!StemDryMatterCondition] <- cGrowthLAI[!StemDryMatterCondition]*pSpecLeafNGreenLeaf[!StemDryMatterCondition]
-  sDailyAccumulationStemN [StemDryMatterCondition] <- sAccumulatedStemDryMatter[StemDryMatterCondition]*pStemMinimumNconcentration[StemDryMatterCondition]-sAccumulatedNStem[StemDryMatterCondition]
-  
-  # NLeafGreaterThanNNeeded = 2nd Condition : INLF > NUP and the first condition is not satisfied
-  # NLeafSmallerThanNNeeded = 3nd Condition : INLF < NUP and the first condition is not satisfied
-  
-  NLeafGreaterThanNNeeded <- !StemDryMatterCondition & sDailyAccumulationLeavesN > cDemandNAccumulation
-  NLeafSmallerThanNNeeded <- !StemDryMatterCondition & sDailyAccumulationLeavesN <=cDemandNAccumulation
-  sDailyAccumulationLeavesN [NLeafGreaterThanNNeeded]<- cDemandNAccumulation[NLeafGreaterThanNNeeded] + sDailyRateNFromStem[NLeafGreaterThanNNeeded]
-  
-  sDailyAccumulationStemN [NLeafSmallerThanNNeeded] <- cDemandNAccumulation[NLeafSmallerThanNNeeded]-sDailyAccumulationLeavesN [NLeafSmallerThanNNeeded]
-  sDailyRateNFromStem[NLeafGreaterThanNNeeded] <- min(sDailyAccumulationLeavesN  - cDemandNAccumulation, sAccumulatedNStem - sAccumulatedStemDryMatter * pStemMinimumNconcentration)[NLeafGreaterThanNNeeded]
-  
-  # NStemGreaterThanNNeeded = 4th condition : INST > NUP and the first condition is satisfied
-  # NStemSmallerThanNNeeded = 5th condition : INST < NUP and the first condition is satisfied
-  
-  NStemGreaterThanNNeeded <- StemDryMatterCondition & sDailyAccumulationStemN >cDemandNAccumulation
-  NStemSmallerThanNNeeded <- StemDryMatterCondition & sDailyAccumulationStemN <=cDemandNAccumulation
-  sDailyAccumulationLeavesN [NStemSmallerThanNNeeded ]<-min(cGrowthLAI*pSpecLeafNGreenLeaf, cDemandNAccumulation-sDailyAccumulationStemN )[NStemSmallerThanNNeeded ]
-  sDailyRateNfromLeave[NStemGreaterThanNNeeded ]<-(sDailyAccumulationStemN -cDemandNAccumulation)[NStemGreaterThanNNeeded ]
-  sDailyAccumulationStemN [NStemSmallerThanNNeeded ]<-(cDemandNAccumulation-sDailyAccumulationLeavesN )[NStemSmallerThanNNeeded ]
-  
-  ###
-  
-  
-  #--------- Computation of Daily rate of nitrogen mobilized from stems --------- #
-  
-  cBSGMobilizable <- sLAI*(pSpecLeafNGreenLeaf-pSpecLeafNSenescenceLeaf) + (sAccumulatedNStem-sAccumulatedStemDryMatter*pStemMinimumNconcentration)
-  
-  ## cBSGMobilizable : TRLNBSG, Total mobilizable N available in the plant before seed growth  
-  
-  
-  #----------------Filtre à appliquer dans le Excel--------------- #
-  
-  # NFixationDuringVegetativeGrowth.filter is.after('EMR', 3.5) & is.before('R8')
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  #---------------------- Function which occurs during seed growth, which means between phase R5 and R8---------------------#
-  
-  NfixationDuringSeedGrowth <- function(cDailySeedWeightIncrease, pGrainMaxConcentration,pContentStemN, cGrowthLAI, pSpecLeafNGreenLeaf, pNUPmax, cCoefBiologicalNFixation,sAccumulatedVegetativeDryMatter,cCoefWaterStressSaturation,sAccumulatedNStem ){
-    
-    cDailySeedsNDemands <- cDailySeedWeightIncrease*pGrainMaxConcentration
-    # cDailySeedWeightIncrease : SGR, daily seed growth 
-    # First estimate using maximum GNC, maybe we could have tried to use minimum GNC sDailyAccumulationStemN ead, the pdf has a single constant value for GNC
-    cDemandNAccumulation <- pmin(pmax(cDailySeedsNDemands + (cDailyStemWeightIncrease * pContentStemN) + (cGrowthLAI * pSpecLeafNGreenLeaf),0),pcDemandNAccumulationmax)
-    # Daily demand for N accumulation can't be negative and is limited to a maximum.
-    cUptakeNGrain <- cDailySeedsNDemands / (cDemandNAccumulation + 0.00000001)
-    # No really information about the variable cUptakeNGrain (cDemandNAccumulation_fr_grn) in the book, not defined
-    # No idea of the mean of the value 0.00000001
-    
-    #fBeforeNFixationOrNonLegum <- function(cRateBiologicalNFix){
-      #cRateBiologicalNFix <- numeric(length(cRateBiologicalNFix))
-      # before BNF activation OR for non-legum crops
-      # DNF :cRateBiologicalNFix, Actual rate of biological nitrogen fixation
-      # Fonction which occurs beforce N Fixation
-   # }
-    
-    # ElseIf CBD >= bdBNF in the VBA version, but we already are in that case
-    
-    sPotentielRateNitrogenFixation <- pmin(cCoefBiologicalNFixation * sAccumulatedVegetativeDryMatter, cDemandNAccumulation)
-    # PDNF : Potential rate of biological nitrogen fixation, which is limited to the daily demand for N accumulation
-    # for legum
-    cRateBiologicalNFix <- sPotentielRateNitrogenFixation * sNitrogenAccumulation 
-    #for legum
-    
-    DryMatterCondition <- (cDryMatterProduction <= cDailySeedWeightIncrease*pGrainConversionCoefficient | cDryMatterProduction == 0)
-    cRateBiologicalNFix[DryMatterCondition] <- 0
-    # For Legum
-    
-    
-    ConditionFTSWRZ <- cFTSWRrootZone > 1
-    cDemandNAccumulation[ConditionFTSWRZ]<- cDemandNAccumulation[ConditionFTSWRZ]*cCoefWaterStressSaturation[ConditionFTSWRZ]
-    
-    
-    SeedGrowthCondition <- cDailyDryMatterforLeavesAndStems < cDailySeedWeightIncrease/pGrainConversionCoefficient
-    cDemandNAccumulation[DryMatterCondition] <- 0
-    ## cDemandNAccumulation is set equal to 0 when daily dry matter production (DDMP) by the crop does not exceed SGR (Daily Seed Growth)
-    
-    # -------------- function which occurs when BNF (Biological at beginning of N Fixation) is greater than BSG (Biological day before seed growth)
-    
-    
-    fDemandNAccumulationWhenBNFHigherBSG <- function(cDemandNAccumulation, sTotalAvailableUptakeN){
-      return (pmax(cDemandNAccumulation,sTotalAvailableUptakeN))
-      # for non legum
-      # Function which occurs if BNF > BSG in a non-legum case
-    }
-    
-    #---------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    cDemandNAccumulation <- pmin(cDemandNAccumulation,sTotalAvailableUptakeN + cRateBiologicalNFix)
-    cBiologicalNFixation <- pmax(cDemandNAccumulation - sTotalAvailableUptakeN, 0)
-    sCumulativeNFixation <- sCumulativeNFixation + cBiologicalNFixation
-    
-    
-    
-    
-    #---------------------- function which estimates the supply in vegs ---------------------- 
-    
-    
-    fEstimateOfSupplyVegs <- function(cBSGMobilizable,sBdFromSowingToTerminationLeaf,sBdFromSowingToSeedGrowth, bd,cDailySeedWeightIncrease,cUptakeNGrain,pGrainMinConcentrationN,pGrainMaxConcentrationN){
-      ## bd not defined in all-variables,
-      cEstimateSupplyVeg <- cBSGMobilizable/(sBdFromSowingToTerminationLeaf-sBdFromSowingToSeedGrowth)*bd
-      SeedGrowthCond <- (cDailySeedWeightIncrease == 0)
-      cEstimateSupplyVeg[SeedGrowthCond] <- 0
-      cDailySeedsNDemands <- pmax(cDailySeedWeightIncrease*pGrainMinConcentrationN,pmin(cEstimateSupplyVeg + cDemandNAccumulation*cUptakeNGrain,cDailySeedWeightIncrease*pGrainMaxConcentrationN))
-      
-      ###   If INGRN < (SGR * GNCmin) Then
-      ###     INGRN = SGR * GNCmin
-      ###   ElseIf INGRN >= (SGR * GNCmax) Then
-      ###     INGRN = SGR * GNCmax
-      
-      cEstimateSupplyVeg <- cDailySeedsNDemands - cDemandNAccumulation
-      return (cEstimateSupplyVeg) 
-    }  
-    
-    
-    
-    
-    #------------------------------------------------------------------------------#
-    
-    #---------------------- Some Usefull functions ------
-    
-    
-    
-    SGR <- ALLDAYDATA$cDailySeedWeightIncrease # to get SGR
-    sncs <-ALLDAYDATA$pStemMinimumNconcentration # to get SNCS
-    snlg <- ALLDAYDATA$pSpecLeafNGreenLeaf # to get SNLG
-    lai <- ALLDAYDATA$sLAI # to get LAI
-    nst <- ALLDAYDATA$sNstem # to get NST
-    wst <- ALLDAYDATA$sAccumulatedStemDryMatter # to get WST
-    
-    
-   
-    
-    
-    #------ function which returns the total mobilizable N available in the plant at the beginning of seed fill --------
-    
-    fComputeNAvailableatBeginningseedFill<-function(lai,snls, snlg, nst, wst, sncs){
-      return (lai * (snlg - slns)+(nst-wst*sncs))
-      # Equation 17.4 on the PDF, p228
-    }
-    
-    TRLN <- fComputeNAvailableatBeginningseedFill(lai = lai, snls = snls, snlg = snlg, nst = nst, wst = wst, sncs = sncs)
-    
-    #------ function which returns the proportion of the daily N transfer from the leaves
-    
-#' Title
-#'
-#' @param lai numeric vector of LAI values
-#' @param slns 
-#' @param slng 
-#' @param TRLN 
-#'
-#' @return vector of the same length as lai which de
-#' @export
-#'
-#' @examples 
-#' fComputeDailyNTransferFromleaves(lai=c(0.5, 0.4, 2), c())
-    fComputeDailyNTransferFromleaves <- function(lai, slns, slng, TRLN){
-      return (lai * (slng-sncs)/TRLN)
-      # Equation 17.5 on the PDF, p228
-      
-    }
-    
-    FXLF <- fComputeDailyNTransferFromleaves(lai = lai, slns = slns, slng = slng, TRLN = TRLN)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    #----------------- Computation of the Nitrogen dispersal in leaves and stems during the vegetative Growth ------------- #
-    
-    
-    ## Initialisation at 0 for the calcul of the 4 principal variables : 
-    
-    sDailyAccumulationStemN <- sDailyRateNFromStem <- sDailyAccumulationLeavesN <- sDailyRateNfromLeave <- numeric(length(sAccumulatedStemDryMatter))
-    
-    # INST = XNST = INLF = XNLF = 0
-    
-    NUP2 <- cDemandNAccumulation - cDailySeedWeightIncrease*(pGrainMinConcentrationN+pGrainMaxConcentrationN)/2
-    # The demand in Nitrogen seems to be adjusted in that case (NUP2 is the adjusted value)
-    
-    # ICICICICI : the code source uses a GNC value which is not used in the book or in the excel, i chose to use the mean between GNCmin and GNCmax to replace this value.
-    
-    GrainCondition <-  cDemandNAccumulation > cDailySeedsNDemands
-    
-    # First condition : NUP >  
-    
-    # If this first condition is not satisfied : 
-    
-    sDailyAccumulationLeafN[!GrainCondition] <- 0
-    sDailyAccumulationStemN[!GrainCondition] <- 0
-    sDailyRateNfromLeave[!GrainCondition] <- (cDailySeedsNDemands- cDemandNAccumulation)*FXLF
-    sDailyRateNFromStem[!GrainCondition] <- (cDailySeedsNDemands -  cDemandNAccumulation)*(1 - FXLF)
-    
-    # FXLF : proportion of the daily N transfer from the leaves
-    # FXLF is calculated thanks to another function below
-    
-    StemDryMatterCondition <- (GrainCondition) & (sDailyAccumulationStemN <= sAccumulatedStemDryMatter*pStemMinimumNconcentration )
-    NoStemDryMatterCondition <- (GrainCondition) & (sDailyAccumulationStemN > sAccumulatedStemDryMatter*pStemMinimumNconcentration )
-    
-    # StemDryMatterCondition = 2nd condition : first condition is satisfied and NST <= WST * SNCS
-    # NoStemDryMatterCondition = 3rd condition : first condition is satisfied and NST > WST * SNCS
-    
-    sDailyAccumulationStemN[StemDryMatterCondition] <- sAccumulatedStemDryMatter[StemDryMatterCondition] * pStemMinimumNconcentration [StemDryMatterCondition] - sDailyAccumulationStemN[StemDryMatterCondition]
-    sDailyRateNFromStem[StemDryMatterCondition] <- 0 ### not necessary, just to be clear
-    sDailyAccumulationLeafN[NoStemDryMatterCondition] <- GLAI[NoStemDryMatterCondition]*SLNG[NoStemDryMatterCondition]
-    sDailyRateNfromLeave[NoStemDryMatterCondition] <- 0 #### Not necessary, just to be clear
-    
-    NStemGreaterThanNNeeded <-StemDryMatterCondition &  sDailyAccumulationStemN >= NUP2
-    NStemSmallerThanNNeeded <- StemDryMatterCondition &  sDailyAccumulationStemN < NUP2
-    
-    # NStemGreaterThanNNeeded = 4th condition : 2nd condition is satisfied and INST >= NUP2
-    # NStemSmallerThanNNeeded = 5th condition : 2nd condition is satisfied and INST < NUP2
-    
-    sDailyRateNfromLeave[ NStemGreaterThanNNeeded] <-  sDailyAccumulationStemN[ NStemGreaterThanNNeeded] - NUP2[ NStemGreaterThanNNeeded]
-    sDailyAccumulationLeafN[ NStemGreaterThanNNeeded] <- 0 #### Not necessary, just to be clear
-    sDailyAccumulationLeafN[ NStemSmallerThanNNeeded] <- (pmin(GLAI*SLNG, NUP2- sDailyAccumulationStemN))[ NStemSmallerThanNNeeded]
-    sDailyRateNfromLeave[ NStemSmallerThanNNeeded] <- 0 #### Not necessary, just to be clear
-    
-    NLeafGreaterThanNeeded <- NoStemDryMatterCondition &  sDailyAccumulationLeafN >= NUP2
-    NLeafSmallerThanNeeded <- NoStemDryMatterCondition &  sDailyAccumulationLeafN < NUP2
-    
-    # NLeafGreaterThanNeeded = 6th condition : 2nd condition is unsatisfied and INLF >= NUP2
-    # NLeafSmallerThanNeeded = 7th condition : 2nd condition is unsatisfied and INLF < NUP2
-    
-    sDailyAccumulationStemN[NLeafGreaterThanNeeded] <- 0 #### Not necessary, just to be clear
-    sDailyRateNFromStem[NLeafGreaterThanNeeded] <-(pmin( sDailyAccumulationLeafN - NUP2, sDailyAccumulationStemN - sAccumulatedStemDryMatter*pStemMinimumNconcentration ))[ NLeafGreaterThanNeeded]
-    sDailyAccumulationLeafN[NLeafGreaterThanNeeded] <- NUP2[ NLeafGreaterThanNeeded] + sDailyRateNFromStem[ NLeafGreaterThanNeeded]
-    sDailyAccumulationStemN[NLeafSmallerThanNeeded] <- NUP2[ NLeafSmallerThanNeeded] +  sDailyAccumulationLeafN[ NLeafSmallerThanNeeded]
-    
-    
-    # ------------------------------------------ end of computation -----------------------
-    
-    
-    sDailyAccumulationStemN <- sDailyAccumulationStemN + sDailyAccumulationStemN - sDailyRateNFromStem
-    # Accumulated Nitrogen in Stems
-    sAccumulatedLeafNitrogen <- sAccumulatedLeafNitrogen + sDailyAccumulationLeavesN - sDailyRateNfromLeave
-    # Accumulated Nitrogen in leaves
-    cTotalAccumulatedNitrogen <- sDailyAccumulationStemN + sAccumulatedLeafNitrogen
-    # Total Accumulated Nitrogen
-    sAccumulatedNGrain <- sAccumulatedNGrain + cDailySeedsNDemands
-    # Accumulated Nitrogen in Grain, variable not initialized in the source code, initialized here at 0
-    
-    return (sDailyAccumulationStemN,sAccumulatedLeafNitrogen,cTotalAccumulatedNitrogen,sAccumulatedNGrain)
-    
-  } 
-  }    
-  
   sCumulativeNFixation <- sCumulativeNFixation + cBiologicalNFixation
   ## sCumulativeNFixation : CUMBNF
   # Variable updated at each time step 
@@ -2248,59 +1880,43 @@ fNFixationDuringSeedGrowth <- function(cDailySeedWeightIncrease, pGrainMaxConcen
 }
 
 
-rUpdatePlantNitrogen <-function(){
-  
-# Listing of all parameters needed 
-  
-SGR <- ALLDAYDATA$cDailySeedWeightIncrease # to get SGR
-SNCS <-ALLDAYDATA$pStemMinimumNconcentration # to get SNCS
-SLNG <- ALLDAYDATA$pSpecLeafNGreenLeaf # to get SNLG
-LAI <- ALLDAYDATA$sLAI # to get LAI
-NST <- ALLDAYDATA$sNstem # to get NST
-WST <- ALLDAYDATA$sAccumulatedStemDryMatter # to get WST
-GCC <- ALLDAYDATA$pGrainConversionCoefficient # to get GCC
-SNCG <- ALLDAYDATA$pContentStemN # to get SNCG
-GNCmax <- ALLDAYDATA$pGrainMaxConcentrationN # to get GNCmax
-GNCmin <- ALLDAYDATA$pGrainMinConcentrationN # to get GNCmin
-MXNUP <- ALLDAYDATA$pNUPmax # to get MXNUP
-GLAI <- ALLDAYDATA$cGrowthLAI # to get GLAI
-NFC <- ALLDAYDATA$cCoefBiologicalNFixation # to get NFC
-WSXF <- ALLDAYDATA$cCoefWaterStressSaturation # to get WSXF
-GST <- ALLDAYDATA$cDailyStemWeightIncrease # to get GST
-DDMP <- ALLDAYDATA$cDryMatterProduction # to get DDMP
-FTSWRZ <- ALLDAYDATA$cFTSWrootZone # to get FTSWRZ
-SNAVL <- ALLDAYDATA$sTotalAvailableUptakeN # to get SNAVL
-WST <- ALLDAYDATA$sAccumulatedStemDryMatter # to get WST
-WVEG <- ALLDAYDATA$sAccumulatedVegetativeDryMatter # to get WVEG
 
-
-# Creation of the filters 
-
-VegetativeGrowthFilter <- applyfilters(VegetativeGrowthPhase)
-SeedGrowthFilter <- applyfilters(SeedGrowthPhase)
-
-# Application of filters
-
-resultat[VegetativeGrowthFilter] <- fNFixationDuringVegetativeGrowth(cDailySeedWeightIncrease = SGR,
-                                                                     pGrainMaxConcentrationN = GNCmax,
-                                                                     pContentStemN = SNCG,
-                                                                     cGrowthLAI = GLAI,
-                                                                     pSpecLeafNGreenLeaf = SLNG,
-                                                                     pNUPmax = MXNUP,
-                                                                     cCoefBiologicalNFixation = NFC ,
-                                                                     sAccumulatedVegetativeDryMatter = WVEG,
-                                                                     cCoefWaterStressSaturation = WSXF,
-                                                                     cDailyStemWeightIncrease = GST,
-                                                                     cDryMatterProduction = DDMP,
-                                                                     pGrainConversionCoefficient = GCC,
-                                                                     cFTSWrootZone = FTSWRZ,
-                                                                     sTotalAvailableUptakeN = SNAVL,
-                                                                     sAccumulatedStemDryMatter = WST,
-                                                                     pGrainMinConcentrationN = GNCmin,
-                                                                     sLAI = LAI,
-                                                                     pStemMinimumNconcentration = SNCS)
-
-resultat[SeedGrowthFilter] <- fNFixationDuringSeedGrowth()
-
-}
+rUpdatePlantNitrogen <-function() {
     
+  # Listing of all parameters needed 
+    
+  SGR <- ALLDAYDATA$cDailySeedWeightIncrease # to get SGR
+  SNCS <-ALLDAYDATA$pStemMinimumNconcentration # to get SNCS
+  SLNG <- ALLDAYDATA$pSpecLeafNGreenLeaf # to get SNLG
+  LAI <- ALLDAYDATA$sLAI # to get LAI
+  NST <- ALLDAYDATA$sNstem # to get NST
+  WST <- ALLDAYDATA$sAccumulatedStemDryMatter # to get WST
+  GCC <- ALLDAYDATA$pGrainConversionCoefficient # to get GCC
+  SNCG <- ALLDAYDATA$pContentStemN # to get SNCG
+  GNCmax <- ALLDAYDATA$pGrainMaxConcentrationN # to get GNCmax
+  GNCmin <- ALLDAYDATA$pGrainMinConcentrationN # to get GNCmin
+  MXNUP <- ALLDAYDATA$pNUPmax # to get MXNUP
+  GLAI <- ALLDAYDATA$cGrowthLAI # to get GLAI
+  NFC <- ALLDAYDATA$cCoefBiologicalNFixation # to get NFC
+  WSXF <- ALLDAYDATA$cCoefWaterStressSaturation # to get WSXF
+  GST <- ALLDAYDATA$cDailyStemWeightIncrease # to get GST
+  DDMP <- ALLDAYDATA$cDryMatterProduction # to get DDMP
+  FTSWRZ <- ALLDAYDATA$cFTSWrootZone # to get FTSWRZ
+  SNAVL <- ALLDAYDATA$sTotalAvailableUptakeN # to get SNAVL 
+  WST <- ALLDAYDATA$sAccumulatedStemDryMatter # to get WST
+  WVEG <- ALLDAYDATA$sAccumulatedVegetativeDryMatter # to get WVEG
+  
+  
+  # Creation of the filters 
+  
+  VegetativeGrowthFilter <- applyfilters(VegetativeGrowthPhase)
+  SeedGrowthFilter <- applyfilters(SeedGrowthPhase)
+  
+  # Application of filters
+  
+  resultat[VegetativeGrowthFilter] <- fNFixationDuringVegetativeGrowth(cDailySeedWeightIncrease = SGR,pGrainMaxConcentrationN = GNCmax,pContentStemN = SNCG,cGrowthLAI = GLAI,pSpecLeafNGreenLeaf = SLNG,pNUPmax = MXNUP,cCoefBiologicalNFixation = NFC ,sAccumulatedVegetativeDryMatter = WVEG,cCoefWaterStressSaturation = WSXF,cDailyStemWeightIncrease = GST,cDryMatterProduction = DDMP,pGrainConversionCoefficient = GCC,cFTSWrootZone = FTSWRZ,sTotalAvailableUptakeN = SNAVL,sAccumulatedStemDryMatter = WST,pGrainMinConcentrationN = GNCmin,sLAI = LAI, pStemMinimumNconcentration = SNCS)[VegetativeGrowthFilter]
+  resultat[SeedGrowthFilter] <- fNFixationDuringSeedGrowth(cDailySeedWeightIncrease = SGR, pGrainMaxConcentrationN  = GNCmax, pContentStemN = SNCG, cGrowthLAI = GLAI, pSpecLeafNGreenLeaf = SLNG, pNUPmax = MXNUP, cCoefBiologicalNFixation = NFC, sAccumulatedVegetativeDryMatter = WVEG, cCoefWaterStressSaturation = WSXF, cDailyStemWeightIncrease = GST, cDryMatterProduction = DDMP, pGrainConversionCoefficient = GCC, cFTSWrootZone = FTWSRZ, sTotalAvailableUptakeN = SNAVL, sAccumulatedStemDryMatter = WST, pGrainMinConcentrationN = GNCmin, sLAI = LAI, pStemMinimumNconcentration = SNCS)[SeedGrowthFilter]
+}
+
+
+
