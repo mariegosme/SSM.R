@@ -66,15 +66,18 @@ mymodel$run(0) #just to initialise the model
 mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
-mymodel$run(100)
+mymodel$run(10)
 
 #plot the dynamics of some variables
 #checking weather module
 if (FALSE) {
-  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
-                           col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
-                           lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
-                           pch=c(Meknes35degresWheat=1, Meknes35degresMaize=8, Meknes35degresChickpea=14), whatpch="cases")
+  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS", "iPr"),
+                           casestoplot="Mauguio",
+                           col=c(iTASMin="red", 
+                                 iTASMax="blue", 
+                                 iRSDS="green",
+                                 iPr="black"),
+                           whatcol="variables", lty=1, pch="")
   
   #mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
   #             col=c(Meknes35degres=1, Meknes45degres=8), whatcol="cases",
@@ -112,6 +115,14 @@ if (FALSE) {
 #checking stresses module
 if (FALSE) {
   dynamiques<-mymodel$plot("sWater.1", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("sWater.2", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
                                  SidiKacem="blue",
