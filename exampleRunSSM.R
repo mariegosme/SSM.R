@@ -63,12 +63,23 @@ mymodel<-setup("/Users/Achille/Documents/GitHub/SSM.R/")
 #set the simulation options
 mymodel$setoptions(paramsim)
 mymodel$run(0) #just to initialise the model
-#mymodel$GetAllForDebuggingPurposes()
+mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
 mymodel$run(100)
 
 #plot the dynamics of some variables
+#checking weather module
+if (FALSE) {
+  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+                           col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
+                           lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
+                           pch=c(Meknes35degresWheat=1, Meknes35degresMaize=8, Meknes35degresChickpea=14), whatpch="cases")
+  
+  #mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+  #             col=c(Meknes35degres=1, Meknes45degres=8), whatcol="cases",
+  #             lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables")
+}
 
 #checking Management module
 if (FALSE) {
@@ -106,22 +117,13 @@ if (FALSE) {
                                  SidiKacem="blue",
                                  Mauguio="yellow",
                                  Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="")
-  dynamiques<-mymodel$plot("sWater.2", 
-                           col=c(Meknes="green",
-                                 Turgutlu="red",
-                                 SidiKacem="blue",
-                                 Mauguio="yellow",
-                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
   cols<-1:2 ; names(cols)<-paste("sWater", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("sWater", 1:2, sep="."), 
-                           lty=c(Meknes=1,
-                                 Turgutlu=2,
-                                 Bizerte=3,
-                                 SidiKacem=4,
-                                 Mauguio=5),
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
@@ -135,7 +137,7 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot("cFTSWrootZone", 
+  dynamiques<-mymodel$plot("cEfficientRootLength", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
                                  SidiKacem="blue",
@@ -143,7 +145,7 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot("cCoefWaterStressGrowth", 
+  dynamiques<-mymodel$plot("cFTSWweightedByRoots", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
                                  SidiKacem="blue",
@@ -151,21 +153,13 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot("cCoefWaterStressLeafArea", 
-                           col=c(Meknes="green",
-                                 Turgutlu="red",
-                                 SidiKacem="blue",
-                                 Mauguio="yellow",
-                                 Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="") 
-  
-  dynamiques<-mymodel$plot("cCoefWaterStressDevelopment", 
-                           col=c(Meknes="green",
-                                 Turgutlu="red",
-                                 SidiKacem="blue",
-                                 Mauguio="yellow",
-                                 Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot(c("cCoefWaterstressGrowth", "cCoefWaterstressLeafArea", "cCoefWaterstressDevelopment"),
+                           casestoplot=c("Meknes35degresWheat"),
+                           col=c(cCoefWaterstressGrowth="orange", 
+                                 cCoefWaterstressLeafArea="blue", 
+                                 cCoefWaterstressDevelopment="red"),
+                           whatcol="variables", lty=1, pch="")
+  #warning= WSFD can be higher than 1, is it normal?
 }
 
 #checking phenology module
@@ -196,7 +190,7 @@ if (FALSE) {
   
   #conc: photoperiod stops wheat growth
   dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
-                           casestoplot=c("Meknes"),
+                           casestoplot=c("Meknes35degresWheat"),
                            col=c("red", "blue", "green", "orange"),
                            whatcol="variables", lty=1, pch="")
   #because fComputeCoefPhotoperiodWheat with the current wheat parameters starts being more than 0 at 11.6 h of daylength :
@@ -313,11 +307,9 @@ if(FALSE){
 #checking root growth module
 if(FALSE){
   dynamiques<-mymodel$plot("sRootFrontDepth", 
-                           col=c(Meknes="green",
-                                 Turgutlu="red",
-                                 SidiKacem="blue",
-                                 Mauguio="yellow",
-                                 Bizerte="purple"),
+                           col=c(Meknes35degresWheat="lightgreen", 
+                                 Meknes35degresMaize="cornflowerblue", 
+                                 Meknes35degresChickpea="purple"),
                            whatcol="cases", lty=1, pch="") 
 }
 
