@@ -616,7 +616,7 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
    # THEY ARE SOURCED FROM THE "AR4 A1B HadCM3Q0: 1951->2100" DATASET
 
 
------------------- Jul 19 2021 ------------------
+------------------ Jul 20 2021 ------------------
 	
  - ADDED the new climates as cases of the simulation (in input/SimulationOptions.xlsx)
    Now, simulation contains 5 cases being:
@@ -629,9 +629,21 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
  - Changed the plot commands in the exampleRunSSM.R file to be compatible with the new cases.
 
  - FIXED fComputePETsimplifiedPenman
-   FIXED its usage in the rUpdateWaterBudget module.
+   FIXED its usage in the rUpdateWaterBudget module
+   Started bugging when running the simulation with the new cases.
 
  - FIXED the irrigation module that started bugging when I ran the simulation with the new cases.
 
 
 ## COMMITED under "FIXED water module & ADDED 4 climates"
+
+
+------------------ Jul 22 2021 ------------------
+
+ - CHANGED unit for soil parameters in soils.xlsx and allvariables.xlsx
+   There were "cm" and "cm.cm-1" units althought their unit in the VBA code are 
+   "mm" and "mm.mm-1"
+   It makes more sense that considering the values they had.
+   For example layer thickness being 300 & 700 for 1st & 2nd layer makes much more sense
+   as mm -> resulting total depth of 1 meter
+   than as cm -> resulting total depth of 10 meters ?!
