@@ -125,13 +125,13 @@ eReadSoil<-function(){
       ALLSOILS$pDrainLayer<-2
     
     ALLSOILS$pSoilAlbedo<-csvcontent$salb
-    ALLSOILS$U<-6 #explication d'Helene: U est un parametre qui ne sert que lorsqu'on active l'option de calcul de l'evaporation selon la formule de Ritchie (evaporation en 2 temps, "semethod=1" dans le code, je crois et dans ce cas-la, on le fixe toujours a 6 (U indique une nombre de jours necessaires depuis la derniere pluie pour la transition  entre les deux stades d'evaporation si je me souviens bien)
+    ALLSOILS$pU<-6 #explication d'Helene: U est un parametre qui ne sert que lorsqu'on active l'option de calcul de l'evaporation selon la formule de Ritchie (evaporation en 2 temps, "semethod=1" dans le code, je crois et dans ce cas-la, on le fixe toujours a 6 (U indique une nombre de jours necessaires depuis la derniere pluie pour la transition  entre les deux stades d'evaporation si je me souviens bien)
     ALLSOILS$pSoilCurveNumber<-csvcontent$cn
     ALLSOILS$pVPDcoef<-0.75 # A coefficient to calculate VPD; 0.65 for humid and subhumid climates and 0.75 for arid and semi-arid climates
     ALLSOILS$paramlayers<-array(0, dim=c(1, 14, 10), 
                                 dimnames=list(case="sim1", 
                                               variable=c("Layer#", "pLayerThickness", "pSaturation", "pFieldCapacity",
-                                                         "pWiltingPoint", "pSoilDryness", "iniWL", "pDrainedFraction",
+                                                         "pWiltingPoint", "pSoilDryness", "pInitialWater", "pDrainedFraction",
                                                          "pStones", "pSoilBulkDensity", "pOrganicN", 
                                                          "PFractionMineralizableN", "pInitialNitrateConcentration",
                                                          "pInitialAmmoniumConcentration"), layer=1:10))
@@ -143,7 +143,7 @@ eReadSoil<-function(){
     ALLSOILS$paramlayers[1,names(translationssoil),2]<-unname(unlist(csvcontent[,tolower(paste("S_", translationssoil,sep=""))]))
     for (n in 1:2) { #the other parameters are fixed until I understand how to compute them from soil data
       ALLSOILS$paramlayers[1,"pSoilDryness",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n]/3 #explication d'Helene: ADRY est fixe par defaut egal  à LL/3 en l'absence de donnees permettant de faire mieux (meme si dans les sols tres argileux a fentes de retrait cela  peut etre significativement  faux)
-      ALLSOILS$paramlayers[1,"iniWL",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n] #explication d'Helene: iWL est le stock d'eau au demarrage de la simulation... donc ca depend de quand tu demarres la simulation. En general en Mediterranee, on demarre les simulations le 30 aout avec un sol vide (iwL=LL)
+      ALLSOILS$paramlayers[1,"pInitialWater",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n] #explication d'Helene: iWL est le stock d'eau au demarrage de la simulation... donc ca depend de quand tu demarres la simulation. En general en Mediterranee, on demarre les simulations le 30 aout avec un sol vide (iwL=LL)
       ALLSOILS$paramlayers[1,"pStones",n]<-0 #explication d'Helene: FG...ne peut pas se deduire de la base de donnees avec cette base la (HSWD). Soit tu le fixes ce parametre à 0 (en considerant que les valeurs de %A,%L et %L fournies dans la bd sont pour la totalite du sol, soit tu le fixes à une valeur constante (e.g; 0.15 si tu as de bonnes raisons de penser que cela sera plus representatif que 0). Dans certaines bases de donnees, %S est divise en deux sous categories "sables grossiers"/"coarse sands" et "sables fins/fine sands" dans ce cas, j'utilise le premier pour definir FG et l'autre pour definir %S et par ricochet SAT, DUL, EXT  etc.
       ALLSOILS$paramlayers[1,"pOrganicN",n]<-0.02 #explication d'Helene: NORG se calcule a partir de MO avec l'approximation NO=MO/20 (d'apres la composition moyenne de la matiere organique du sol)
       ALLSOILS$paramlayers[1,"PFractionMineralizableN",n]<-0.1 #explication d'Helene: FMIN est souvent fixé à 0.1, voire 0.01 dans les couches profondes du sols (d'apres plusieurs estimations faites a partir de mesures dans le sols mediterraneens)

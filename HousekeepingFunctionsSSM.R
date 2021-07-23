@@ -86,10 +86,49 @@ rCreateDay0<-function() {
   #   df$sRootFrontDepth<-200
   # }
   
-    #initialisation of soil water
-  df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="pInitialWater", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
+  NCASE <- nrow(PARAMSIM$cases) # number of cases
+  NLYER <- fExtractSoilParameter("pNLayer") # number of layers
+  
+  # ---- initialization of soil water ----
+  df[,paste("sWater", 1:10, sep=".")]<- lapply(
+    1:10, function(x) 
+      fExtractSoilParameter(paramname="pInitialWater", layers=x)*fExtractSoilParameter(paramname="pLayerThickness", layers=x))
 
-
+  
+  # ---- initialization of soil nitrogen ----
+  
+  # -- compute soilMass for each layer (to compute initial values) --
+  soilMasses <- fComputeSoilMass(
+    fExtractSoilParameter(paramname="pLayerThickness", layers=Inf),
+    fExtractSoilParameter(paramname="pSoilBulkDensity", layers=Inf),
+    fExtractSoilParameter(paramname="pCoarseSoilFraction", layers=Inf))
+  
+  # -- initialization of MNORG --
+  df[,paste("sMineralizableN", 1:10, sep=".")] <- fComputeMineralizableN(
+    soilMasses,
+    fExtractSoilParameter(paramname="pInitialOrgNPercentage", layers=Inf),
+    fExtractSoilParameter(paramname="pFractionMineralizableN",layers=Inf)
+  )
+  
+  # -- initialization of NSOL --
+  df[,paste("sSolubleN", 1:10, sep=".")] <- fComputeInitialSolubleN(
+    soilMasses,
+    fExtractSoilParameter(paramname="pInitialNO3Concentration", layers=Inf),
+    fExtractSoilParameter(paramname="pInitialNH4Concentration", layers=Inf)
+  )
+  
+  # -- initialization of NCON --
+  df[,paste("sSolubleNConcentration", 1:10, sep=".")] <- fComputeNConcentration(
+    df[,paste("sSolubleN", 1:10, sep=".")],
+    df[,paste("sWater", 1:10, sep=".")]
+  )
+  
+  # -- initialization of NAVL and NORG
+  for (case in 1:NCASE) {
+    df[case,paste("sAvailableUptakeN", 1:NLYER[case], sep=".")] <- 0
+    df[case,paste("sOrganicN", 1:NLYER[case], sep=".")] <- 0
+  }
+  # SNAVL is initialized at 0 thanks to its default value in excel = 0
   
   ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)
   return()
