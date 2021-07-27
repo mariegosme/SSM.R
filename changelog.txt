@@ -648,19 +648,41 @@ Should I ? If not, should we remove those from "allvariables.xlsx" ?
    as mm -> resulting total depth of 1 meter
    than as cm -> resulting total depth of 10 meters ?!
 
+
  - FIXED fComputeCrownTemperature that bugged when long simulations (10 years)
-
-   CHANGED
-  sSnow<-pmin(15, sSnow)
-	...
-  TcrownMin[iTASMin < 0 & sSnow > 0]<- 2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
-  TcrownMax[iTASMax < 0 & sSnow > 0]<- 2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
-
+   by CHANGING : 
+sSnow<-pmin(15, sSnow)
+...
+TcrownMin[iTASMin < 0 & sSnow > 0]<- 2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
+TcrownMax[iTASMax < 0 & sSnow > 0]<- 2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
    TO
-  sSnow<-pmin(sSnow, 15)
-	...
-  TcrownMin[iTASMin < 0 & sSnow > 0]<- (2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2))[iTASMin < 0 & sSnow > 0]
-  TcrownMax[iTASMax < 0 & sSnow > 0]<- (2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2))[iTASMin < 0 & sSnow > 0]
+sSnow<-pmin(sSnow, 15)
+...
+TcrownMin[iTASMin < 0 & sSnow > 0]<- (2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2))[iTASMin < 0 & sSnow > 0]
+TcrownMax[iTASMax < 0 & sSnow > 0]<- (2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2))[iTASMin < 0 & sSnow > 0]
+
 
  - STARTED looking into abnormally high values of LAI (rising up to 15 000 ...)
    Updated issue #7 (it's a long-known bug, apparently)
+   sPlantLeafArea was abnormally high (rising up to 14 000 squared meters...)
+   This was likely due to mainsteam node number being abnormally high itself: rising up to 1800 ???
+   This was likely because of daily_increase_node_number being computed from 
+   CUMULATED thermal units, instead of daily increase in thermal units....
+   CHANGED:
+  daily_increase_node_number <- ALLDAYDATA$sThermalUnit / ALLDAYDATA$pPhyllochron 
+   TO:
+  daily_increase_node_number <- ALLDAYDATA$cDeltaThermalUnit / ALLDAYDATA$pPhyllochron
+
+   Now, SLAI rises up to approximately 1.2, which is more in the scale of actual LAI, although
+   it seems kind of low...
+   Plant leaf area now rises up to 2500 squared centimeters = 0.25 squared meters (a bit low?)
+   and Mainstem node number rises up to about 20.
+
+
+ - In exampleRunSSM.R, CHANGED:
+mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+   TO:
+mycases$rotation<-list(sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
+mycases$management<-list(sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
+   So that it would working using rotations of crops.

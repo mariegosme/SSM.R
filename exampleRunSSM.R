@@ -41,8 +41,8 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
 #OR read from excel file
 mycases<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="cases")
 rownames(mycases)<-mycases$name
-mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
-mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+mycases$rotation<-list(sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
+mycases$management<-list(sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
 
 paramsim<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
@@ -191,13 +191,6 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
-                           casestoplot=c("Meknes35degresWheat"),
-                           col=c(cCoefPhotoPeriod="orange", 
-                                 cCoefTemp="blue", 
-                                 cCoefWaterstressDevelopment="red",
-                                 cBiologicalDay="black"),
-                           whatcol="variables", lty=1, pch=NA)
   
   #conc: photoperiod stops wheat growth
   dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
@@ -210,19 +203,13 @@ if (FALSE) {
   #plot(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), 
   #    mymodel$getglobal("fPhotoperiodDuration")(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), lat=35), type="l")
   #abline(h=11.6) ; abline(v=as.Date("2019-11-01"))
-  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
-                           casestoplot=c("Meknes35degresMaize"),
-                           col=c(cCoefPhotoPeriod="orange", 
-                                 cCoefTemp="blue", 
-                                 cCoefWaterstressDevelopment="red",
-                                 cBiologicalDay="black"),
-                           whatcol="variables", lty=1, pch=NA)
-  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
-                           casestoplot=c("Meknes35degresChickpea"),
-                           col=c(cCoefPhotoPeriod="orange", 
-                                 cCoefTemp="blue", 
-                                 cCoefWaterstressDevelopment="red",
-                                 cBiologicalDay="black"),
+  dynamiques<-mymodel$plot(c("cCoefVernalization","cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cCoefDrySoilSurface"),
+                           casestoplot=c("SidiKacem"),
+                           col=c(cCoefVernalization="green",
+                                 cCoefPhotoPeriod="yellow", 
+                                 cCoefTemp="red", 
+                                 cCoefWaterstressDevelopment="blue",
+                                 cCoefDrySoilSurface="orange"),
                            whatcol="variables", lty=1, pch=NA)
 }
 
