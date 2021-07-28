@@ -686,3 +686,8 @@ mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste
 mycases$rotation<-list(sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
 mycases$management<-list(sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
    So that it would working using rotations of crops.
+
+
+------------------ Jul 27 2021 ------------------
+
+ - UPDATED issue #7 on Git concerning LAI computation bug.

@@ -1192,9 +1192,9 @@ rUpdateLAI<-function(){
   ###LAI Growing (similar with and without N contribution)
   #LAIMainstem (i.e.between bdBLG and bdTLM)
   cCoefWaterstressLeafArea<-ALLDAYDATA$cCoefWaterstressLeafArea
-  daily_increase_node_number <- ALLDAYDATA$cDeltaThermalUnit / ALLDAYDATA$pPhyllochron 
-  # icicicici daily increase in node number computed from cumulative degree days / thermal units
-  # when it should likely be computed from daily increase in thermal units
+  MSNN_increase_filter <- applyfilters("LAI_Mainstem")
+  daily_increase_node_number <- ALLDAYDATA$cDeltaThermalUnit / ALLDAYDATA$pPhyllochron
+  daily_increase_node_number[!(MSNN_increase_filter)] <- 0
   sMainstemNodeNumber[!is.na(daily_increase_node_number)] <- (ALLDAYDATA$sMainstemNodeNumber  + daily_increase_node_number)[!is.na(daily_increase_node_number)]
   leaf_area_yesterday<-ALLDAYDATA$sPlantLeafArea
   LAI_yesterday<-ALLDAYDATA$sLAI

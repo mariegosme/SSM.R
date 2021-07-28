@@ -265,7 +265,8 @@ if(FALSE){
                                  SidiKacem="blue",
                                  Mauguio="yellow",
                                  Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="") 
+                           whatcol="cases", lty=1, pch="")
+  
   dynamiques<-mymodel$plot("cDryMatterProduction", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
@@ -305,9 +306,11 @@ if(FALSE){
 #checking root growth module
 if(FALSE){
   dynamiques<-mymodel$plot("sRootFrontDepth", 
-                           col=c(Meknes35degresWheat="lightgreen", 
-                                 Meknes35degresMaize="cornflowerblue", 
-                                 Meknes35degresChickpea="purple"),
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
 }
 
