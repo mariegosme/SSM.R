@@ -687,7 +687,31 @@ mycases$rotation<-list(sapply(mycases$rotation, function(x) eval(parse(text=past
 mycases$management<-list(sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
    So that it would working using rotations of crops.
 
+# changed "list(sapply(...))" to "lapply(...)"
+
 
 ------------------ Jul 27 2021 ------------------
 
  - UPDATED issue #7 on Git concerning LAI computation bug.
+
+
+------------------ Jul 29 2021 ------------------
+
+ - FIXED a bug where N applications only applied to first crop in a rotation
+## developper
+
+ - FIXED a bug where applyfilters("LAI_Mainstem") returned NAs
+   It was actually a problem in the crops.xlsx
+
+ - Updated management in order to have believable plant density (30 to 280 for wheat, 50 for chickpea)
+   Now, sLAI is too high (3-4 times too high)
+   This might be due to excessively high mainstem node number (rising up to 30 when we should
+   have 10 at most for wheat)
+
+On remarque que dans le climat Turgutlu, qui est le plus "clément" en termes de ressources en eau, c'est là
+où on observe les valeurs les plus raisonnables, les moins extrêmes de croissance, de LAI, etc...
+Le stress hydrique des autres zones semble vraiment pousser leur développement à l'extrême, que ce soit MSNN,
+PLA, LAI, root Depth...
+Facteur de stress hydrique WSFD qui entraîne une trop forte accélération de tous ces phénomènes ?
+Paraît contre_intuitif... moins d'eau, de ressources -> plus de feuilles ?
+Pareil pour la production de matière sèche

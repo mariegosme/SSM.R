@@ -41,8 +41,8 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
 #OR read from excel file
 mycases<-read.xlsx(normalizePath("input/SimulationOptions.xlsx"), sheet="cases")
 rownames(mycases)<-mycases$name
-mycases$rotation<-list(sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
-mycases$management<-list(sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
+mycases$rotation<-lapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))))
+mycases$management<-lapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))))
 
 paramsim<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
@@ -54,7 +54,7 @@ paramsim<-list(
   cropformat="standardSSM",
   soilformat="standardSSM",
   managformat="standardSSM",
-  Neffect=TRUE
+  Neffect=F
 )
 
 #build the model
@@ -66,7 +66,7 @@ mymodel$run(0) #just to initialise the model
 mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
-mymodel$run(10)
+mymodel$run(100)
 
 #plot the dynamics of some variables
 #checking weather module
@@ -156,7 +156,7 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot("cFTSWweightedByRoots", 
+  dynamiques<-mymodel$plot("cFTSWrootZone", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
                                  SidiKacem="blue",
@@ -165,7 +165,14 @@ if (FALSE) {
                            whatcol="cases", lty=1, pch="") 
   
   dynamiques<-mymodel$plot(c("cCoefWaterstressGrowth", "cCoefWaterstressLeafArea", "cCoefWaterstressDevelopment"),
-                           casestoplot=c("Meknes35degresWheat"),
+                           casestoplot=c("Meknes"),
+                           col=c(cCoefWaterstressGrowth="orange", 
+                                 cCoefWaterstressLeafArea="blue", 
+                                 cCoefWaterstressDevelopment="red"),
+                           whatcol="variables", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot(c("cCoefWaterstressGrowth", "cCoefWaterstressLeafArea", "cCoefWaterstressDevelopment"),
+                           casestoplot=c("Turgutlu"),
                            col=c(cCoefWaterstressGrowth="orange", 
                                  cCoefWaterstressLeafArea="blue", 
                                  cCoefWaterstressDevelopment="red"),
@@ -189,6 +196,14 @@ if (FALSE) {
                                  SidiKacem="blue",
                                  Mauguio="yellow",
                                  Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("sThermalUnit", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
   
@@ -204,7 +219,16 @@ if (FALSE) {
   #    mymodel$getglobal("fPhotoperiodDuration")(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), lat=35), type="l")
   #abline(h=11.6) ; abline(v=as.Date("2019-11-01"))
   dynamiques<-mymodel$plot(c("cCoefVernalization","cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cCoefDrySoilSurface"),
-                           casestoplot=c("SidiKacem"),
+                           casestoplot=c("Meknes"),
+                           col=c(cCoefVernalization="green",
+                                 cCoefPhotoPeriod="yellow", 
+                                 cCoefTemp="red", 
+                                 cCoefWaterstressDevelopment="blue",
+                                 cCoefDrySoilSurface="orange"),
+                           whatcol="variables", lty=1, pch=NA)
+  
+  dynamiques<-mymodel$plot(c("cCoefVernalization","cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cCoefDrySoilSurface"),
+                           casestoplot=c("Turgutlu"),
                            col=c(cCoefVernalization="green",
                                  cCoefPhotoPeriod="yellow", 
                                  cCoefTemp="red", 
@@ -215,6 +239,22 @@ if (FALSE) {
 
 #checking LAI module : decrease without N
 if (FALSE) {
+  dynamiques<-mymodel$plot("sMainstemNodeNumber", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("sPlantLeafArea", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
   dynamiques<-mymodel$plot("sLAI", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
@@ -231,14 +271,6 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
-  dynamiques<-mymodel$plot("cDecreaseLAI", 
-                           col=c(Meknes="green",
-                                 Turgutlu="red",
-                                 SidiKacem="blue",
-                                 Mauguio="yellow",
-                                 Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="", ylim=c(0,3000))
-  
   dynamiques<-mymodel$plot("cHeat", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
@@ -253,7 +285,7 @@ if (FALSE) {
                                  SidiKacem="blue",
                                  Mauguio="yellow",
                                  Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="", ylim=c(0,2500))
+                           whatcol="cases", lty=1, pch="")
   
 }
 

@@ -828,7 +828,8 @@ rHarvesting<-function(){
     variablestoinitialize<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable"
                           & VARIABLEDEFINITIONS$module %in% c(
                             "rUpdateManagement",  "rUpdateStresses", "rUpdatePhenology", "rUpdateLAI",
-                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth", "PlantN" #icicici when it's coded, rename this module with a procedure name
+                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth", "rFertilization", "rIrrigation",
+                            "PlantN" #icicici when it's coded, rename this module with a procedure name
                           ), "name"]
     #check which one we kep:
     #setdiff(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable","name"], variablestoinitialize)
@@ -959,7 +960,6 @@ rUpdateManagement<-function(){
   rSetParamsFromCrops() #assign the crop parameters according to the crop present (i.e. do it again fro crops that are just sowed today, but we need it for the other cases as well)
   rFindWhoHarvests() #writes the current date into ALLDAYDATA$sLastHarvest
   rHarvesting()
-  #whofertilizes
   rFertilization()
   rIrrigation()
 }
@@ -1032,19 +1032,21 @@ rUpdatePhenology<-function(){
   sGrowthStage<-ALLDAYDATA$sGrowthStage
   sGrowthStageNumber<-ALLDAYDATA$sGrowthStageNumber
   sDurationStage<-ALLDAYDATA$sDurationStage
-  cDeltaThermalUnit<-(ALLDAYDATA$pTopt1dev - ALLDAYDATA$pTbasedev)
-  cDeltaBiologicalDay<-ALLDAYDATA$cDeltaBiologicalDay
+  cDeltaThermalUnit<-(ALLDAYDATA$pTopt1dev - ALLDAYDATA$pTbasedev) # optimal TU
+  cDeltaBiologicalDay<-ALLDAYDATA$cDeltaBiologicalDay # initialized 1
   
-  cDailyVernalization<-ALLDAYDATA$cDailyVernalization
-  sVernalization <- ALLDAYDATA$sVernalization
-  cCoefVernalization <- ALLDAYDATA$cCoefVernalization
-  cCrownTemp <- ALLDAYDATA$cCrownTemp
-  cCoefWaterstressDevelopment <- ALLDAYDATA$cCoefWaterstressDevelopment
-  cTemp<-ALLDAYDATA$cTemp
-  cCoefTemp <-ALLDAYDATA$cCoefTemp
-  cCoefPhotoPeriod <- ALLDAYDATA$cCoefPhotoPeriod
-  cPhotoDuration<-ALLDAYDATA$cPhotoDuration
-  cCoefDrySoilSurface <- ALLDAYDATA$cCoefDrySoilSurface
+  cDailyVernalization<-ALLDAYDATA$cDailyVernalization # initialized 0 ?
+  # this is computed here
+  sVernalization <- ALLDAYDATA$sVernalization # state variable
+  cCoefVernalization <- ALLDAYDATA$cCoefVernalization # initialized 1
+  cCrownTemp <- ALLDAYDATA$cCrownTemp # NA
+  # this is computed here
+  cCoefWaterstressDevelopment <- ALLDAYDATA$cCoefWaterstressDevelopment # computed in rUpdateStresses
+  cTemp<-ALLDAYDATA$cTemp # computed in rWeatherDay
+  cCoefTemp <-ALLDAYDATA$cCoefTemp # initialized 1
+  cCoefPhotoPeriod <- ALLDAYDATA$cCoefPhotoPeriod # initialized 1
+  cPhotoDuration<-ALLDAYDATA$cPhotoDuration # NA
+  cCoefDrySoilSurface <- ALLDAYDATA$cCoefDrySoilSurface # initialized 1
   
   ###Vernalization
   resultfilterBD<-applyfilters("vernalisation_onBD")
@@ -1185,21 +1187,27 @@ rUpdateLAI<-function(){
   cultivars<-paste(ALLDAYDATA$sCrop, ALLDAYDATA$sCultivar, sep=".")
   sMainstemNodeNumber<-ALLDAYDATA$sMainstemNodeNumber
   sPlantLeafArea<-ALLDAYDATA$sPlantLeafArea
-  cGrowthLAI<-ALLDAYDATA$cGrowthLAI # icicici it's computed in this procedure...
+  cGrowthLAI<-ALLDAYDATA$cGrowthLAI # initialized NA, computed in this procedure
   sDecreaseLAIperBD<-ALLDAYDATA$sDecreaseLAIperBD #simple decrease rate that remains the same throughout leaf senescence, to arrive at 0 LAI at MAT
   sLAIforEvapotranspiration<-ALLDAYDATA$sLAIforEvapotranspiration #we need to keep this information because it is used for evapotranspiration
   sLAI<-ALLDAYDATA$sLAI
   ###LAI Growing (similar with and without N contribution)
   #LAIMainstem (i.e.between bdBLG and bdTLM)
   cCoefWaterstressLeafArea<-ALLDAYDATA$cCoefWaterstressLeafArea
-  MSNN_increase_filter <- applyfilters("LAI_Mainstem")
+  
   daily_increase_node_number <- ALLDAYDATA$cDeltaThermalUnit / ALLDAYDATA$pPhyllochron
+  
+  ### Achille - August 3 2021
+  MSNN_increase_filter <- applyfilters("LAI_Mainstem")
   daily_increase_node_number[!(MSNN_increase_filter)] <- 0
+  ### Not sure this is relevant... it doesn't fix LAI going too high anyway...
+  
   sMainstemNodeNumber[!is.na(daily_increase_node_number)] <- (ALLDAYDATA$sMainstemNodeNumber  + daily_increase_node_number)[!is.na(daily_increase_node_number)]
   leaf_area_yesterday<-ALLDAYDATA$sPlantLeafArea
-  LAI_yesterday<-ALLDAYDATA$sLAI
-  toto<-ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
-  sPlantLeafArea[!is.na(toto)] <- toto[!is.na(toto)]
+  LAI_yesterday <-ALLDAYDATA$sLAI
+  leaf_area_now <-ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
+  # Leaf area is a: a * x ^ b function of MSNN, if MSNN stops increasing... specific leaf area is not accounted for ?
+  sPlantLeafArea[!is.na(leaf_area_now)] <- leaf_area_now[!is.na(leaf_area_now)]
   
   #Mainstem
   increase_LAIMainstem <- rep(0, nrow(ALLDAYDATA))
@@ -1224,6 +1232,7 @@ rUpdateLAI<-function(){
   cDecreaseLAI<-rep(0, nrow(ALLDAYDATA))
   if(PARAMSIM$Neffect==T){
     #icicici not done yet, need to do it after Plant N module is coded
+    #icicici gaetan to-do
     cDecreaseLAI<-fComputeDecreaseLAIwithN(DailyRateNfromLeave=ALLDAYDATA$sDailyRateNfromLeave, #XNLF from yesterday, from module PlantN
                                            SpecLeafNGreenLeaf=ALLDAYDATA$pSpecLeafNGreenLeaf,
                                            SpecLeafNSenescenceLeaf=ALLDAYDATA$pSpecLeafNSenescenceLeaf)
@@ -1240,6 +1249,7 @@ rUpdateLAI<-function(){
         cultivars_startsenescence<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")[startsenescence]
         durationOtherstages<-numeric()
         for (cr in unique(cultivars_startsenescence)) { #for each cultivar, we will find the duration of remaining stages after the current one
+          # icicici shouldn't it be for each case/crop ? rather than each unique cultivar ?
           currentstageNumber<-ALLDAYDATA$sGrowthStageNumber[startsenescence & paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")==cr][1] #they are all the same, because the filter for senescence is defined at the crop-cultivar level
           durationstages<-ALLCROPS[cr, "thresholds"][[1]]
           if(is.finite(durationstages[length(durationstages)])) warning(paste("leaf senescence (in the case where PARAMSIM$Neffect is FALSE) expects that the vector of thresholds for the different stages of the crops ends with a 'fake' last stage with length Inf. It is not the case for crop", cr,"so the last stage is not included in senescence" ))
