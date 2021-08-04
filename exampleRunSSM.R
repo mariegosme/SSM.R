@@ -54,7 +54,7 @@ paramsim<-list(
   cropformat="standardSSM",
   soilformat="standardSSM",
   managformat="standardSSM",
-  Neffect=F
+  Neffect=TRUE
 )
 
 #build the model
@@ -69,7 +69,7 @@ mymodel$GetAllForDebuggingPurposes()
 mymodel$run(100)
 
 #plot the dynamics of some variables
-#checking weather module
+# ---- checking weather module ----
 if (FALSE) {
   dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS", "iPr"),
                            casestoplot="Mauguio",
@@ -84,7 +84,7 @@ if (FALSE) {
   #             lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables")
 }
 
-#checking Management module
+# ---- checking Management module ----
 if (FALSE) {
   #mymodel$extractVariable("sLastSowing")
   dynamiques<-mymodel$plot("sLastSowing", 
@@ -112,7 +112,7 @@ if (FALSE) {
                            whatcol="cases", lty=0, pch=15)
 }
 
-#checking stresses module
+# ---- checking stresses module ----
 if (FALSE) {
   dynamiques<-mymodel$plot("sWater.1", 
                            col=c(Meknes="green",
@@ -180,7 +180,7 @@ if (FALSE) {
   #warning= WSFD can be higher than 1, is it normal?
 }
 
-#checking phenology module
+# ---- checking phenology module ----
 if (FALSE) {
   dynamiques<-mymodel$plot("sGrowthStageNumber", 
                            col=c(Meknes="green",
@@ -237,7 +237,7 @@ if (FALSE) {
                            whatcol="variables", lty=1, pch=NA)
 }
 
-#checking LAI module : decrease without N
+# ---- checking LAI module : decrease without N ----
 if (FALSE) {
   dynamiques<-mymodel$plot("sMainstemNodeNumber", 
                            col=c(Meknes="green",
@@ -290,7 +290,7 @@ if (FALSE) {
   
 }
 
-#checking DMProduction module
+# ---- checking DMProduction module ----
 if(FALSE){
   dynamiques<-mymodel$plot("cRUE", 
                            col=c(Meknes="green",
@@ -310,7 +310,7 @@ if(FALSE){
   
 }
 
-#checking DMDistribution module
+# ---- checking DMDistribution module ----
 if(FALSE){
   dynamiques<-mymodel$plot("sAccumulatedLeafDryMatter", 
                            col=c(Meknes="green",
@@ -336,7 +336,7 @@ if(FALSE){
   
 }
 
-#checking root growth module
+# ---- checking root growth module ----
 if(FALSE){
   dynamiques<-mymodel$plot("sRootFrontDepth", 
                            col=c(Meknes="green",
@@ -347,7 +347,7 @@ if(FALSE){
                            whatcol="cases", lty=1, pch="") 
 }
 
-#checking water module
+# ---- checking water module ----
 if(FALSE){
   dynamiques<-mymodel$plot("cRunoff", 
                            col=c(Meknes="green",
@@ -412,7 +412,38 @@ if(FALSE){
   
 }
 
-# checking nitrogen module
+# ---- checking plant nitrogen module ----
+if (FALSE) {
+  # plot NUP
+  dynamiques<-mymodel$plot("cDemandNAccumulation", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  # plot BNF
+  dynamiques<-mymodel$plot("cBiologicalNFixation", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  # plot CNUP
+  dynamiques<-mymodel$plot("sAccumulatedAboveGroundN", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+}
+
+
+# ---- checking soil nitrogen module ----
 if (FALSE) {
   # pour les couleurs:
   # réparties sur le spectre: rainbow(n)
