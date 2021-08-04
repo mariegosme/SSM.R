@@ -247,6 +247,7 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
   
+  
   dynamiques<-mymodel$plot("sPlantLeafArea", 
                            col=c(Meknes="green",
                                  Turgutlu="red",

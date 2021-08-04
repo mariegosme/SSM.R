@@ -715,3 +715,20 @@ PLA, LAI, root Depth...
 Facteur de stress hydrique WSFD qui entraîne une trop forte accélération de tous ces phénomènes ?
 Paraît contre_intuitif... moins d'eau, de ressources -> plus de feuilles ?
 Pareil pour la production de matière sèche
+
+J'ai mis l'effet de la photopériode sur FALSE pour tester le LAI sans l'effet BINAIRE de la photopériode
+qui fait stagner le développement phénologique du blé dans les phases jeunes, ce qui augmente la période de croissance du LAI.
+-> résultats déjà un peu plus raisonnables
+   en moyenne assez proche de la réalité mais BEAUCOUP (trop??) de variabilité, entre les années d'une part
+   et entre les différentes simulations d'autre part...
+
+### Pas de changement de LAI selon pas d'irrigation ou irrigation automatique... (sur 10 ans, pareil)
+    -> Bug sur l'irrigation automatique ???
+    En cas d'irrgation fixe (management: ROTATION_BLE_IRRIGUE), pareil ... 
+    Tout du moins, cela n'élimine pas les valeurs aberrantes du LAI, et sa forte fluctuation.
+    (On aurait supposé que l'irrigation permettrait une meilleur consistance du stress hydrique qui influe sur la croissance foliaire)
+
+
+    Vérification que les coef de stress hydrique dépendent bien de l'irrigation en comparant avec ou sans irrigation:
+    - Oui ils changent bien
+
