@@ -357,6 +357,14 @@ if(FALSE){
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
+  dynamiques<-mymodel$plot("cIrrigationWater", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="") 
+  
   dynamiques<-mymodel$plot("cPET", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
