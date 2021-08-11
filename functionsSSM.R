@@ -1937,6 +1937,7 @@ fNFixationDuringVegetativeGrowth <- function(sAccumulatedVegetativeDryMatter, sA
   cCoefBiologicalNFixation <- numeric(length(sAccumulatedStemDryMatter))
   # Arbitrary initialization of NFC cCoefBiologicalNFixation : Not done in the VBA code (ICICICICICICIC)
   # Choice to initialize at 0
+  cCoefBiologicalNFixation <- numeric(length(sAccumulatedStemDryMatter))
   
    
   
@@ -1955,16 +1956,17 @@ fNFixationDuringVegetativeGrowth <- function(sAccumulatedVegetativeDryMatter, sA
   ConditionDDMP <- cDryMatterProduction == 0
   cDemandNAccumulation[ConditionDDMP] <- 0
   
-  cDemandNAccumulation <- pmin(cDemandNAccumulation,sTotalAvailableUptakeN)
+  # cDemandNAccumulation <- pmin(cDemandNAccumulation,sTotalAvailableUptakeN) for non legume here, but we start our model on chickpea 
   
   
-  ## cBiologicalNFixation : BNF
+  ## cBiologicalNFixation : BNF, used to calculate the cumulative nitrogen fixation (BNF)
+  ## cCoefBiologicalNFixation : NFC, but not coded here 
   
-  cCoefBiologicalNFixation <- numeric(length(sAccumulatedStemDryMatter))
+  
   cBiologicalNFixation <- numeric(length(sAccumulatedStemDryMatter))
   LimitationCropUptake <- cDemandNAccumulation > sTotalAvailableUptakeN
   # Condition 
-  cBiologicalNFixation[LimitationCropUptake] <- pmax(cDemandNAccumulation[LimitationCropUptake]-sTotalAvailableUptakeN[sTotalAvailableUptakeN],0)
+  cBiologicalNFixation[LimitationCropUptake] <- pmax(cDemandNAccumulation[LimitationCropUptake]-sTotalAvailableUptakeN[LimitationCropUptake],0)
   
   # ------------------------- Beginning of translation of the Diagramm of the PDF which describes the repartition of nitrogen exchanges during seed growth ------------------- #
   
@@ -2013,7 +2015,7 @@ fNFixationDuringVegetativeGrowth <- function(sAccumulatedVegetativeDryMatter, sA
   
   
   
-  return (list(val1 = sDailyAccumulationStemN ,val2 = sDailyRateNFromStem,val3 = sDailyAccumulationLeavesN,val4 = sDailyRateNfromLeave, val5 = cBiologicalNFixation, val6 = cDailySeedsNDemands, val7 = cDemandNAccumulation))
+  return (data.frame(INST = sDailyAccumulationStemN ,XNST = sDailyRateNFromStem,INLF = sDailyAccumulationLeavesN,XNLF = sDailyRateNfromLeave, BNF = cBiologicalNFixation, INGRN = cDailySeedsNDemands, NUP = cDemandNAccumulation))
   # Return 6 vectors which contains the values of : INST (sDailyAccumulationStemN), XNST (sDailyRateNFromStem), INLF (sDailyAccumulationLeavesN), XNLF (sDailyRateNFromLeave), BNF (cBiologicalNFixation) and INGRN (cDailySeedsNDemands)
   # Values used to updated cumulated variables NST, NLF, NGRN and CUMBNF in the procedure
   
@@ -2051,7 +2053,7 @@ fNFixationDuringVegetativeGrowth <- function(sAccumulatedVegetativeDryMatter, sA
 #'
 #' @examples
 
-fNFixationDuringSeedGrowth <- function(cDailySeedWeightIncrease, pGrainMaxConcentrationN,pSNCG, cGrowthLAI, pSpecLeafNGreenLeaf, pNUPmax, cCoefBiologicalNFixation,sAccumulatedVegetativeDryMatter,cCoefWaterStressSaturation,cDailyStemWeightIncrease,cDryMatterProduction,pGrainConversionCoefficient,cFTSWRrootZone,sTotalAvailableUptakeN,sAccumulatedStemDryMatter,pGrainMinConcentrationN,sLAI,pStemMinimumNconcentration, fxlf){
+fNFixationDuringSeedGrowth <- function(cDailySeedWeightIncrease, pGrainMaxConcentrationN,pSNCG, cGrowthLAI, pSpecLeafNGreenLeaf, pNUPmax, sCoefBiologicalNFixation,sAccumulatedVegetativeDryMatter,cCoefWaterStressSaturation,cDailyStemWeightIncrease,cDryMatterProduction,pGrainConversionCoefficient,cFTSWRrootZone,sTotalAvailableUptakeN,sAccumulatedStemDryMatter,pGrainMinConcentrationN,sLAI,pStemMinimumNconcentration, fxlf){
   
   sCumulativeNFixation <- numeric(length(cDailySeedWeightIncrease))
   # Initialization of the cumulative 
@@ -2085,8 +2087,8 @@ fNFixationDuringSeedGrowth <- function(cDailySeedWeightIncrease, pGrainMaxConcen
   
   # ElseIf CBD >= bdBNF in the VBA version, but we already are in that case
   
-  sPotentielRateNitrogenFixation <- pmin(cCoefBiologicalNFixation * sAccumulatedVegetativeDryMatter, cDemandNAccumulation)
-  # No value initialized for NFC (cCoefBiologicalNFixation) in the VBA code
+  sPotentielRateNitrogenFixation <- pmin(sCoefBiologicalNFixation * sAccumulatedVegetativeDryMatter, cDemandNAccumulation)
+  # No value initialized for NFC (sCoefBiologicalNFixation) in the VBA code
   # PDNF : Potential rate of biological nitrogen fixation, which is limited to the daily demand for N accumulation
   # for legum
   cRateBiologicalNFix <- sPotentielRateNitrogenFixation * sNitrogenAccumulation 
@@ -2110,7 +2112,7 @@ fNFixationDuringSeedGrowth <- function(cDailySeedWeightIncrease, pGrainMaxConcen
   
   cDemandNAccumulation <- pmin(cDemandNAccumulation,sTotalAvailableUptakeN + cRateBiologicalNFix)
   cBiologicalNFixation <- pmax(cDemandNAccumulation - sTotalAvailableUptakeN, 0)
-  sCumulativeNFixation <- sCumulativeNFixation + cBiologicalNFixation
+  
   # Variable updated at each time step 
   
   
@@ -2179,7 +2181,7 @@ fNFixationDuringSeedGrowth <- function(cDailySeedWeightIncrease, pGrainMaxConcen
   
   # ------------------------------------------ end of computation -----------------------
   
-  return (list(val1 = sDailyAccumulationStemN ,val2 = sDailyRateNFromStem,val3 = sDailyAccumulationLeavesN,val4 = sDailyRateNfromLeave, val5 = cBiologicalNFixation, val6 = cDailySeedsNDemands, val7 = cDemandNAccumulation))
+  return (data.frame(INST = sDailyAccumulationStemN ,XNST = sDailyRateNFromStem,INLF = sDailyAccumulationLeavesN,XNLF = sDailyRateNfromLeave, BNF = cBiologicalNFixation, INGRN = cDailySeedsNDemands, NUP = cDemandNAccumulation))
   # Return 6 vectors which contains the values of : INST (sDailyAccumulationStemN), XNST (sDailyRateNFromStem), INLF (sDailyAccumulationLeavesN), XNLF (sDailyRateNFromLeave), BNF (cBiologicalNFixation) and INGRN (cDailySeedsNDemands)
   # Values used to updated cumulated variables NST, NLF, NGRN and CUMBNF in the procedure
 }
@@ -2192,181 +2194,224 @@ rUpdatePlantNitrogen <-function(){
   # The code only applies when LAI is not NA, so we need to check it
   
   if(any(crop_presence)){
-  
-  crops <- ALLDAYDATA$sCropCult
-  
-  ## Listing of all parameters and variables needed in the functions
-  
-  cDailySeedWeightIncrease <- ALLDAYDATA$cDailySeedWeightIncrease[crop_presence] # to get SGR
-  pSpecLeafNGreenLeaf <- ALLCROPS[crops, "pSpecLeafNGreenLeaf"][crop_presence] # to get SNLG 
-  pSpecLeafNSenescenceLeaf <- ALLCROPS[crops, "pSpecleafNSenescenceLeaf"][crop_presence] # to get SNLS 
-  pStemMinimumNconcentration <-ALLCROPS[crops, "pStemMinimumNconcentration"][crop_presence] # to get SNCS 
-  sLAI <- ALLDAYDATA$sLAI[crop_presence] # to get LAI
-  sAccumulatedStemDryMatter <- ALLDAYDATA$sAccumulatedStemDryMatter[crop_presence] # to get WST
-  pGrainConversionCoefficient <- ALLCROPS[crops, "pGrainConversionCoefficient"][crop_presence] # to get GCC 
-  pSNCG <- ALLCROPS[crops, "pSNCG"][crop_presence] # to get pSNCG #### ICICIC NUULLLL
-  pGrainMaxConcentrationN <- ALLCROPS[crops,"pGrainMaxConcentrationN"][crop_presence] # to get GNCmax 
-  pGrainMinConcentrationN  <- ALLCROPS[crops, "pGrainMinConcentrationN"][crop_presence] # to get GNCmin 
-  pNUPmax <- ALLCROPS[crops, "pNUPmax"][crop_presence] # to get MXNUP 
-  cGrowthLAI <- ALLDAYDATA$cGrowthLAI[crop_presence] # to get GLAI
-  cCoefBiologicalNFixation <- ALLDAYDATA$cCoefBiologicalNFixation[crop_presence] # to get NFC
-  cCoefWaterStressSaturation <- ALLDAYDATA$cCoefWaterStressSaturation[crop_presence] # to get WSXF
-  cDailyStemWeightIncrease <- ALLDAYDATA$cDailyStemWeightIncrease[crop_presence] # to get GST
-  cDryMatterProduction <- ALLDAYDATA$cDryMatterProduction[crop_presence] # to get DDMP
-  cFTSWRrootZone <- ALLDAYDATA$cFTSWRrootZone[crop_presence] # to get FTSWRZ
-  sTotalAvailableUptakeN <- ALLDAYDATA$sTotalAvailableUptakeN[crop_presence] # to get SNAVL
-  sAccumulatedStemDryMatter <- ALLDAYDATA$sAccumulatedStemDryMatter[crop_presence] # to get WST
-  sAccumulatedVegetativeDryMatter <- ALLDAYDATA$sAccumulatedVegetativeDryMatter[crop_presence] # to get WVEG
-  sBiologicalDay  <- ALLDAYDATA$sBiologicalDay[crop_presence] # to get biological days
-  
-  
-  ## Listing of variables needed in the procedure to calcul cumulative variables
-  
-  sNitrogenContent <- ALLDAYDATA$sNitrogenContent[crop_presence] # to get CUMBNF
-  sAccumulatedNStem <- ALLDAYDATA$sAccumulatedNStem[crop_presence] # to get NST
-  sAccumulatedLeafNitrogen <- ALLDAYDATA$sAccumulatedLeafNitrogen[crop_presence] # to get NLF
-  sAccumulatedsAccumulatedNGrain <- ALLDAYDATA$sAccumulatedsAccumulatedNGrain[crop_presence] # to get NGRN
-  cTotalAccumulatedNitrogen <- ALLDAYDATA$cTotalAccumulatedNitrogen[crop_presence] # to get NVEG
-  
-  ## Creation of the filters 
-  
-  VegetativeGrowthFilter <- applyfilters("VegetativeGrowthPhase")
-  SeedGrowthFilter <- applyfilters("SeedGrowthPhase")
-  BeforeBNF <- applyfilters("BeforeNFixation")
-  
-  ## Calculation of intermediate variables for the 2 main functions
-  
-  TRLN <- fComputeNAvailableatBeginningseedFill(lai = sLAI,
-                                                slns = pSpecLeafNSenescenceLeaf, 
-                                                slng =  pSpecLeafNGreenLeaf, 
-                                                nst = sAccumulatedNStem , 
-                                                wst = sAccumulatedStemDryMatter, 
-                                                sncs = pStemMinimumNconcentration)
- 
-   # TRLNB is the Total mobilizable N available in the plant  and is used in the 2nd function
-  
-  FXLF <- fComputeDailyNTransferFromleaves(lai = sLAI,
-                                           slng = pSpecLeafNGreenLeaf, 
-                                           sncs = pStemMinimumNconcentration, 
-                                           TRLN = TRLN)
-  
-  # FXLF is proportion of the daily N transfer from the leaves
-  
-  
-  
-  
-  
-  
-  ## Application of the filters on the 2 main functions 
-  resultat1 <- list(rep(0,5), rep(0,5), rep(0,5), rep(0,5), rep(0,5), rep(0,5))
-  resultat1[VegetativeGrowthFilter] <- fNFixationDuringVegetativeGrowth(sAccumulatedStemDryMatter = sAccumulatedStemDryMatter, 
-                                                                        pSNCG = pSNCG, 
-                                                                        cGrowthLAI = cGrowthLAI, 
-                                                                        pSpecLeafNGreenLeaf = pSpecLeafNGreenLeaf, 
-                                                                        pNUPmax = pNUPmax, 
-                                                                        sTotalAvailableUptakeN = sTotalAvailableUptakeN,
-                                                                        cDailyStemWeightIncrease = cDailyStemWeightIncrease, 
-                                                                        sAccumulatedVegetativeDryMatter = sAccumulatedVegetativeDryMatter,
-                                                                        cFTSWRrootZone = cFTSWRrootZone,
-                                                                        pStemMinimumNconcentration = pStemMinimumNconcentration,
-                                                                        sLAI = sLAI,
-                                                                        pSpecLeafNSenescenceLeaf = pSpecLeafNSenescenceLeaf,
-                                                                        cDryMatterProduction = cDryMatterProduction)[VegetativeGrowthFilter]
-  
-  # The function returns INST, XNST, XNLF, INLF, NUP and INGRN during vegetative growth (6 numeric vectors)
-  
-  
-  resultat2 <- list(rep(0,5), rep(0,5), rep(0,5), rep(0,5), rep(0,5), rep(0,5))
-  resultat2[SeedGrowthFilter] <- fNFixationDuringSeedGrowth(cDailySeedWeightIncrease = cDailySeedWeightIncrease, 
-                                                            pGrainMaxConcentrationN  = pGrainMaxConcentrationN, 
-                                                            pSNCG = pSNCG,
-                                                            cGrowthLAI = cGrowthLAI, 
-                                                            pSpecLeafNGreenLeaf = pSpecLeafNGreenLeaf, 
-                                                            pNUPmax =  pNUPmax, 
-                                                            cCoefBiologicalNFixation = cCoefBiologicalNFixation, 
-                                                            sAccumulatedVegetativeDryMatter = sAccumulatedVegetativeDryMatter, 
-                                                            cCoefWaterStressSaturation = cCoefWaterStressSaturation, 
-                                                            cDailyStemWeightIncrease = cDailyStemWeightIncrease, 
-                                                            cDryMatterProduction = cDryMatterProduction, 
-                                                            pGrainConversionCoefficient = pGrainConversionCoefficient,
-                                                            cFTSWRrootZone = cFTSWRrootZone, 
-                                                            sTotalAvailableUptakeN = sTotalAvailableUptakeN , 
-                                                            sAccumulatedStemDryMatter = sAccumulatedStemDryMatter, 
-                                                            pGrainMinConcentrationN = pGrainMinConcentrationN, 
-                                                            sLAI = sLAI, 
-                                                            pStemMinimumNconcentration =  pStemMinimumNconcentration,
-                                                            fxlf = FXLF)[SeedGrowthFilter]
-  
-  # The function returns INST, XNST, XNLF, INLF, NUP and INGRN during seed growth (6 numeric vectors)
-  
-  
-  
-  # Extraction of cDemandNAccumulation, which is calculated in 3 different ways depending on which phase we are
-  cDemandNAccumulation <- numeric(length(sAccumulatedStemDryMatter))
-  cDemandNAccumulation[BeforeBNF] <- 0
-  cDemandNAccumulation[VegetativeGrowthFilter] <- (resultat1$val7)[VegetativeGrowthFilter]
-  cDemandNAccumulation[SeedGrowthFilter] <- (resultat2$val7)[SeedGrowthFilter]
- 
-  
-  
-  
-  
-  
-  
-  
-  # Application of filters on the functions to calculate 
-  
-  
-  #cEstimatesSupplyVeg <- fEstimateOfSupplyVegs(cBSGMobilizable = TRLN,
-                                               #sBdFromSowingToTerminationLeaf =  toto1,
-                                               #sBdFromSowingToSeedGrowth = toto, 
-                                                #bd = sBiologicalDay ,
-                                               #cDailySeedWeightIncrease =  cDailySeedWeightIncrease ,
-                                               #cUptakeNGrain = ,
-                                               #pGrainMinConcentrationN = pGrainMinConcentrationN,
-                                               #pGrainMaxConcentrationN = pGrainMaxConcentrationN, 
-                                               #cDemandNAccumulation = NUP)
-  
-  # Calculation Cumulated Variables : 
-  
-  sNitrogenContent[BeforeBNF] <- sNitrogenContent[BeforeBNF]
-  sNitrogenContent[VegetativeGrowthFilter] <-  sNitrogenContent[VegetativeGrowthFilter] + resultat1[VegetativeGrowthFilter]$val5
-  # BNF (cCoefBiologicalNFixation) is the 5th argument returned by the first fonction
-  sNitrogenContent[SeedGrowthFilter] <- sNitrogenContent[SeedGrowthFilter] + resultat2[VegetativeGrowthFilter]$val5
-  # BNF (cCoefBiologicalNFixation) is the 5th argument returned by the second fonction
+    
+    crops <- ALLDAYDATA$sCropCult
+    
+    ## Listing of all parameters and variables needed in the functions
+    
+    cDailySeedWeightIncrease <- ALLDAYDATA$cDailySeedWeightIncrease[crop_presence] # to get SGR
+    pSpecLeafNGreenLeaf <- ALLCROPS[crops, "pSpecLeafNGreenLeaf"][crop_presence] # to get SNLG 
+    pSpecLeafNSenescenceLeaf <- ALLCROPS[crops, "pSpecleafNSenescenceLeaf"][crop_presence] # to get SNLS 
+    pStemMinimumNconcentration <-ALLCROPS[crops, "pStemMinimumNconcentration"][crop_presence] # to get SNCS 
+    sLAI <- ALLDAYDATA$sLAI[crop_presence] # to get LAI
+    sAccumulatedStemDryMatter <- ALLDAYDATA$sAccumulatedStemDryMatter[crop_presence] # to get WST
+    pGrainConversionCoefficient <- ALLCROPS[crops, "pGrainConversionCoefficient"][crop_presence] # to get GCC 
+    pSNCG <- ALLCROPS[crops, "pSNCG"][crop_presence] # to get pSNCG #### ICICIC NUULLLL
+    pGrainMaxConcentrationN <- ALLCROPS[crops,"pGrainMaxConcentrationN"][crop_presence] # to get GNCmax 
+    pGrainMinConcentrationN  <- ALLCROPS[crops, "pGrainMinConcentrationN"][crop_presence] # to get GNCmin 
+    pNUPmax <- ALLCROPS[crops, "pNUPmax"][crop_presence] # to get MXNUP 
+    cGrowthLAI <- ALLDAYDATA$cGrowthLAI[crop_presence] # to get GLAI
+    sCoefBiologicalNFixation <- ALLDAYDATA$sCoefBiologicalNFixation[crop_presence] # to get NFC
+    cCoefWaterStressSaturation <- ALLDAYDATA$cCoefWaterStressSaturation[crop_presence] # to get WSXF
+    cDailyStemWeightIncrease <- ALLDAYDATA$cDailyStemWeightIncrease[crop_presence] # to get GST
+    cDryMatterProduction <- ALLDAYDATA$cDryMatterProduction[crop_presence] # to get DDMP
+    cFTSWRrootZone <- ALLDAYDATA$cFTSWRrootZone[crop_presence] # to get FTSWRZ
+    sTotalAvailableUptakeN <- ALLDAYDATA$sTotalAvailableUptakeN[crop_presence] # to get SNAVL
+    sAccumulatedStemDryMatter <- ALLDAYDATA$sAccumulatedStemDryMatter[crop_presence] # to get WST
+    sAccumulatedVegetativeDryMatter <- ALLDAYDATA$sAccumulatedVegetativeDryMatter[crop_presence] # to get WVEG
+    sBiologicalDay  <- ALLDAYDATA$sBiologicalDay[crop_presence] # to get biological days
+    
+    
+    ## Listing of variables needed in the procedure to calcul cumulative variables
+    
+    sNitrogenContent <- ALLDAYDATA$sNitrogenContent[crop_presence] # to get CUMBNF
+    sAccumulatedNStem <- ALLDAYDATA$sAccumulatedNStem[crop_presence] # to get NST
+    sAccumulatedLeafNitrogen <- ALLDAYDATA$sAccumulatedLeafNitrogen[crop_presence] # to get NLF
+    sAccumulatedNGrain <- ALLDAYDATA$sAccumulatedNGrain[crop_presence] # to get NGRN
+    sTotalAccumulatedNitrogen <- ALLDAYDATA$sTotalAccumulatedNitrogen[crop_presence] # to get NVEG
+    
+    ## Creation of the filters 
+    
+    VegetativeGrowthFilter <- applyfilters("VegetativeGrowthPhase")
+    SeedGrowthFilter <- applyfilters("SeedGrowthPhase")
+    BeforeBNF <- applyfilters("BeforeNFixation")
+    
+    
+    ## Calculation of intermediate variables for the 2 main functions
+    
+    TRLN <- fComputeNAvailableatBeginningseedFill(lai = sLAI,
+                                                  slns = pSpecLeafNSenescenceLeaf, 
+                                                  slng =  pSpecLeafNGreenLeaf, 
+                                                  nst = sAccumulatedNStem , 
+                                                  wst = sAccumulatedStemDryMatter, 
+                                                  sncs = pStemMinimumNconcentration)
+    
+    # TRLNB is the Total mobilizable N available in the plant  and is used in the 2nd function
+    
+    FXLF <- fComputeDailyNTransferFromleaves(lai = sLAI,
+                                             slng = pSpecLeafNGreenLeaf, 
+                                             sncs = pStemMinimumNconcentration, 
+                                             TRLN = TRLN)
+    
+    # FXLF is proportion of the daily N transfer from the leaves
+    
+    
+    # Initialization of cDemandNAccumulation (NUP)
+    cDemandNAccumulation <- rep(0,5)
+    
+    # 
+    
+    if (any(BeforeBNF)){
+      cDemandNAccumulation[BeforeBNF] <- 0
+      sNitrogenContent[BeforeBNF] <- 0
+      sAccumulatedNStem[BeforeBNF] <- 0
+      sAccumulatedLeafNitrogen[BeforeBNF] <- 0
+      sAccumulatedNGrain[BeforeBNF] <- 0
+      sTotalAccumulatedNitrogen[BeforeBNF] <- 0
+      
+    }
+    
+    
+    
+    
+    ## Application of the filters on the 2 main functions 
+    
+    if (any(VegetativeGrowthFilter)){
+    
+    FixationVegetativeGrowth <- data.frame(INST <- rep(0,5), XNST <- rep(0,5), INLF <- rep(0,5), XNLF <- rep(0,5), BNF <- rep(0,5), INGRN <- rep(0,5), NUP <- rep(0,5))
+    FixationVegetativeGrowth[VegetativeGrowthFilter] <- fNFixationDuringVegetativeGrowth(sAccumulatedStemDryMatter = sAccumulatedStemDryMatter, 
+                                                                          pSNCG = pSNCG, 
+                                                                          cGrowthLAI = cGrowthLAI, 
+                                                                          pSpecLeafNGreenLeaf = pSpecLeafNGreenLeaf, 
+                                                                          pNUPmax = pNUPmax, 
+                                                                          sTotalAvailableUptakeN = sTotalAvailableUptakeN,
+                                                                          cDailyStemWeightIncrease = cDailyStemWeightIncrease, 
+                                                                          sAccumulatedVegetativeDryMatter = sAccumulatedVegetativeDryMatter,
+                                                                          cFTSWRrootZone = cFTSWRrootZone,
+                                                                          pStemMinimumNconcentration = pStemMinimumNconcentration,
+                                                                          sLAI = sLAI,
+                                                                          pSpecLeafNSenescenceLeaf = pSpecLeafNSenescenceLeaf,
+                                                                          cDryMatterProduction = cDryMatterProduction)[VegetativeGrowthFilter]
+    
    
-  
-  
-  sAccumulatedNStem[BeforeBNF] <- 0
-  sAccumulatedNStem[VegetativeGrowthFilter] <- sAccumulatedNStem[VegetativeGrowthFilter] + resultat1[VegetativeGrowthFilter]$val1 - resultat1[VegetativeGrowthFilter]$val2
-  # INST (sAccumulatedNStem) is the first argument returned by the first function
-  # XNST (sDailyRateNFromStem) is the second argument returned by the first function
-  sAccumulatedNStem[SeedGrowthFilter] <- sAccumulatedNStem[SeedGrowthFilter] + resultat2[SeedGrowthFilter]$val1 - resultat2[SeedGrowthFilter]$val2
-  # same process here but with the 2nd function
-  
-  sAccumulatedLeafNitrogen[BeforeBNF] <- 0
-  sAccumulatedLeafNitrogen[VegetativeGrowthFilter] <-  sAccumulatedLeafNitrogen[VegetativeGrowthFilter] + resultat1[VegetativeGrowthFilter]$val3 - resultat1[VegetativeGrowthFilter]$val4
-  # INLF (sDailyAccumulationLeavesN) is the 3th argument returned by the first function
-  # XNLF (sDailyRateNfromLeave) is the 4th argument returned by the first function
-  sAccumulatedLeafNitrogen[SeedGrowthFilter] <- sAccumulatedLeafNitrogen[SeedGrowthFilter] + resultat2[SeedGrowthFilter]$val3 - resultat2[SeedGrowthFilter]$val4
-  # same process here but with the 2nd function
-  
-  sAccumulatedsAccumulatedNGrain[BeforeBNF] <- 0
-  sAccumulatedsAccumulatedNGrain[VegetativeGrowthFilter] <- sAccumulatedsAccumulatedNGrain[VegetativeGrowthFilter] + resultat1[VegetativeGrowthFilter]$val6
-  # INGRN (cDailySeedsNDemands) is the 6th argument returned by the first function
-  sAccumulatedsAccumulatedNGrain[SeedGrowthFilter] <- sAccumulatedsAccumulatedNGrain[VegetativeGrowthFilter] + resultat2[SeedGrowthFilter]$val6
-  
-  cTotalAccumulatedNitrogen <- sAccumulatedNStem + sAccumulatedLeafNitrogen
-  # NVEG (cTotalAccumulatedNitrogen) is the Total Accumulated Nitrogen (leave + stem)
-  
-  
-  
-  
-  ALLDAYDATA[,c("sNitrogenContent", "sAccumulatedNStem", "sAccumulatedLeafNitrogen",
-                "sAccumulatedsAccumulatedNGrain", "cTotalAccumulatedNitrogen","cDemandNAccumulation")]<<-data.frame(
-                  sNitrogenContent, sAccumulatedNStem, sAccumulatedLeafNitrogen,
-                  sAccumulatedsAccumulatedNGrain, cTotalAccumulatedNitrogen, cDemandNAccumulation)
-                
-  
+    # The function returns INST, XNST, XNLF, INLF, NUP and INGRN during vegetative growth (6 numeric vectors)
+    
+    cDemandNAccumulation[VegetativeGrowthFilter] <- (FixationVegetativeGrowth$NUP)[VegetativeGrowthFilter]
+    sNitrogenContent[VegetativeGrowthFilter] <- sNitrogenContent[VegetativeGrowthFilter] + (FixationVegetativeGrowth$BNF)[VegetativeGrowthFilter]
+    sAccumulatedNStem[VegetativeGrowthFilter] <- sAccumulatedNStem[VegetativeGrowthFilter] + (FixationVegetativeGrowth$INST)[VegetativeGrowthFilter] - (FixationVegetativeGrowth$XNST)[VegetativeGrowthFilter]
+    sAccumulatedLeafNitrogen[VegetativeGrowthFilter] <-  sAccumulatedLeafNitrogen[VegetativeGrowthFilter] + (FixationVegetativeGrowth$INLF)[VegetativeGrowthFilter] - (FixationVegetativeGrowth$XNLF)[VegetativeGrowthFilter]
+    sAccumulatedNGrain[VegetativeGrowthFilter] <- sAccumulatedNGrain[VegetativeGrowthFilter] + (FixationVegetativeGrowth$INGRN)[VegetativeGrowthFilter]
+    sTotalAccumulatedNitrogen[VegetativeGrowthFilter] <- sAccumulatedNStem[VegetativeGrowthFilter] + sAccumulatedLeafNitrogen[VegetativeGrowthFilter]
+    
+    }
+    
+    if (any(SeedGrowthFilter)){
+    
+    FixationSeedGrowth <- data.frame(INST <- rep(0,5), XNST <- rep(0,5), INLF <- rep(0,5), XNLF <- rep(0,5), BNF <- rep(0,5),INGRN <- rep(0,5),NUP <- rep(0,5))
+    FixationSeedGrowth[SeedGrowthFilter] <- fNFixationDuringSeedGrowth(cDailySeedWeightIncrease = cDailySeedWeightIncrease, 
+                                                              pGrainMaxConcentrationN  = pGrainMaxConcentrationN, 
+                                                              pSNCG = pSNCG,
+                                                              cGrowthLAI = cGrowthLAI, 
+                                                              pSpecLeafNGreenLeaf = pSpecLeafNGreenLeaf, 
+                                                              pNUPmax =  pNUPmax, 
+                                                              sCoefBiologicalNFixation = sCoefBiologicalNFixation, 
+                                                              sAccumulatedVegetativeDryMatter = sAccumulatedVegetativeDryMatter, 
+                                                              cCoefWaterStressSaturation = cCoefWaterStressSaturation, 
+                                                              cDailyStemWeightIncrease = cDailyStemWeightIncrease, 
+                                                              cDryMatterProduction = cDryMatterProduction, 
+                                                              pGrainConversionCoefficient = pGrainConversionCoefficient,
+                                                              cFTSWRrootZone = cFTSWRrootZone, 
+                                                              sTotalAvailableUptakeN = sTotalAvailableUptakeN , 
+                                                              sAccumulatedStemDryMatter = sAccumulatedStemDryMatter, 
+                                                              pGrainMinConcentrationN = pGrainMinConcentrationN, 
+                                                              sLAI = sLAI, 
+                                                              pStemMinimumNconcentration =  pStemMinimumNconcentration,
+                                                              fxlf = FXLF)[SeedGrowthFilter]
+    
+    
+    # The function returns INST, XNST, XNLF, INLF, NUP and INGRN during seed growth (6 numeric vectors)
+    
+    cDemandNAccumulation[SeedGrowthFilter] <- (FixationSeedGrowth$NUP)[SeedGrowthFilter]
+    sNitrogenContent[SeedGrowthFilter] <- sNitrogenContent[SeedGrowthFilter] + (FixationSeedGrowth$BNF)[SeedGrowthFilter]
+    sAccumulatedNStem[SeedGrowthFilter] <- sAccumulatedNStem[SeedGrowthFilter] + (FixationSeedGrowth$INST)[SeedGrowthFilter] - (FixationSeedGrowth$XNST)[SeedGrowthFilter]
+    sAccumulatedLeafNitrogen[SeedGrowthFilter] <- sAccumulatedLeafNitrogen[SeedGrowthFilter] + (FixationSeedGrowth$INLF)[SeedGrowthFilter] - (FixationSeedGrowth$XNLF)[SeedGrowthFilter]
+    sAccumulatedNGrain[SeedGrowthFilter] <- sAccumulatedNGrain[SeedGrowthFilter] + (FixationSeedGrowth$INGRN)[SeedGrowthFilter]
+    sTotalAccumulatedNitrogen[SeedGrowthFilter] <- sAccumulatedNStem[SeedGrowthFilter] + sAccumulatedLeafNitrogen[SeedGrowthFilter]
+    
+    }
+    
+    
+    
+    
+    
+    
+    # Extraction of cDemandNAccumulation, which is calculated in 3 different ways depending on which phase we are
+    
+    #cDemandNAccumulation <- numeric(length(sAccumulatedStemDryMatter))
+    #cDemandNAccumulation[BeforeBNF] <- 0
+    #cDemandNAccumulation[VegetativeGrowthFilter] <- (FixationVegetativeGrowth[7])[VegetativeGrowthFilter]
+    #cDemandNAccumulation[SeedGrowthFilter] <- (FixationSeedGrowth[SeedGrowthFilter])[7]
+    
+    
+    
+    
+    
+    
+    
+    
+    # Application of filters on the functions to calculate 
+    
+    
+    #cEstimatesSupplyVeg <- fEstimateOfSupplyVegs(cBSGMobilizable = TRLN,
+    #sBdFromSowingToTerminationLeaf =  toto1,
+    #sBdFromSowingToSeedGrowth = toto, 
+    #bd = sBiologicalDay ,
+    #cDailySeedWeightIncrease =  cDailySeedWeightIncrease ,
+    #cUptakeNGrain = ,
+    #pGrainMinConcentrationN = pGrainMinConcentrationN,
+    #pGrainMaxConcentrationN = pGrainMaxConcentrationN, 
+    #cDemandNAccumulation = NUP)
+    
+    # Calculation Cumulated Variables : 
+    
+    #[BeforeBNF] <- 0
+    #sNitrogenContent[VegetativeGrowthFilter] <- sNitrogenContent[VegetativeGrowthFilter] + FixationVegetativeGrowth[VegetativeGrowthFilter]$BNF
+    # BNF (cBiologicalNFixation) is the 5th argument returned by the first fonction
+    #sNitrogenContent[SeedGrowthFilter] <- sNitrogenContent[SeedGrowthFilter] + FixationSeedGrowth[VegetativeGrowthFilter]$BNF
+    # BNF (cBiologicalNFixation) is the 5th argument returned by the second fonction
+    
+    
+    
+    #sAccumulatedNStem[BeforeBNF] <- 0
+    #sAccumulatedNStem[VegetativeGrowthFilter] <- sAccumulatedNStem[VegetativeGrowthFilter] + FixationVegetativeGrowth[VegetativeGrowthFilter]$INST - FixationVegetativeGrowth[VegetativeGrowthFilter]$XNST
+    # INST (sAccumulatedNStem) is the first argument returned by the first function
+    # XNST (sDailyRateNFromStem) is the second argument returned by the first function
+    #sAccumulatedNStem[SeedGrowthFilter] <- sAccumulatedNStem[SeedGrowthFilter] + FixationSeedGrowth[SeedGrowthFilter]$INST - FixationSeedGrowth[SeedGrowthFilter]$XNST
+    # same process here but with the 2nd function
+    
+    #sAccumulatedLeafNitrogen[BeforeBNF] <- 0
+    #sAccumulatedLeafNitrogen[VegetativeGrowthFilter] <-  sAccumulatedLeafNitrogen[VegetativeGrowthFilter] + FixationVegetativeGrowth[VegetativeGrowthFilter]$INLF - FixationVegetativeGrowth[VegetativeGrowthFilter]$XNLF
+    # INLF (sDailyAccumulationLeavesN) is the 3th argument returned by the first function
+    # XNLF (sDailyRateNfromLeave) is the 4th argument returned by the first function
+    #sAccumulatedLeafNitrogen[SeedGrowthFilter] <- sAccumulatedLeafNitrogen[SeedGrowthFilter] + FixationSeedGrowth[SeedGrowthFilter]$INLF - FixationSeedGrowth[SeedGrowthFilter]$XNLF
+    # same process here but with the 2nd function
+    
+    #sAccumulatedNGrain[BeforeBNF] <- 0
+    #sAccumulatedNGrain[VegetativeGrowthFilter] <- sAccumulatedNGrain[VegetativeGrowthFilter] + FixationVegetativeGrowth[VegetativeGrowthFilter]$INGRN
+    # INGRN (cDailySeedsNDemands) is the 6th argument returned by the first function
+    #sAccumulatedNGrain[SeedGrowthFilter] <- sAccumulatedNGrain[VegetativeGrowthFilter] + FixationSeedGrowth[SeedGrowthFilter]$INGRN
+    
+    #sTotalAccumulatedNitrogen <- sAccumulatedNStem + sAccumulatedLeafNitrogen
+    # NVEG (sTotalAccumulatedNitrogen) is the Total Accumulated Nitrogen (leave + stem)
+    
+    
+    
+    
+    ALLDAYDATA[,c("sNitrogenContent", "sAccumulatedNStem", "sAccumulatedLeafNitrogen",
+                  "sAccumulatedNGrain", "sTotalAccumulatedNitrogen", "cDemandNAccumulation")]<<-data.frame(
+                    sNitrogenContent, sAccumulatedNStem, sAccumulatedLeafNitrogen,
+                    sAccumulatedNGrain, sTotalAccumulatedNitrogen, cDemandNAccumulation) 
+    
+    
   }
 }
