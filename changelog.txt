@@ -732,3 +732,24 @@ qui fait stagner le développement phénologique du blé dans les phases jeunes,
     Vérification que les coef de stress hydrique dépendent bien de l'irrigation en comparant avec ou sans irrigation:
     - Oui ils changent bien
 
+
+------------------ Aug 18 2021 ------------------
+
+## PROBLEM: What is returned by fFindWater(what="FTSW", weightedbyroots=TRUE, ...) is not relevant as it is right now
+   Only FTSW for each layer, and
+   FTSW weighted mean with weights being each layer's RLYER
+   are relevant.
+
+
+## PROBLEM: computation of FTSWrootZone, based on fFindWater(what="FTSW", weightedbyroots=TRUE, ...),
+   is irrelevant. First it uses a value that has little to no meaning, secondly, it sums FTSW... so the deeper
+   the roots are, the more FTSW increases, and gets to values of 2, 3...
+   It is a fraction and thus should be (except for flooding/runoff situations) between 0 and 1
+   Instead of summing FTSW "weighted by roots",
+   cFTSWrootZone should be a weighted mean of "normal" FTSW (for each layer), with weights being root depth in each layer
+   Changed computation of "FTSWrootZone" to be : sum(FTSW * RLYER) / sum(RLYER) <- weighted mean
+   for one given case                         #   layer vector    == sRootFrontDepth... (total root depth)
+   This is now a properly weighted mean to compute FTSW for the whole root zone
+   You want the weights to be RLYER, that is the depth of rooth inside a layer, instead of RLYER/DLYER,
+   the fraction of the layer that has roots, because layers can have different depths and so a fully rooted 100mm layer
+   could weight more than a half-rooted 700mm layer...

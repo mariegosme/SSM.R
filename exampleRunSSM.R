@@ -66,7 +66,7 @@ mymodel$run(0) #just to initialise the model
 mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
-mymodel$run(100)
+mymodel$run(270)
 
 #plot the dynamics of some variables
 #checking weather module

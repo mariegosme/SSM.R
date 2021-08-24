@@ -968,7 +968,26 @@ rUpdateManagement<-function(){
 #do it now because they are used by several modules
 rUpdateStresses<-function(){
   sFloodDuration<-ALLDAYDATA$sFloodDuration
-  cFTSWrootZone<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
+  
+  ### /!\ icicicici Achille Aug 18 2021 - Changed cFTSWrootZone computation
+  #       to be a properly weighted mean for FTSW in the whole root zone
+  RLYER <- fFindRLYER(layers=Inf, df=ALLDAYDATA)
+  FTSW <- fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots = F)
+  
+  # sum using weighted.mean
+  #cFTSWrootZone <- vector(length=5)
+  #for (case in 1:nrow(ALLDAYDATA)) {
+  #  cFTSWrootZone[case] <- weighted.mean(x=FTSW[case,], w=RLYER[case,])
+  #}
+  
+  # computed "manually"
+  cFTSWrootZone <- apply(FTSW * RLYER, 1, sum, na.rm=TRUE) / apply(RLYER, 1, sum, na.rm=TRUE)
+  cFTSWrootZone[is.na(cFTSWrootZone)] <- 0
+  
+  # Old computation :
+  #cFTSWrootZone<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
+  ### -----------------------------------------------------------------
+  
   ###icicicici this is computed three times, once here and once in waterbudget, because we decided not to save layer-related soil variables, except water content, and once in rIrrigation to compute FTSWRZ for irrigating or not
   #### and we need it now just to compute AROOT, because in the code, AROOT from last time step is used to compute WUUR before updating aroot, don't know why
   rootLength_L<-fFindRLYER(Inf, ALLDAYDATA) #RLYER
