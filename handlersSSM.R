@@ -12,8 +12,9 @@ mOnetimestep<-function(){
   rUpdateDMProduction()
   rUpdateDMDistribution() 
   rUpdateRootDepth()
-  rUpdateWaterBudget()
   #rUpdatePlantNitrogen()
+  rUpdateWaterBudget()
+  rUpdateSurfaceResidues()
   rUpdateSoilNitrogen()
   
   #at the end of the timestep, adds the new day at the end of the list of all variables

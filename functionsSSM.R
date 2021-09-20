@@ -605,6 +605,40 @@ fComputeNAVL <- function(NCON, ATSW, RLYER, DLYER) {
   #           ...d'où le "pmax"
 }
 
+fComputeWaterOnDecomp <- function (FTSW) {
+  return(
+    #ifelse(WL < WLLL, 0,
+    #       ifelse(WL <= WLUL,
+    #              WL / WLUL,
+    #              1))
+    pmin(FTSW, 1)
+  )
+  # /!\ JUST USE pmin(FTSW1, 1) instead ??
+}
+
+fComputeContactOnDecomp <- function (STBLW) {
+  return(ifelse(STBLW <= 0.15, 1,
+                ifelse(STBLW <= 0.3,
+                       1 + (STBLW-0.15) * (0.46 - 1) / (0.3 - 0.15),
+                       0.46)))
+}
+
+fComputeTempOnDecomp <- function (TMP) {
+  return((TMP / 20) ^ 2)
+}
+
+fComputeCNOnDecomp <- function (CNRS) {
+  return(exp(-0.693 * (CNRS - 25) / 25))
+  # icicici Hard-coded parameters /!\
+}
+
+fComputeCNRatio <- function (RESW, NRES, NSOL) {
+  return(RESW * 0.4 / (NRES + NSOL / 1000))
+  #         hard-coded              g to kg
+  #             ^
+  # probably gravimetric proportion of carbon
+}
+
 #' function (but with access to global variables) to compute the variables needed to determine sowing
 #'
 #' @param whichcases logical vector indicating which cases to use for computing
@@ -755,7 +789,7 @@ rSowing<-function(){
     df$sBiologicalDay<-0
     #initialize other things
     df$sPlantdensity<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$Pden)
-    #stubleWeight is initialized by harvest, at the same time as management change, because it is necessary for soil evaporation before sowing
+    #stubbleWeight is initialized by harvest, at the same time as management change, because it is necessary for soil evaporation before sowing
     df$sRootFrontDepth<-as.numeric(ALLCROPS[df$sCropCult,"iDEPORT"])
     #initialize all other crop-related variables to their default value
     variablestoinitialize<-setdiff(
@@ -765,7 +799,7 @@ rSowing<-function(){
                             "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth"
                           ), "name"],
       c("sCrop", "sCultivar", "sGrowthStageNumber", "sGrowthStage", "sDurationStage", 
-        "sBiologicalDay", "sPlantdensity", "sStubleWeight", "sRootFrontDepth")
+        "sBiologicalDay", "sPlantdensity", "sStubbleWeight", "sRootFrontDepth")
     )
     numericvariables<-variablestoinitialize[VARIABLEDEFINITIONS[variablestoinitialize,"typeR"]=="numeric"]
     df[,variablestoinitialize]<-VARIABLEDEFINITIONS[variablestoinitialize, "defaultInitialvalue"]
@@ -828,7 +862,7 @@ rHarvesting<-function(){
     variablestoinitialize<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable"
                           & VARIABLEDEFINITIONS$module %in% c(
                             "rUpdateManagement",  "rUpdateStresses", "rUpdatePhenology", "rUpdateLAI",
-                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth", "rFertilization", "rIrrigation",
+                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth", "rFertilization", "rIrrigation", "rTillage",
                             "PlantN" #icicici when it's coded, rename this module with a procedure name
                           ), "name"]
     #check which one we kep:
@@ -845,8 +879,8 @@ rHarvesting<-function(){
     df$sCropNum<-nextnum
     df$sCropCult<-mapply("[", rotations, nextnum)
     df$sManagement<-mapply("[", PARAMSIM$cases$management[whoharvests], nextnum)
-    #initialize sStubleWeight (necessary for soil evaporation during the fallow period)
-    df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
+    #initialize sStubbleWeight (necessary for soil evaporation during the fallow period)
+    df$sStubbleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
     ALLDAYDATA[whoharvests,names(df)]<<-df
   }
 }
@@ -948,6 +982,44 @@ rFertilization <- function() {
                                         applicationAmount
   ALLDAYDATA$sCumulatedNVolatilization <<- ALLDAYDATA$sCumulatedNVolatilization +
                                            volatilizationAmount
+  return()
+}
+
+rTillage <- function() {
+  tillageFrac <- rep(VARIABLEDEFINITIONS["cResiduesTillageFraction", "defaultInitialvalue"], nrow(ALLDAYDATA))
+  tillageWeight <- rep(VARIABLEDEFINITIONS["cResiduesTillageWeight", "defaultInitialvalue"], nrow(ALLDAYDATA))
+  tillageNumber <- ALLDAYDATA$sNApplicationNumber
+  tillageScenarios <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillageScenario") 
+  totalNumberTillages <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillageTotalNumber")
+  
+  #### 0 No tillage considered
+  
+  #### 1 Tillage is considered
+  tillageNumberChecked <- ALLDAYDATA$sNApplicationNumber+1 #check if today is the day of the next application (from alldaydata=>from yesterdays irrigation number)
+  thresholds <- mapply(function(df,rownum) return(df[rownum,"DAPorCBD"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillagedf"), rownum=applicationNumberChecked)
+  frac <- mapply(function(df,rownum) return(df[rownum,"frac"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillagedf"), rownum=applicationNumberChecked)
+  
+  tillageDateTypes <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillageDatetype") 
+  DAP <- length(ALLSIMULATEDDATA) - ALLDAYDATA$sLastSowing
+  CBD <- ALLDAYDATA$sBiologicalDaysSinceSowing
+  DOY <- as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
+  
+  tillage3.1<-tillageScenarios==1 & tillageDateTypes==1 & DAP==thresholds & tillageNumberChecked <= totalNumberTillages # 1 DAP
+  tillageFrac[tillage3.1] <- frac[tillage3.1]
+  tillageNumber[tillage3.1] <- tillageNumber[tillage3.1]+1
+  
+  tillage3.2<-tillageScenarios==1 & tillageDateTypes==2 & CBD>=thresholds & tillageNumberChecked <= totalNumberTillages # 2 CBD
+  tillageFrac[tillage3.2] <- frac[tillage3.2]
+  tillageNumber[tillage3.2]<-tillageNumber[tillage3.2]+1
+  
+  
+  tillage3.3<-tillageScenarios==1 & tillageDateTypes==3 & thresholds==DOY & tillageNumberChecked <= totalNumberTillages# 3 DOY
+  tillageFrac[tillage3.3] <- frac[tillage3.3]
+  tillageNumber[tillage3.3] <- tillageNumber[tillage3.3]+1
+  
+  #update computed and state variable
+  ALLDAYDATA[,c("cResiduesTillageFraction", "sTillageNumber")] <<- data.frame(tillageFrac,
+                                                                              tillageNumber)
   return()
 }
 
@@ -1554,8 +1626,8 @@ rUpdateWaterBudget<-function(){
   cPotentialSoilEvaporation[cPET > minimalSoilEvaporation & cPotentialSoilEvaporation<minimalSoilEvaporation]<-minimalSoilEvaporation
   #modify to take into account the effect of mulch 
   #icicic this equation has hard-coded parameters
-  #cPotentialSoilEvaporation <- cPotentialSoilEvaporation * (1.5 - 0.2 * log((100 * ALLDAYDATA$sStubleWeight))) #old version of SSM.xlsx
-  cPotentialSoilEvaporation <- cPotentialSoilEvaporation * exp(-0.22 * ALLDAYDATA$sStubleWeight/10) #(Salado and sinclair 2013)
+  #cPotentialSoilEvaporation <- cPotentialSoilEvaporation * (1.5 - 0.2 * log((100 * ALLDAYDATA$sStubbleWeight))) #old version of SSM.xlsx
+  cPotentialSoilEvaporation <- cPotentialSoilEvaporation * exp(-0.22 * ALLDAYDATA$sStubbleWeight/10) #(Salado and sinclair 2013)
   
   #real soil evaporation 
   cActualSoilEvaporation<-cPotentialSoilEvaporation
@@ -1620,6 +1692,75 @@ rUpdateWaterBudget<-function(){
 }
 
 
+rUpdateSurfaceResidues <- function () {
+  
+  STBLW <- ALLDAYDATA$sStubbleWeight # ??? units ?
+  TMP   <- ALLDAYDATA$cTemp
+  FTSW1 <- fFindWater(what="FTSW", df=ALLDAYDATA, layers=1)
+  NSTBL <- ALLDAYDATA$sStubbleNitrogen
+  NSOL1 <- ALLDAYDATA$sSolubleN.1
+  CRESTIL <- ALLDAYDATA$sCumulatedTillageWeight
+  
+  
+  # --- Surface residues decomposition simulation ---
+  
+  # TEST: is there mulch ?
+  stub <- STBLW > 0
+  
+  if (any(stub)) {
+    
+    decompWaterCoef   <- pmin(FTSW1[stub], 1)
+    
+    decompTempCoef    <- fComputeTempOnDecomp(TMP[stub])
+    
+    CNRS <- fComputeCNRatio(STBLW[stub], NSTBL[stub], NSOL1[stub])
+    decompNCoef       <- fComputeCNOnDecomp(CNRS)
+    
+    decompContactCoef <- fComputeContactOnDecomp(STBLW[stub])
+    
+    DECOMPSTBL <- STBLW[stub] *
+                  0.05 * # hard-coded icicicici (it's the maximum potential decomposition rate for cellulose)
+                  pmin(decompWaterCoef, decompTempCoef) *
+                  decompNCoef *
+                  decompContactCoef
+    
+    STBLW[stub] <- STBLW[stub] - DECOMPSTBL
+    
+    neg <- STBLW < 0
+    
+    DECOMPSTBL[neg] <- DECOMPSTBL[neg] - STBLW[neg]
+    STBLW[neg]      <- 0
+  
+  }
+  
+  # --- Tillage event ---
+  
+  FRACTIL <- ALLDAYDATA$cResiduesTillageFraction # found in rTillage
+  RESTIL <- FRACTIL / 100 * STBLW
+  STBLW <- STBLW - RESTIL
+  
+  CRESTIL <- CRESTIL + RESTIL
+  
+  
+  # Update into ALLDAYDATA
+  ALLDAYDATA[c("sStubbleWeight",
+               "cStubbleDecomp",
+               "cWaterOnSurfDecomp",
+               "cTempOnDecomp",
+               "cContactOnSurfDecomp",
+               "cCNRatioOnSurfDecomp", 
+               "cResiduesTillageWeight",
+               "sCumulatedTillageWeight")] <<- c(STBLW,
+                                                     DECOMPSTBL,
+                                                     decompWaterCoef,
+                                                     decompTempCoef,
+                                                     decompContactCoef,
+                                                     decompNCoef,
+                                                     RESTIL,
+                                                     CRESTIL)
+}
+
+
 rUpdateSoilNitrogen <- function () {
   # ----------------------------------------   SOIL NITROGEN MODULE
   
@@ -1649,7 +1790,7 @@ rUpdateSoilNitrogen <- function () {
   # or value that's changed after execution of the soil nitrogen module ? (resulting of change in NSOL..)
   # ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:10, sep="."))] <<- NCONs
   
-  # ---- N net mineralization ----
+  # ---- N net mineralization of decomposed soil organic matter ----
   # COMPUTING NET N MINERALIZATION FOR EACH LAYER (NMINs)
   
   KNs <- fComputeKNforMineralization(soilTemp) # value of KNs for each case
@@ -1671,7 +1812,164 @@ rUpdateSoilNitrogen <- function () {
   
   MNORGs <- MNORGs - NMINs # Withdraw mineralization from mineralizable N bank
   
+  # ---- N decomposition of buried organic matter ----
   
+  FMIN <- fExtractSoilParameter(paramname="pFractionMineralizableN", layers=Inf)
+  
+  RESW <- ALLDAYDATA[,paste("sResiduesWeight",   1:10, sep=".")]
+  NRES <- ALLDAYDATA[,paste("sResiduesNitrogen", 1:10, sep=".")]
+  
+  CNFRESHMIN <- ALLDAYDATA$sTotalCumulatedMinFromRes
+  
+    
+  # Incorporation of residues in the top soil layer in case of tillage
+  
+  RESTIL <- ALLDAYDATA$cResiduesTillageWeight
+  NSTBL  <- ALLDAYDATA$sStubbleNitrogen
+  STBLW  <- ALLDAYDATA$sStubbleWeight
+  
+  NRES[,1][STBLW > 0] <- NRES[,1] + RESTIL * NSTBL / STBLW
+  # avoid dividing by zero
+  # NSTBL and STBLW have to be mutually up to date,
+  # that is their values must date from the same moment
+  
+  RESW[,1] <- RESW[,1] + RESTIL
+  
+  
+  
+  # Decomposition of belowground residue (roots + tilled stubble in layer 1)
+  
+  TMP <- ALLDAYDATA$cTemp
+  FTSW <- fFindWater(what="FTSW", layers=Inf, df=ALLDAYDATA)
+  
+  decompTempCoef <- fComputeTempOnDecomp(TMP) # vector for each case
+  # decompTempCoef <- ALLDAYDATA$cTempOnDecomp # computed in rUpdateSurfaceResidues
+  
+  decompWaterCoef <- fComputeWaterOnDecomp(FTSWs) # layer x case matrix/df
+  
+  CNRS <- fComputeCNRatio(RESW, NRES, NSOLs) # layer x case matrix/df
+  decompCNCoef <- fComputeCNOnDecomp(CNRS) # layer x case matrix/df
+  
+  
+  DECOMPRES <- RESW *
+               0.05 *
+               pmin(decompWaterCoef, decompTempCoef) *
+               decompCNCoef
+  
+  neg <- (RESW - DECOMPRES) < 0
+  
+  DECOMPRES[neg] <- RESW[neg]
+  
+  RESW <- RESW - DECOMPRES
+  
+  
+  
+  # Mineralization and immobilization of N frow belowground residues
+  ## Layer 1:Mineralization of decomposed surface residues and buried residues
+  
+  NBLGNET    <- as.data.frame(cbind(matrix(nrow=NCASE, ncol=NLYER, data=0),
+                      matrix(nrow=NCASE, ncol=10-NLYER, data=NA)))
+                      
+  NDECOMPNET <- as.data.frame(cbind(matrix(nrow=NCASE, ncol=NLYER, data=0),
+                      matrix(nrow=NCASE, ncol=10-NLYER, data=NA)))
+  
+  is.res <- NRES[,1] > 0
+  
+  if(any(is.res)) {
+    NBLGNET[,1][is.res] <- DECOMPRES[,1][is.res] *
+                       0.4 *
+                       (1 / (0.4 * RESW[,1][is.res] / NRES[,1][is.res]) - 0.042) *
+                       1000                      # 0.042 = 1/24: if C/N > 24 --> immobilization
+    NRES[,1][is.res] <- NRES[,1][is.res] - NBLGNET[,1][is.res] / 1000
+    
+    is.neg <- NRES[,1][is.res] < 0
+    
+    # limit conditions to avoid negative N content in fresh organic pool
+    if (any(is.neg)) {
+      NBLGNET[,1][is.res][is.neg] <- NBLGNET[,1][is.res][is.neg] + NRES[,1][is.res][is.neg] * 1000
+      NRES[,1][is.res][is.neg] <- 0
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+  }
+  
+  NRES[,1][!(is.res)] <- 0
+  
+  # # #
+  
+  DECOMPSTBL <- ALLDAYDATA$cStubbleDecomp
+  NSURFNET   <- ALLDAYDATA$cNFromSurfDecomp
+  #NSURFNET   <- rep(0, NCASE)
+  
+  is.stbl <- NSTBL > 0
+  
+  if (any(is.stbl)) {
+    NSURFNET[is.stbl] = DECOMPSTBL[is.stbl] *
+                        0.4 *
+                        (1 / (0.4 * STBLW / NSTBL) - 0.042) *
+                        1000
+    NSTBL[is.stbl] = NSTBL[is.stbl] - NSURFNET[is.stbl] / 1000
+    
+    is.neg <- NSTBL[is.stbl] < 0
+    
+    # limit conditions to avoid negative N content in stubble
+    if (any(is.neg)) {
+      NSURFNET[is.stbl][is.neg] <- NSURFNET[is.stbl][is.neg] + NSTBL[is.stbl][is.neg] * 1000
+      NSTBL[is.stbl][is.neg] <- 0
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+  }
+  
+  NSTBL[!(is.stbl)] <- 0
+
+  ####
+  NDECOMPNET[,1] <- NBLGNET[,1] + NSURFNET
+  ####
+  
+  
+  ## Subsequent layers: Mineralization of decomposed buried residues only (roots)
+  
+  is.res <- NRES > 0 & !(is.na.data.frame(NRES))
+  is.res[,1] <- FALSE
+  
+  if (any(is.res)) {
+    NBLGNET[is.res] <- DECOMPRES[is.res] *
+                      0.4 *
+                      (1 / (0.4 * RESW[is.res] / NRES[is.res]) - 0.042) *
+                      1000 # 0.042=1/24 : if C/N > 24 --> immobilization
+    NDECOMPNET[is.res] <- NBLGNET[is.res]
+    NRES[is.res] <- NRES[is.res] - NDECOMPNET[is.res] / 1000
+    
+    is.neg <- NRES[is.res] < 0
+    
+    if (any(is.neg)) {
+      NDECOMPNET[is.res][is.neg] <- NDECOMPNET[is.res][is.neg] +
+                                           NRES[is.res][is.neg] * 1000
+      NRES[is.res][is.neg] <- 0
+    }
+  }
+  
+  # NDECOMPNET[!(is.res) & !(is.na.data.frame(NDECOMPNET))] <- 0
+  
+  
+  # Organization of N
+  
+  is.decomp <-  NDECOMPNET > 0
+  
+  if (any(is.decomp)) {
+    MNORGs <- MNORGs + FMIN * (0.2 * NDECOMPNET)
+    # MNORGs : mineralizable N pool from OM
+    NFRESHMIN <- 0.8 * NDECOMPNET
+    # 0.2 : 0.8 proportion from APSIM
+  }
+  
+  
+  ###
+  CNFRESHMIN <- CNFRESHMIN + apply(X=NFRESHMIN, FUN=sum, MARGIN=1)
+  #                                     sums over rows          ^
+  #for (case in 1:NCASE) {
+  #  CNFRESHMIN[case,] <- CNFRESHMIN[case,] + sum(NFRESHMIN[case,])
+  #}
+  ###
   
   # ---- N application & volatilization ----
   # Amount of application & volatilization extracted from management plans
@@ -1783,6 +2081,17 @@ rUpdateSoilNitrogen <- function () {
   ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] <<- MNORGs
   ALLDAYDATA$cSoilTempOnMineralization <<- KNs
   ALLDAYDATA[,paste("cMoistureOnMineralization", 1:10, sep=".")] <<- RNs
+  
+  # - Decomposition of buried OM -
+  #NRES, RESW, NFRESHMIN, CNFRESHMIN, NDECOMPNET, NSURFNET, DECOMPRES, NSTBL
+  ALLDAYDATA[,paste("sResiduesNitrogen", 1:10, sep=".")] <<- NRES
+  ALLDAYDATA[,paste("sResiduesWeight",   1:10, sep=".")] <<- RESW
+  ALLDAYDATA[,paste("cMinFromResidues",  1:10, sep=".")] <<- NFRESHMIN
+  ALLDAYDATA$sTotalCumulatedMinFromRes <<- CNFRESHMIN
+  ALLDAYDATA[,paste("cNFromDecomposition", 1:10, sep=".")] <<- NDECOMPNET
+  ALLDAYDATA$cNFromSurfDecomp <<- NSURFNET
+  ALLDAYDATA[,paste("cResiduesDecomposition", 1:10, sep=".")] <<- DECOMPRES
+  ALLDAYDATA$sStubbleNitrogen <<- NSTBL
   
   # - N downward flux -
   ALLDAYDATA[,paste("cDownwardNFlux", 1:10, sep=".")] <<- NOUTs

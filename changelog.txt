@@ -753,3 +753,37 @@ qui fait stagner le développement phénologique du blé dans les phases jeunes,
    You want the weights to be RLYER, that is the depth of rooth inside a layer, instead of RLYER/DLYER,
    the fraction of the layer that has roots, because layers can have different depths and so a fully rooted 100mm layer
    could weight more than a half-rooted 700mm layer...
+
+
+------------------ Aug 23-27 2021 ------------------
+
+## Implementation of the residues module from newly updated VBA model
+
+ - ADDED a rUpdateSurfaceResidues procedure equivalent to the VBA's SurfaceResidues subroutine
+
+ - ADDED a rTillage procedure that retrieves the fraction of mulch that's removed from surface residues
+   due to tillage. It retrieves this information from the managementPlans.xlsx
+
+ - UPDATED managementPlans.xlsx in order to support tillage parameters. I added a tillage section to
+   some existing plans so it can be copy-pasted for usage of old plans and when making new ones
+
+ - ADDED new variables from the residues module to allvariables.xlsx:
+	- cResiduesTillageWeight (RESTIL)
+	- cResiduesTillageFraction (RESFRAC)
+	- sCumulatedTillageWeight
+	- sTillageNumber
+	- cStubleDecomp (DECOMPSTBL)
+	- cWaterOnDecomp (decompwaterfun)
+	- cTempOnDecomp (decomptempfun)
+	- cContactOnDecomp (decompContactfun)
+	- cNitrogenOnDecomp (decompCNfun)
+
+ - CHANGED variables in allvariables.xlsx
+	- sStubleWeight unit changed from t.ha-1 to kg.m-2 (1 t.ha-1 = 0.1 kg.m-2)
+          name changed from sStubleWeight to sStubbleWeight
+ 
+ - UPDATED input excel sheets with new input parameters:
+	- ADDED an initial res. weight and N con. for each layer in soils.xlsx
+	- ADDED an initial N concentration for stubble in managementPlans.xlsx
+	- CHANGED the STBLW input in managementPlans.xlsx to fit new unit (t/ha -> kg/m2)
+

@@ -68,7 +68,7 @@ rCreateDay0<-function() {
   df<-fCreateDay(PARAMSIM$simustart-1)
   df$sCropCult<-sapply(PARAMSIM$cases$rotation,"[[", 1)
   df$sManagement<-sapply(PARAMSIM$cases$management,"[[", 1)
-  df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
+  df$sStubbleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
   df$cCycleEndType<-factor("not yet", levels=c("normal", "low LAI", "not sowed", "stopDAP", "killed by flood", "not yet"))
     
   #commented out now that crop management has been coded 
@@ -129,6 +129,15 @@ rCreateDay0<-function() {
     df[case,paste("sOrganicN", 1:NLYER[case], sep=".")] <- 0
   }
   # SNAVL is initialized at 0 thanks to its default value in excel = 0
+  
+  # ---- initialization of residues module ----
+  # NRES, RESW, NSTBL,
+  df[,paste("sResiduesWeight", 1:NLYER[case], sep=".")] <- fExtractSoilParameter(paramname="pInitialResiduesWeight", layers=Inf)
+  df[,paste("sResiduesNitrogen", 1:NLYER[case], sep=".")] <- df[,paste("sResiduesWeight", 1:NLYER[case], sep=".")] *
+                                                             fExtractSoilParameter(paramname="pInitialResiduesNCon", layers=Inf)
+  df$sStubbleNitrogen <- df$sStubbleWeight *
+                         sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$NSTBLCON)
+  # sTotalCumulatedMinFromRes initialzed at 0 thanks to its default value in Excel
   
   ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)
   return()

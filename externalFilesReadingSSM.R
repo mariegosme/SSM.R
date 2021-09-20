@@ -236,7 +236,14 @@ eReadManagement<-function(){
     allmanag<-list()
     for (i in 1:length(startManag)){
       dfCode<-read.xlsx(pathtoExcel, sheet=1, rows=startManag[i]:(startManag[i]+1), cols=1:3)
-      dfSowing<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+2):(startManag[i]+3), cols=1:11)
+      dfSowing<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+2):(startManag[i]+3), cols=1:12)
+      # ----------Achille 24 / 08 / 2021 Added variables for tillage module----------
+      tillageScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=9, colNames=FALSE)[1,1]
+      tillageTotalNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=9, colNames=FALSE)[1,1]
+      tillageDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=9, colNames=FALSE)[1,1]
+      tillagedf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+tillageTotalNumber), cols=8:10)
+      names(tillagedf) <- c("DAPorCBD", "frac", "tillageNumber")
+      # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
       nitrogenScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=2, colNames=FALSE)[1,1]
       nitrogenNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=2, colNames=FALSE)[1,1]
       nitrogenDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=2, colNames=FALSE)[1,1]
