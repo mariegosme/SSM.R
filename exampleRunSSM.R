@@ -41,15 +41,15 @@ setup<-function(modelfolder) #moldelfolder is the folder containing files SSM.R 
 #OR read from excel file
 mycases<-read.xlsx("/Users/lamacina/Documents/GitHub/SSM.R/input/SimulationOptions.xlsx", sheet="cases")
 rownames(mycases)<-mycases$name
-mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
-mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+mycases$rotation<-list(sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
+mycases$management<-list(sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
 
 paramsim<-list(
   simustart=as.Date("1997-11-01"), #date of start of the simulation
   cases=mycases, #cases (e.g. spatial locations, soils, latitudes etc... = rows in ALLSIMULATEDDATA)
   #directory="/Users/user/Documents/a_System/modelisation/SSM/simulations/premieressai", #directory where your input (with climates and soils files) and output folders are
   #directory="/Users/user/Documents/b_maison/congeMat/D4DECLIC/runSSM",#directory where your input (with climates and soils files) and output folders are
-  directory="/Users/lamacina/Documents/GitHub/SSM.R",
+  directory="/Users/LA_MACINA/Documents/GitHub/SSM.R",
   climateformat="standardSSM",
   cropformat="standardSSM",
   soilformat="standardSSM",
@@ -59,16 +59,30 @@ paramsim<-list(
 
 #build the model
 #mymodel<-setup("/Users/user/Documents/a_System/modelisation/SSM/traductionSSM_R/")
-mymodel<-setup("/Users/lamacina/Documents/GitHub/SSM.R")
+mymodel<-setup("/Users/LAMACINA/Documents/GitHub/SSM.R/")
 #set the simulation options
 mymodel$setoptions(paramsim)
 mymodel$run(0) #just to initialise the model
 mymodel$GetAllForDebuggingPurposes()
 
 #run the model for 100 timesteps
-mymodel$run(100)
+mymodel$run(200)
 
 #plot the dynamics of some variables
+#checking weather module
+if (FALSE) {
+  dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS", "iPr"),
+                           casestoplot="Mauguio",
+                           col=c(iTASMin="red", 
+                                 iTASMax="blue", 
+                                 iRSDS="green",
+                                 iPr="black"),
+                           whatcol="variables", lty=1, pch="")
+  
+  #mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
+  #             col=c(Meknes35degres=1, Meknes45degres=8), whatcol="cases",
+  #             lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables")
+}
 
 #checking Management module
 if (FALSE) {
@@ -107,6 +121,7 @@ if (FALSE) {
                                  Mauguio="yellow",
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
+  
   dynamiques<-mymodel$plot("sWater.2", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
@@ -117,11 +132,9 @@ if (FALSE) {
   
   cols<-1:2 ; names(cols)<-paste("sWater", 1:2, sep=".")
   dynamiques<-mymodel$plot(paste("sWater", 1:2, sep="."), 
-                           lty=c(Meknes=1,
-                                 Turgutlu=2,
-                                 Bizerte=3,
-                                 SidiKacem=4,
-                                 Mauguio=5),
+                           lty=c(Meknes35degresWheat=1, 
+                                 Meknes35degresMaize=2, 
+                                 Meknes35degresChickpea=3),
                            whatlty="cases", 
                            whatcol="variables", 
                            col=cols, 
@@ -135,7 +148,7 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot("cFTSWrootZone", 
+  dynamiques<-mymodel$plot("cEfficientRootLength", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
                                  SidiKacem="blue",
@@ -143,7 +156,7 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot("cCoefWaterStressGrowth", 
+  dynamiques<-mymodel$plot("cFTSWweightedByRoots", 
                            col=c(Meknes="green",
                                  Turgutlu="red",
                                  SidiKacem="blue",
@@ -151,21 +164,13 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot("cCoefWaterStressLeafArea", 
-                           col=c(Meknes="green",
-                                 Turgutlu="red",
-                                 SidiKacem="blue",
-                                 Mauguio="yellow",
-                                 Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="") 
-  
-  dynamiques<-mymodel$plot("cCoefWaterStressDevelopment", 
-                           col=c(Meknes="green",
-                                 Turgutlu="red",
-                                 SidiKacem="blue",
-                                 Mauguio="yellow",
-                                 Bizerte="purple"),
-                           whatcol="cases", lty=1, pch="") 
+  dynamiques<-mymodel$plot(c("cCoefWaterstressGrowth", "cCoefWaterstressLeafArea", "cCoefWaterstressDevelopment"),
+                           casestoplot=c("Meknes35degresWheat"),
+                           col=c(cCoefWaterstressGrowth="orange", 
+                                 cCoefWaterstressLeafArea="blue", 
+                                 cCoefWaterstressDevelopment="red"),
+                           whatcol="variables", lty=1, pch="")
+  #warning= WSFD can be higher than 1, is it normal?
 }
 
 #checking phenology module
@@ -186,17 +191,10 @@ if (FALSE) {
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="") 
   
-  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
-                           casestoplot=c("Meknes35degresWheat"),
-                           col=c(cCoefPhotoPeriod="orange", 
-                                 cCoefTemp="blue", 
-                                 cCoefWaterstressDevelopment="red",
-                                 cBiologicalDay="black"),
-                           whatcol="variables", lty=1, pch=NA)
   
   #conc: photoperiod stops wheat growth
   dynamiques<-mymodel$plot(variablestoplot=c("cCoefPhotoPeriod", "cPhotoDuration", "pCriticalPhotoPeriod", "pPhotoPeriodSensitivity"),
-                           casestoplot=c("Meknes"),
+                           casestoplot=c("Meknes35degresWheat"),
                            col=c("red", "blue", "green", "orange"),
                            whatcol="variables", lty=1, pch="")
   #because fComputeCoefPhotoperiodWheat with the current wheat parameters starts being more than 0 at 11.6 h of daylength :
@@ -205,19 +203,13 @@ if (FALSE) {
   #plot(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), 
   #    mymodel$getglobal("fPhotoperiodDuration")(seq(as.Date("2019-01-01"), as.Date("2019-12-01"), by=1), lat=35), type="l")
   #abline(h=11.6) ; abline(v=as.Date("2019-11-01"))
-  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
-                           casestoplot=c("Meknes35degresMaize"),
-                           col=c(cCoefPhotoPeriod="orange", 
-                                 cCoefTemp="blue", 
-                                 cCoefWaterstressDevelopment="red",
-                                 cBiologicalDay="black"),
-                           whatcol="variables", lty=1, pch=NA)
-  dynamiques<-mymodel$plot(c("cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cDeltaBiologicalDay"),
-                           casestoplot=c("Meknes35degresChickpea"),
-                           col=c(cCoefPhotoPeriod="orange", 
-                                 cCoefTemp="blue", 
-                                 cCoefWaterstressDevelopment="red",
-                                 cBiologicalDay="black"),
+  dynamiques<-mymodel$plot(c("cCoefVernalization","cCoefPhotoPeriod", "cCoefTemp", "cCoefWaterstressDevelopment", "cCoefDrySoilSurface"),
+                           casestoplot=c("SidiKacem"),
+                           col=c(cCoefVernalization="green",
+                                 cCoefPhotoPeriod="yellow", 
+                                 cCoefTemp="red", 
+                                 cCoefWaterstressDevelopment="blue",
+                                 cCoefDrySoilSurface="orange"),
                            whatcol="variables", lty=1, pch=NA)
 }
 
@@ -545,4 +537,65 @@ if (FALSE) {
                                  Mauguio="yellow",
                                  Bizerte="purple"),
                            whatcol="cases", lty=1, pch="")
+}
+
+
+# checking Plant nitrogen module
+
+if (FALSE) {
+  
+dynamiques<-mymodel$plot("sNitrogenContent", 
+                         col=c(Meknes="green",
+                               Turgutlu="red",
+                               SidiKacem="blue",
+                               Mauguio="yellow",
+                               Bizerte="purple"),
+                         whatcol="cases", lty=1, pch="")
+
+
+
+
+dynamiques<-mymodel$plot("sAccumulatedNStem", 
+                         col=c(Meknes="green",
+                               Turgutlu="red",
+                               SidiKacem="blue",
+                               Mauguio="yellow",
+                               Bizerte="purple"),
+                         whatcol="cases", lty=1, pch="")
+
+
+dynamiques<-mymodel$plot("sAccumulatedLeafNitrogen", 
+                         col=c(Meknes="green",
+                               Turgutlu="red",
+                               SidiKacem="blue",
+                               Mauguio="yellow",
+                               Bizerte="purple"),
+                         whatcol="cases", lty=1, pch="")
+
+dynamiques<-mymodel$plot("sAccumulatedNGrain", 
+                         col=c(Meknes="green",
+                               Turgutlu="red",
+                               SidiKacem="blue",
+                               Mauguio="yellow",
+                               Bizerte="purple"),
+                         whatcol="cases", lty=1, pch="")
+
+
+dynamiques<-mymodel$plot("sTotalAccumulatedNitrogen", 
+                         col=c(Meknes="green",
+                               Turgutlu="red",
+                               SidiKacem="blue",
+                               Mauguio="yellow",
+                               Bizerte="purple"),
+                         whatcol="cases", lty=1, pch="")
+
+dynamiques<-mymodel$plot("cDemandNAccumulation", 
+                         col=c(Meknes="green",
+                               Turgutlu="red",
+                               SidiKacem="blue",
+                               Mauguio="yellow",
+                               Bizerte="purple"),
+                         whatcol="cases", lty=1, pch="")
+
+
 }

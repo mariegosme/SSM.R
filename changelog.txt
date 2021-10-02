@@ -12,15 +12,19 @@
 - Changed some soil-specific variable types in allvariables.xslx for variables that are dependent on soil layer.
   A lot were single "numeric" data while we would actually need either a data.frame or 10 different variables, one
   for each possible soil layer (i.e pSoilOrganicN.1, pSoilOrganicN.2 ... pSoilOrganicN.10 )
+  =>response from marie 24/06/2021: code on the visualisation/use of the model relies on the fact that "savedeachday" variables in allvariables are atomic values=>they cannot be vectors. Therefore the layer-specific variables that are saved each day (in particular state variables) must be repeated for each layer (e.g. sSoilMineralN.1 ... sSoilMineralN.10). These variables must be kept to a reasonnably small number. So soil parameters are not saved each day (they are "looked at" in the PARAMSSOILS global object each time they are needed with function fExtractSoilParameter (in file HousekeepingFunctionsSSM.R), and they do not change through time.
+
 
 - Presently, some layer-dependent variables are represented as 10 different ones, while some are composed of a single
   data.frame (supposedly 1-dimensional). What would the convention be if we were to decide what variable should
   be represented as a data.frame and which should be split into 10 numeric variables ?
   For now, I decided to implement state variables (subject to vary during the simulation) as different numeric variables and
   soil parameters (that will remain constant throughout) as data frames
+  =>marie 24/06/2021 see my answer above: you are right, and furthermore soil parameters data.frames are local objects inside a procedure, not saved in the global variables (the global list PARAMSSOILS is fixed after reading in the soil model inputs)
 
 - Specifically, pSoilCurveNumber, parameter allowing calculation of the drainage factor, would be considered layer-specific,
   changed its type from "numeric" to "data.frame"
+  =>marie 24/06/2021 No: pSoilCurveNumber has a unique value for the soil : see the excel file example https://github.com/mariegosme/SSM.R/blob/master/input/soils.xlsx
 
 - iniWL, U, and DRAINF new names were changed so they fit the naming convention (cf. "Translation of SSM into R.pdf")
 
@@ -30,11 +34,20 @@
   Description explains it's a parameter depending on climate, that varies from 0.65 for humid/sub-humid climates to 0.75 for arid ones
   Thus, changed its type from "SoilParameter" to "LocationParameter" although none other variables are of this type
   Might fit into a better type.
+  =>marie 24/06/2021 I dont really know, maybe there's no point in having a new parameter type just for 1 parameter. for now, just leave it as a (1-value) soil parameter
+  # UPDATE - 25 Jun - Achille
+	## Indeed, type changed back to SoilParameter
 
 - There is an ambiguity for certain variables that represent INITIAL values. Should they be considered as inputs or parameters ?
   For instance, initial amount of soluble N in L layer...
+  =>marie 24/06/2021 conceptually initial values are different from parameters, but since we read them in from the same file as soil parameters, I kept them as parameters. soil values are initialised in procedure rCreateDay0 in file HouseKeepingFunctionsSSM.R:
+  #initialisation of soil water
+  df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="iniWL", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
 
   UPDATE : Initial values, of N for instance, are considered inputs for now
+  # UPDATE - 25 Jun - Achille
+	## Variables read from the excel files would then be parameters
+	## Initial values computed from parameters (for instance, initial amount of organic N, initial soluble N concentration, are "computed"
 
   There also is some ambiguity for variables that represent the sum of each layer's value
   For example total amount of soluble N in soil being the sum of each layer's amount
@@ -42,13 +55,22 @@
   Probably needs to have it figured out for each single variable specifically.
 
   UPDATE : Variables that are summed from each layer each timestep are considered computed for now
+  =>marie 24/06/2021 for the water module, I did not save these variables each day, I just compute them "on the fly" (with function fFindWater) when they are needed, that is not the most efficient way to do it if they are needed many times in many different parts of the code, but I found that for water it was not the case (e.g. computed only once and used only in the same procedure most of the time). 
 
 - U, renamed to "pU", is a parameter for calculating evaporation, shouldn't it be specific to each layer ? Or are
   we assuming that evaporation only happens in the very top layer, no matter how thin it could be ?
+  =>marie 24/06/2021 yes: see structure of the soil input excel file to see which parameters are for each layer and which parameters are for the whole soil
 
 - In the excel, organic N amount and organic N percentage were considered "parameters". Changed their types to state variables
   as we will be interested in tracking their values, and their changes, especially when implementing the break down of legume crops
   as a way to recycle their fixated N into organic N for the soil
+  =>marie 24/06/2021 OK
+  
+  # UPDATE - 25 Jun - Achille
+	## NORGP, organic N percentage actually changed back to "parameter" since it only allows computation of initial organic N amount in the soil.
+	## Organic N amount was considered a parameter since it only allows computation of readily mineralizable organic N, which value is tracked over the simulation.
+	## The original model does not account for inputs of organic N in the soil, so it's not a variable of interest. However, we might need to track organic N amount in
+	## the soil once we want to model the break down of legume crops as a way to recycle their fixated N into organic N for the soil
 
 
 ------------------ Jun 17 2021 ------------------
@@ -56,18 +78,17 @@
 - ADDED sNMineralization.L for NMIN, sTotalNMineralization for SNMIN, sCumulatedNMineralization for CNMIN
   The second being the sum of each layer's net mineralization, would it be computed or state variable
   Cumulated being the sum of every daily NMIN, computed ? or state variable ?
-
-  UPDATE :Variables being the sum of each layer are set to 0 at the beginning of each timestep -> COMPUTED
-          Cumulated variables keep their values from one timestep to the next -> STATE VARIABLE
-
+  # UPDATE - 25 Jun - Achille
+	  ## Cumulated over the simulation is a state variable, while
+	  ## daily mineralization for the whole soil is a computed variable
+	  ## For soil variables that are computed from the sum of each layer at each timestep, ambiguity between computed
+          ## or state variable solved from "Translation of SSM into R.pdf"
+          ## Since they are set to 0 at the beginning of each timestep (at least in VBA model), we can consider them computed and not state variables
+	  
 - ADDED soil temperature as "sSoilTemp". Should it be considered a computed variable or a state variable?
   It is computed from air temperature as parameter, but it does represent a state of the system
-
-  UPDATE: For now, decided to consider it computed, since it's computed at the beginning of each timestep
-
-- For soil variables that are computed from the sum of each layer at each timestep, ambiguity between computed
-  or state variable solved from "Translation of SSM into R.pdf"
-  Since they are set to 0 at the beginning of each timestep (at least in VBA model), we can consider them computed and not state variables
+  # UPDATE - 25 Jun - Achille
+	## It's considered a computed variable.
 
 - Variable named "WFNDNIT" is ambiguous. It seems unused in the original VBA model since it's commented out the code.
   Should we account for it in the R model ? I cannot find it in the SSM documentation pdf although it probably is a 
@@ -76,8 +97,15 @@
   for denitrification ? For example you'd have NDNIT multiplied by 0.25 if you assumed there would be enough water during 6 hours.
   WFNDNIT might represent this particular factor, although I am still unsure. For now, the corresponding line in the excel is
   left blank and highlighted in yellow.
+  # UPDATE - 25 Jun - Achille
+	## Ambiguity unsolved as of today, issue created in Git (#10)
+	
 
 - Finished adding the soil nitrogen variables into the Excel. There remains some ambiguities so it might be reworked a little.
+
+  # UPDATE - 25 Jun - Achille
+	## Comments have been added regarding which variables should be kept in ALLDAYDATA, i.e saved each day,
+	## and which should not. Still open to discussion.
 
 
 ------------------ Jun 18 2021 ------------------
@@ -89,6 +117,8 @@
 
 - Noticed initial water content module is "rCreateDay0"
   Should all initial values / soil content be in this module ?
+  # UPDATE - 25 Jun - Achille
+	## Yes, likely. Initializaion of soil nitrogen values have been added into this procedure.
 
 - QUESTION: How is the date going to be represented ? There is an "iDate" variable in the excel
   of R type "Date"
@@ -100,6 +130,9 @@
 - PROBLEM: A lot of variables in the R code don't have a prefix for their type in the model (Note: might only include functions local variables)
   Also, there is a number of variables which names are still acronyms as they are in the SSM documentation
   Objective of the R translation being to get rid of those ambiguous names
+  # UPDATE - 25 Jun - Achille
+	## Nevermind. Variables with names that don't fit the convention are only variables LOCAL to functions.
+	## All variables that are SAVED each day into ALLDAYDATA (and thus ALLSIMULATEDDATA) fit the convention.
 
 - PROBLEM: In the VBA model, there are two variables representing the same thing:
   TMPCR for Crown temperature and TMPS for soil temperature, set equal to the air temperature
@@ -107,6 +140,8 @@
   It doesn't account for snow covers and such
   Why not use TMPCR, which does account for snow, instead ?
   Computation of TMPCR is already coded
+  # UPDATE - 25 Jun - Achille
+	## Created issue #11 on Git
 
 - ADDED fComputeKNforMineralization and fComputeRNforMineralizaion in the R code,
   for RN and KN factor computation (modeling soil temperature
@@ -138,15 +173,23 @@
   although I'm still unsure what it represented. I assume it's the fraction of the day where there's sufficient
   water for denitrification. Since this issue is seemingly not accounted for in the VBA model, the parameter is
   defaulted to 1.
-  VBA model code that has been commented out a calculation of this WFDNIT variable. It could easily be included
+  Also added comments and roxygen documentation
+
+## PROBLEM
+  	- VBA model code that has been commented out a calculation of this WFDNIT variable. It could easily be included
   as a function to compute it in the R code too. We have to figure out why it was commented out in the first place.
+  # UPDATE - 25 Jun - Achille
+	## Created issue #10 in Git
+
   There is another source of ambiguity for this function.
-  In the original model, it's assumed denitrification only happens in the uppermost 2 layers of the soil and layers
+  	- In the original model, it's assumed denitrification only happens in the uppermost 2 layers of the soil and layers
   underneath have their NDNIT set to 0, regardless of how thin they possibly can be.
   This is kind of arbitrary. It is also assumed that denitrification only occurs at soil depths shorter than
   250 mm. We could use this quantitative condition in the larger soil nitrogen procedure: have a maximum depth
   below which denitrification does not occur at all. This parameter could be defaulted to 250 mm.
-  Also added comments and roxygen documentation
+  # UPDATE - 25 Jun - Achille
+	## First version of rUpdateSoilNitrogen assumes that denitrification happens in layers which upper limit
+	## is above 250 mm underground. Denitrification amount is then computed with the same equation as in VBA.
 
 - ADDED fComputeRemovalByUptake which computes the amount of N loss in a layer via plant uptake/absorption based on
   the layer's N that's acessible to the plant (NAVL), the whole soil's accessible N ressources (SNAVL), the 
@@ -160,6 +203,8 @@
    use the small functions)
         - ADD units and corresponding original variable name to every function parameter (in the documentation)
         - ADD other functions 
+ # UPDATE - 25 Jun - Achille
+	## First version of rUpdateSoilNitrogen has been coded
 
 
 ------------------ Jun 21 2021 ------------------
@@ -167,6 +212,9 @@
 - ADDED fComputeSolubleN that returns the amount of soluble N in a given layer (in g (of N) .m-2 ) from the ppm concentrations
   of NO3 and NH4 in this layer
   Also added roxygen documentation
+  # UPDATE - 25 Jun - Achille
+	## Changed its name to fComputeInitialSolubleN since it's ONLY used for initialization given the soil
+	## NO3 and NH4 inputs
 
 - ADDED fComputeSoilMass that returns a given layer's soil mass (SOILML, in g.m-2) from the layer's fraction of
   coarse particles (FG), its bulk density (BDL, g.cm-3) and its thickness/depth (DLYER, mm)
@@ -186,8 +234,10 @@
 	- How do I access / write in ALLDAYDATA ? I need to know what the data frame looks like.
 		^ I can try and run from the website and get the output sheets to have a look at the structure
 
-## PROBLEM: R model on D4Declic webpage doesn't seem to work, as I always get the same results no matter the crops I choose,
-or the number of days I run, the weather data and starting year I choose (took screenshots if needed)
+## PROBLEM: R model on D4Declic webpage doesn't seem to work, as I got the same results for different sets of
+   weather data, crop types, and days to run. Apparently, simulation stops prematurily. (took screenshots if needed)
+  # UPDATE - 25 Jun - Achille
+	## I was able to make it work again, somehow. I don't know what the problem was.
 
 
 
@@ -195,24 +245,16 @@ or the number of days I run, the weather data and starting year I choose (took s
 
 # There is still amibiguity between inputs and parameters ? What would be which ?
 
-- I now consider inputs to be daily, changing values, such as precipitation, radiation, temperature, etc... Most of them being weather. Consequently,
+- I now consider inputs to be daily, changing values, such as precipitation, radiation, temperature, etc... Most of them being weather,
+  as opposed to PARAMETERS, that are values unique to a simulation run, that don't change over the course of it. Consequently,
   I changed some variable types from input to parameter, of which :
     * iInitialWater -> pInitialWater
     * iInitialNO3Concentration -> pInitialNO3Concentration
     * iInitialNH4Concentration -> pInitialNH4Concentration
     * iNumberOfApplications -> pNumberOfApplications
 
-# icicicic
-## PROBLEM: Do we need to extract soil parameters (such as bulk density, coarse soil fraction, layer thickness...)
-	    on every timestep, despite the fact that it's assumed not to change over time ??
-	    Quite tedious having to extract them each day, is it not ?
-            Question is: are their values being reset to default values at the start of every timestep ? 
-            or do they keep their previous values ? 
-            Anyway, it would seem more efficient to just have them loaded at simulation start, and keep them
-            in a "drawer" for quick use throughout simulation.
-
-## Apparently, soil parameters are loaded into ALLSOILS from allvariables.xlsx sheet "other", as I thought
-and type in the model must be "SoilParameter" for it to be loaded into ALLSOILS
+## Apparently, soil parameters are loaded into ALLSOILS from allvariables.xlsx sheet "other" when calling mRun(t) if ALLSIMULATEDDATA has
+   a length of 0. Type in the model must be "SoilParameter" (in allvariables.xlsx) for it to be loaded into ALLSOILS
 	- VPD type in the model changed back to SoilParameter
 	- Moved computed and state variables that were in this sheet to savedEachDay
           Those consisted of soil nitrogen variables
@@ -220,7 +262,427 @@ and type in the model must be "SoilParameter" for it to be loaded into ALLSOILS
 	- Changed R code to import from sheet called "soilParameters" and not "other" anymore
 
 
+------------------ Jun 23 2021 ------------------
+
+## How are soil datas being extracted from soils.xlsx ? I assume we use fExtractSoilParameter with paramname
+equal to the new name in allvariables.xlsx and that it fetches corresponding parameter in soils.xlsx based on
+the "translationSSM" name in allvariables.xlsx.
+Thus I changed pInitialOrgNPercentage translation "INORGP" to "NORG" as it is named in soils.xlsx
+  # UPDATE - 25 Jun - Achille
+	## No. There's a global table ALLSOILS that's initialized when calling mRun if ALLSIMULATEDDATA's length is 0 (first day)
+        ## It contains all extracted parameters from the soils.xlsx. And that's the data you access with fExtractSoilParameter:
+	## You actually extract if from ALLSOILS
+
+## TO-DO : Update variable names in eReadSoil to their new updated names (allvariables.xlsx)
+           for format D4DeclicPlatform (not standardSSM)
+
+## PROBLEM icici: is daily temp not a global variable ? it should be computed at the very beginning of a timestep,
+in rWeatherDay() for example, for easy use in the other modules
+Apparently, cTemp: daily mean temperature is computed in rUpdatePhenology ?
+  # UPDATE - 25 Jun - Achille
+	## It's not used in that many computations, actually.
+
+## QUESTION: Some values are worth considering if they should be saved in ALLDAYDATA or not
+Such values as computed factors and coefficients for calculating amount of denitrification, mineralization
+Those values are only computed in order to compute an estimation of an ACTUAL meaningful process
+Those values are not really relevant by themselves.
+In the R code, I have not been saving these values in ALLDAYDATA for now.
+Should I ? If not, should we remove those from "allvariables.xlsx" ?
+  # UPDATE - 25 Jun - Achille
+	## Added remarks for almost every variable of the soil nitrogen module, regarding their
+	## relevance in ALLDAYDATA
+
+- Almost COMPLETED rUpdateSoilNitrogen. Remains the part for N fertilization.
+  # UPDATE - 25 Jun - Achille
+	## I have to do as close as it has been done for Irrigation
+
+- ADDED fComputeNConcentration() that computes soluble N concentration in a specific layer
+	from given solubleNAmount and waterContent
+# TO-DO still need to add the documentation for this function, as simple as it is
+  # UPDATE - 25 Jun - Achille
+	## DONE
+
+- ADDED rUpdateSoilNitrogen() at the end of mOneTimeStep function in handlersSSM.R
+
+# PROBLEM / QUESTION ? ICICICICI
+# ARE cumulative state variables well initialized to 0 at day 0 ? I can't be sure, looking at the code.
+# Need to make sure of how it's coded
 
 
 
+------------------ Jun 24 2021 ------------------
 
+- ADDED documentation for fComputeNConcentration that computes soluble N concentration in the soil solution
+  from the amount of soluble N and water content
+  Also added some comments because I'm still a bit confused about the unit conversions in the equation
+  Might need to clarify this out later. It's the same equation as in VBA anyway.
+  # UPDATE - Jun 25 - Achille
+	## Nevermind, conversion works just fine (removed the comments)
+
+- ADDED the section ---- initialization of soil nitrogen ---- in the rCreateDay0() procedure
+
+- CHANGED fComputeSolubleN name to fComputeInitialSolubleN since it's an equation that's only used to compute N amount
+  given the INITIAL ppm concentration given as inputs
+
+- ADDED function fComputeNAVL (NCON, ATSW, RLYER, DLYER) that returns a layer's amount of N that's accessible to
+  the plant, from given N concentration, actual transpirable water, the root depth INTO the layer and the layer thickness itself
+  Added roxygen documentation too
+
+- CHANGED rUpdateSoilNitrogen procedure so that it saves N concentration at the end of the procedure
+  and imports it from previous timestep at the beginning of the procedure, instead of computing it,
+  so that it does not account for the change of water in the rUpdateWaterBudget called just before
+  (in real life water and N phenomenons happen at once, not sequentially)
+
+
+------------------ Jun 25 2021 ------------------
+
+- ADDED remarks in the allvariables.xlsx for most of the new variables
+  as Marie told me, it's not necessarily relevant to save every variable each day
+
+- HIGHLIGHTED variables in allvariables.xlsx that could be removed from savedeachday, that we do not necessarily to 
+  save and keep. Did not actually remove them since it's open to discussions
+  Those highlighted in yellow are those that I consider we could easily drop off ALLDAYDATA.
+
+- UPDATED changelog so that outdated remarks and solved questions appear as SO
+  under "# UPDATE - 25 Jun - Achille"
+	# FROM NOW ON, I will rather create issues on the Git, so that it's easy to know which issue has been solved
+        # and which has not.
+
+
+------------------ Jun 28 2021 ------------------
+
+- CHANGED max to pmax in f functions that I had created for R to vectorize the function easily:
+	- fComputeXNCONforDenit
+	- fComputeNMineralization
+	- fComputeRNforMineralization
+
+- MOVED data.frame variables in the allvariables.xlsx from "savedEachDay" sheet to a new sheet "toGetRidOf"
+  We are not supposed to have data.frame variables in savedeachday
+  Either those should be split into 10 (different layers), or simply removed
+  These variables were to be discussed for removal anyway
+  Those are: - cInitialOrganicN
+	     - cSoilMass
+	     - cInitialSolubleN 
+
+- CHANGED solubleNConcentration   type from state variable to computed (NCON)
+          availableUptakeN        type from state variable to computed (NAVL)
+	  rootDepthInsideLayer    type from state variable to computed (RLYER/DLYER)
+          actualTranspirableWater type from state variable to computed (ATSW)
+  Actually, all these variables are computed at each timestep with absolutely no concern for their
+  values at the previous timestep.
+  Regarding layer-specific variables, only soluble N amount (NSOL) and the bank of mineralizable N (MNORG)
+  constitute state variables... for now anyway. I do have org. N (NORG) and org. N percentage (NORGP) as
+  "state variables" in the excel but they do not currently act as so in the model (see excel for explanation).
+
+- REMOVED "initialization of NAVL" from initialization of soil nitrogen in rCreateDay0
+  I first assumed I needed to initialize it since I extract it from ALLDAYDATA at the beginning of
+  rUpdateSoilNitrogen, but it's actually initialized at 0 since it depends on root depth (which
+  is null at day 0). So there's no need to compute it at initialization, I can just set its default
+  value to 0 in th excel.
+
+
+------------------ Jun 29 2021 ------------------
+
+- STARTED trying to run the code with exampleRunSSM.R
+
+- FIXED several minor issues in the code, typos and such...
+
+## PROBLEM : I considered NLYER (number of layers) as a single numeric value in my
+   rUpdateSoilNitrogen procedure. It's actually a vector. I am consequently having trouble using
+	ALLDAYDATA[,paste("variableName", 1:NLYER, sep=".")]
+   For now, I will just replace 1:NLYER with 1:10, and put this "optimization" problem aside.
+   A cheap and easy solution for a LITTLE optimization would be to use max(NLYER) instead of 10
+   But that could actually be counter-productive because of the additional calculations needed.
+
+- REPLACED ALL "1:NLYER" occurrences in the rUpdateSoilNitrogen procedure with "1:10"
+
+## PROBLEMS : 
+	- cCrownTemp not in ALLDAYDATA after execution of the rUpdatePhenology module
+	  I needed to access it for mineralization, all I have is NA values
+	- same for cTemp (daily mean air temperature)
+	  It's NA
+	- cDownwardWaterFlux not in ALLDAYDATA after execution of the rUpdateWaterBudget module ?
+          I needed to access it for soil nitrogen, but all I have is NA values
+
+## PROBLEM : soluble N amount in the soil at day 1 is null (can't be since there is initial N concentration)
+	## UPDATE: !! FIXED !!
+
+- CHANGED model type of NAVL and NCON BACK to state variable
+	cAvailableUptakeN -> sAvailableUptakeN
+	cSolubleNConcentration -> sSolubleNConcentration
+  Since I need to know the value from the end of previous timestep in order not to be biased with the water ressources
+  variations of the current timestep (water module being executed before nitrogen), their values can't be reset to their default value
+  as it would be done with computed variables. As a result, I need them to be state variables.
+  Of course, we could make them computed variables if we assumed that over many iterations, the bias coming from the fact that
+  water variations are computed before nitrogen balance has little to no impact.
+
+## PROBLEM : when running first day, cNMineralization is NA, why is that so ?
+	POSSIBLY: no soilTemp, but also...
+	          sMineralizableN is NA although it's well initialized at day 0... ?
+			-> nevermind, it's because is is then re-calculated from cNMineralization loss
+                           which is NA
+
+## PROBLEM : "if" condition (FTSW < 0.9) in fComputeRNforMineralization only applies to first element
+             if FTSW parameter is given as a vector/data.frame
+             Need to change function so that this test is applied to every case, for every layer
+		## UPDATE : Fixed for matrices and vectors, still does not work for data.frames
+
+## PROBLEM : fComputeNMineralization doesn't work for data frames as inputs since pmax(...) does not work well by itself with
+             data frames. I need to change the function so it works with data frame inputs
+             What I want is elements of the table to be nullified to 0 if their value should be negative (pmax(0, equation))
+             Ouput is a vector. It has no concept of rows and columns. As a result, when I need to do 
+		MNORGs <- MNORGs - NMINs
+	     The operation doesn't work as intended since NMINs is not a dataframe
+	     NMINs should be a dataframe that's equivalent to MNORGs (in its structure..)
+		## UPDATE : Fixed for matrices and vectors, still does not work for data.frames
+		
+
+
+------------------ Jun 30 2021 ------------------
+
+- FIXED fComputeRNforMineralization so that it allows vector or matrix inputs, in addition to single numeric values
+  Considering different cases of input type with "is.matrix", "is.vector" and length(x) == 1 to check for single value
+  The function calls itselfs recursively on every element of an input vector, and every row of the matrix
+  as an input vector, deepest level of recursion being the application of the function to a single atomic value of the vector / df.
+  Updated documentation to fit the new changes for inputs and return values (now returns either a single numeric value,
+  a vector, or a matrix. returns the same structure as the given input.)
+
+- FIXED fComputeNMineralization for the same issue. Made function a bit flexible, so that you can input a matrix of MNORGs,
+  with a single numeric value for N concentration, instead of an equivalent matrix, or also a vector of length = ncol(MNORGs)
+ 
+## PROBLEM: Both of these functions won't work if input matrices are IN FACT data.frames
+	    We can easily convert a matrix into a data.frame with "as.matrix"
+            How are we going to get around this issue ? 
+            Either we use as.matrix(input) as parameter of the function, or we write code in the function that automatically
+            converts data frame input to matrix.
+
+
+------------------ Jul 01 2021 ------------------
+
+- FIXED fComputeRNforMineralization and fComputeNMineralization for data.frame inputs
+        (simply converts to matrix if input is a data.frame, with as.matrix(...) )
+
+## NOTE: I discovered ifelse(test,returniftrue,returniffalse) and
+                       var[test] <- value 
+         which could greatly improve the code for the functions I just fixed. It's a much
+         simple way to support vector, matrix, and data.frame inputs.
+
+- SIMPLIFIED fComputeRNforMineralization and fComputeNMineralization.
+             I have been able to reduce them down to one single line of code...
+             There's only one additional line for df to matrix conversion in fComputeRNforMinerization since
+             I wasn't able to make "ifelse" quite work on dataframes.
+
+## PROBLEM: I need FLOUTs for computation of N drainage, but it is not saved into ALLDAYDATA.
+            How do I access it ?
+            ## SOLVED: I made rUpdateWaterBudget save cDownWaterFlux.1:10 (FLOUTs) into ALLDAYDATA
+
+## PROBLEM: sum(NMINs) doesn't work in module since NMINs is a matrix/df
+            I want sum() to be applied to each ROW of this matrix/df
+	    (i.e sum of each layer for a given case)
+	    ## SOLVED: I now have a loop for (case in 1:NCASE) NCASE being the number of cases
+                       that sums concernedVariableMatrix[case, ] for every case, saves
+                       this sum as the total for the whole soil, and also adds it to sCumulatedVariable[case]
+
+
+----------- Jul 02 2021 -> Jul 07 2021 -----------
+
+## PROBLEM: For many variables there's ambiguity whether I should save in ALLDAYDATA the value at the beginning of the timestep,
+	    or value at the end of the timestep
+
+- ADDED cTemp saving into ALLDAYDATA in the rWeatherDay() module (it was only saved in rPhenology() depending on plant filters,
+  as a result it wasn't saved into ALLDAYDATA before sowing. That way it will be saved at every timestep, regardless of plant.
+
+- CHANGED availableUptakeN.1:10 (NAVL) and totalAvailableUptakeN (SNAVL) to state variables so that we can
+  pick up their values from the end of previous timestep... clear of the effects of current timestep's water module
+  changes.
+  NAVL is initialized at 0 in rCreateDay0 (instead of using the excel initial default value), so that we can set
+  values for layers not concerned by the simulation to NA instead of 0.
+
+## NOTE: In my opinion, layers not concerned by the simulation (#LYER > NLYER) should have corresponding values be "NA"
+   so that it's clear it's not of concern. Furthermore, we could even want no to save / load variables that are not of concern
+   for the simulation, when reading the original excel.
+   For instance if you'd have NLYER: c(2,2,3) then you'd have only soil variables of layer 1:3
+   while variables for layers 4:10 would not be present in the data frame.
+   Values corresponding to layer 3 of case 1 & 2 would be NA since it's not of concern.
+
+- UPDATED a lot of f Functions concerning soil N module so that they'd be compatible with data frames / matrices
+  (I had originally designed them for single values and vectors, but had forgotten to account for different cases / rows at the same time)
+	- fComputeRNforMineralization
+	- fComputeNMineralization
+	- fComputeNDrainage
+	- fComputeNDenitrification
+  
+
+- ADDED rFertilization module, directly inspired from rIrrigation (had to make a few changes)
+  Soil nitrogen modules now accounts for N application and volatilization effects.
+
+- ADDED rFertilization to the rUpdateManagement routine
+
+- ADDED nitrogen applications to default cases of exampleRunSSM.R in "managementPlans.xlsx" in order to
+  test rFertilization module
+
+- STARTED debugging code, trying to run simulations
+  As a result I made sure to save into ALLDAYDATA the variables I use in the rUpdateSoilNitrogen module
+
+- UPDATED rUpdateSoilNitrogen accordingly, made a few tweaks and improvements.
+  Now, simulation can run for 700+ days and not break.
+
+- UPDATED exampleRunSSM.R so that it fits my workspace (directory address...)
+  Also ADDED plots to track evolution of soil nitrogen variables under "checking nitrogen module"
+  Also CHANGED "Neffect = FALSE" to "Neffect = TRUE" in "paramsim <- list(...)"
+  although I don't think it's used anywhere else in the simulation...
+
+## CREATED ISSUE #13 after witnessing FTSW take negative values
+## Also: how can FTSW have value > 1 ? Isn't it a fraction ?
+
+## TO-DO NEXT:
+	- Fix NAVLs going negative
+	- Improve documentation for f functions after their update to support matrices / df
+	- Keep debugging to find other weird values to fix
+	- Have unconcerned layer-specific variables not loaded? (see above ##NOTE)
+	- Fix issue #13 on FTSW and debug water budget module
+	- Make that return matrices of f nitrogen functions have relevant dimnames
+	- Once plantNitrogen module is coded, merge the two to work together (getting NUP and BNF)
+	- After it's really working properly, we can consider removing variables off ALLDAYDATA,
+          variables that are not relevant to keep track of.
+
+## COMMITED under "Soil nitrogen: 1st working version"
+
+
+----------- Jul 08 2021 -> Jul 15 2021 -----------
+
+## For now, only unexpected values are a result of issue #13 (bugs in calculation of FTSW, and ATSW, that become negative for some reason)
+   That is: NAVL, SNAVL, thus NUP, but also RN (moisture effect on mineralization) thus NMIN,
+   and also NDNITs have incorrect values since they're computed either from FTSW or ATSW.
+	## ISSUE 13 ON FTSW AND ATSW COMPUTATION BUGS HENCE BECOMES PRIORITY
+
+- ADDED a #DEBUGGING WATER MODULE segment in rUpdateSoilNitrogen() where I save FTSW and ATSW
+  into ALLDAYDATA to track its value over the simulation easier.
+
+## why does water content stagnate at 9.3 in both layers ? It doesn't go below ever ?
+## layer 1 happens to have pWiltingPoint = 0.093 so that's probably linked
+## however it is equal to 0.109 for layer 2 so it doesn't make sense for it to floor at 9.3
+
+## ABNOMALY: simulation day 22 : soluble N in 1st layer goes from 3.xx g m-2 straight to 0 in a single day.
+## this is due to denitrification being abnormally high (going straight from 0 to 3.xx in a single day)
+## Also, we observe n mineralization going straight down to 0 on the same day (in layer 1)
+## Both are computed from FTSWs
+## THING IS, FTSW goes over 1 at day 22 for layer 1, while it remains under 1 for layer 2
+## CONCLUSION: Abnormal values comes from FTSW being superior to 1 when it should not be able to
+
+## FTSWs becoming superior to 1 when it should be in [0;1] 
+	## Created Git Issue #17
+## FTSWs and ATSWs becoming negative
+## DESPITE water never being negative...
+
+## There is a problem with water though:
+## Water in second layer stuck at 9.3 for layer 2 too in spite of a wilting point != 0.093
+## ?? BUG second layer seen as having the same wilting point as layer 1 for some reason ??
+	## Created Git Issue #18
+
+- MOVED every instruction that updates ALLDAYDATA content in "rUpdateSoilNitrogen" to the end of the procedure
+  So that every modification to the ALLDAYDATA df are done at once.
+
+
+------------------ Jul 16 2021 ------------------
+
+- CHANGED (WL - WLLL) to pmax(WL - WLLL) in fFindWater to solve FTSWs and ATSWs becoming negative.
+  If water is at wilting point or less (evaporation), then ATSW & FTSW = 0.
+
+- FIXED water decreasing way below what it should in layer 2, as if it inherited first layer
+  lowermost limit for water.
+  It was due to a typo in the code: matrix[l] instead of matrix[,l] in the 
+  "#distribute soil evaporation in different soil layers" section of rUpdateWaterBudget.
+  Now, water can't decrease below residual water at dryness, for any layer.
+
+
+------------------ Jul 19 2021 ------------------
+
+ - Had a placeholder "NUP" value to compute N removal by plant uptake.
+   It seemed weird that it was a constant so
+   I changed it to be dependent of root extension in the layer.
+
+ - ADDED 4 new additional climate data in the climates.xlsx
+	- Mauguio, France
+	- Turgutlu, Turkey
+	- Bizerte, Tunisia
+	- Sidi Kacem, Morocco
+   I haven't added "altitude" and "wind height" values yet although
+   I don't know whether they're relevant or not in the simulation.
+
+   Also, still need to add the different corresponding soil inputs in soils.xlsx
+
+   # THESE DATAS COME FROM CliPick AND EXPAND OVER THE 1995-2015 TIMESPAN, 
+   # THEY ARE SOURCED FROM THE "AR4 A1B HadCM3Q0: 1951->2100" DATASET
+
+
+------------------ Jul 20 2021 ------------------
+	
+ - ADDED the new climates as cases of the simulation (in input/SimulationOptions.xlsx)
+   Now, simulation contains 5 cases being:
+	- Ain Hamra - Meknes, Morocco
+	- Sidi Kacem, Morocco
+	- Turgutlu, Turkey
+	- Bizerte, Tunisia
+	- Mauguio, France
+
+ - Changed the plot commands in the exampleRunSSM.R file to be compatible with the new cases.
+
+ - FIXED fComputePETsimplifiedPenman
+   FIXED its usage in the rUpdateWaterBudget module
+   Started bugging when running simulations with the new cases
+
+ - FIXED the irrigation module that started bugging when I ran the simulation with the new cases.
+
+
+## COMMITED under "FIXED water module & ADDED 4 climates"
+
+
+------------------ Jul 22 2021 ------------------
+
+ - CHANGED unit for soil parameters in soils.xlsx and allvariables.xlsx
+   There were "cm" and "cm.cm-1" units althought their unit in the VBA code are 
+   "mm" and "mm.mm-1"
+   It makes more sense that considering the values they had.
+   For example layer thickness being 300 & 700 for 1st & 2nd layer makes much more sense
+   as mm -> resulting total depth of 1 meter
+   than as cm -> resulting total depth of 10 meters ?!
+
+
+ - FIXED fComputeCrownTemperature that bugged when long simulations (10 years)
+   by CHANGING : 
+sSnow<-pmin(15, sSnow)
+...
+TcrownMin[iTASMin < 0 & sSnow > 0]<- 2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
+TcrownMax[iTASMax < 0 & sSnow > 0]<- 2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
+   TO
+sSnow<-pmin(sSnow, 15)
+...
+TcrownMin[iTASMin < 0 & sSnow > 0]<- (2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2))[iTASMin < 0 & sSnow > 0]
+TcrownMax[iTASMax < 0 & sSnow > 0]<- (2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2))[iTASMin < 0 & sSnow > 0]
+
+
+ - STARTED looking into abnormally high values of LAI (rising up to 15 000 ...)
+   Updated issue #7 (it's a long-known bug, apparently)
+   sPlantLeafArea was abnormally high (rising up to 14 000 squared meters...)
+   This was likely due to mainsteam node number being abnormally high itself: rising up to 1800 ???
+   This was likely because of daily_increase_node_number being computed from 
+   CUMULATED thermal units, instead of daily increase in thermal units....
+   CHANGED:
+  daily_increase_node_number <- ALLDAYDATA$sThermalUnit / ALLDAYDATA$pPhyllochron 
+   TO:
+  daily_increase_node_number <- ALLDAYDATA$cDeltaThermalUnit / ALLDAYDATA$pPhyllochron
+
+   Now, SLAI rises up to approximately 1.2, which is more in the scale of actual LAI, although
+   it seems kind of low...
+   Plant leaf area now rises up to 2500 squared centimeters = 0.25 squared meters (a bit low?)
+   and Mainstem node number rises up to about 20.
+
+
+ - In exampleRunSSM.R, CHANGED:
+mycases$rotation<-sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+mycases$management<-sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE)
+   TO:
+mycases$rotation<-list(sapply(mycases$rotation, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
+mycases$management<-list(sapply(mycases$management, function(x) eval(parse(text=paste("c(", x, ")"))), USE.NAMES = FALSE))
+   So that it would working using rotations of crops.
