@@ -12,7 +12,8 @@ if (! "DT" %in% installed.packages()) install.packages(DT)
 if (! "jsonlite" %in% installed.packages()) install.packages(jsonlite)
 library(DT)
 library(jsonlite)
-inputpath<-"~/a_ABSys/D4Declic/platform/SSM/inputplatform"
+#inputpath<-"~/a_ABSys/D4Declic/platform/SSM/inputplatform"
+inputpath<-"../../../inputplatform"
 examplemanag<-fromJSON(readLines(normalizePath(paste(inputpath, "managementPlans.json", sep="/"), winslash="/")))
 getdfCode<-function(listemanag) { 
   toto<-data.frame("Available_management_plans"=sapply(listemanag, function(x) return(x[["dfCode"]]$Code)))
