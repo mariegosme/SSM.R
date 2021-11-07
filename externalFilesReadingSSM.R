@@ -52,10 +52,11 @@ eReadClimate<-function(){
     #do something, e.g. just open the metadata
   } else if (PARAMSIM$climateformat=="D4Declicplatform") {
     if(!exists("USERID", envir=ICI)) {
-      csvcontent<-read.csv(normalizePath("inputplatform/climates.csv"))
-    } else {
-      csvcontent<-read.csv(normalizePath(paste(paste0("user_", USERID), "inputplatform/climates.csv", sep="/"))) #contains lat, lon, rotation, date
-    }
+      if (dir.exists(paste(paste0("user_", USERID)))){
+        path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/climates.csv", sep="/")) 
+      } else path<-normalizePath("inputplatform/climates.csv")
+    } else path<-normalizePath("inputplatform/climates.csv")
+    csvcontent<-read.csv(path) #contains lat, lon, rotation, date
    
     csvcontent$date<-as.Date(paste(csvcontent$Year, csvcontent$Month, csvcontent$Day, sep="-"))
     translations<-c("iRSDS","iTASMax","iTASMin","iPr","date")
@@ -111,10 +112,12 @@ eReadSoil<-function(){
     #missing info for SSM: "pSoilDryness", "iniWL", "pStones", "pOrganicN", "PFractionMineralizableN", "pInitialNitrateConcentration", "pInitialAmmoniumConcentration"
     ALLSOILS<-list()
     if(!exists("USERID", envir=ICI)) {
-      csvcontent<-read.csv(normalizePath("inputplatform/Soil.csv"))
-    } else {
-      csvcontent<-read.csv(normalizePath(paste(paste0("user_", USERID), "inputplatform/Soil.csv", sep="/"))) #contains lat, lon, rotation, date
-    } 
+      if (dir.exists(paste(paste0("user_", USERID)))){
+        path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/Soil.csv", sep="/")) 
+      } else path<-normalizePath("inputplatform/Soil.csv")
+    } else path<-normalizePath("inputplatform/Soil.csv")
+    csvcontent<-read.csv(path) 
+    
     if(nrow(csvcontent)>1) {
       warning("Soil.csv in inputplatform contained more than 1 row, only the first row is used")
       csvcontent<-csvcontent[1,]
@@ -226,8 +229,8 @@ eReadManagement<-function(){
   numbermanag<-sapply(PARAMSIM$cases$management, length)
   notthesame<-lengthrotation!=numbermanag
   if(any(notthesame)) stop("In SimulationOptions.xlsx, you don't have the same number of management plans as crops in the rotation in lines ", paste(which(notthesame), collapse=", "))
+  requiredManag<-unique(do.call(c, as.list(PARAMSIM$cases$management)))
   if (PARAMSIM$managformat=="standardSSM") { #read file only once and load it in the workspace
-    requiredManag<-unique(do.call(c, as.list(PARAMSIM$cases$management)))
     if(!is.null(PARAMSIM$directory)) pathtoExcel<-normalizePath(paste(PARAMSIM$directory, "input/managementPlans.xlsx", sep="/")) else pathtoExcel<-normalizePath("input/managementPlans.xlsx")
     locations<-getSheetNames(pathtoExcel)
     if(length(locations)>1) warning("Your managementPlans.xlsx file has several sheets, but only the first one will be used")
@@ -253,11 +256,19 @@ eReadManagement<-function(){
       toto<-list(managementPlan) ; names(toto)<-managementPlan$dfCode$Code #names(toto)<-paste("row", startManag[i]-1)
       allmanag<-c(allmanag, toto)
     }
-    if(any(! requiredManag %in% names(allmanag))) stop("management plans ", paste(setdiff(requiredManag, names(allmanag)), collapse=", "), " are missing from file managementPlans.xlsx")
-    ALLMANAGEMENTS<<-allmanag
+    } else if(PARAMSIM$managformat=="D4Declicplatform"){
+      if(!exists("USERID", envir=ICI)) {
+        if (dir.exists(paste(paste0("user_", USERID)))){
+          path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/managementPlans.json", sep="/")) 
+        } else path<-normalizePath("inputplatform/managementPlans.json")
+      } else path<-normalizePath("inputplatform/managementPlans.json")
+      library(jsonlite)
+      allmanag<-fromJSON(readLines(path))
     } else  {
-    stop("Only standard SSM format is supported for crop management data")
-  }
+      stop("Only standard SSM or D4Declicplatform formats are supported for crop management data")
+    }
+  if(any(! requiredManag %in% names(allmanag))) stop("management plans ", paste(setdiff(requiredManag, names(allmanag)), collapse=", "), " are missing from file managementPlans.xlsx")
+  ALLMANAGEMENTS<<-allmanag
 }
 
 
