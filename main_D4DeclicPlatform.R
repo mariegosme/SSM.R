@@ -4,11 +4,19 @@ Sys.setlocale("LC_TIME", "English") #on Windows
 Sys.setlocale("LC_TIME", "en_GB.UTF-8") #on Mac
 Sys.setlocale(category = "LC_TIME", locale = "en_US") #on other systems
 Sys.setlocale(category = "LC_TIME", locale = "C") #on other systems
-runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
+
+#' main program for running SSM.R on the D4Declic platform
+#'
+#' @param NbDaysToRun number of simulation days to run
+#' @param inputsfromplatform whether or not to look for use the platform formats (csv and json) instead of standard SSM (excel) inputs
+#' @param userid sequential number of the user. If NULL( the default), the input and outputs are not specific for one given user and are overwritten
+#' @param userid_fileonly should the user id be used only to name the wholedata_n.csv file (the default, n is replaced by userid) or should we have a folder with both input and outputs specific for a user?
+runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL, userid_fileonly=TRUE){
   setup<-function(userid=NULL) 
   {
     #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
     ICI<-environment()
+    if(is.null(userid) & !userid_fileonly) stop("it's not possible to create folders for the user (userid_fileonly=FALSE) because there is no user ID (userid=NULL)")
     if(!is.null(userid)) USERID<-userid
     source("headersSSM.R", local=TRUE)
     source("initialisationEnvironmenVariablesSSM.R", local=TRUE)
@@ -16,9 +24,9 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
     source("HousekeepingFunctionsSSM.R", local=TRUE)
     source("handlersSSM.R", local=TRUE)
     source("functionsSSM.R", local=TRUE)
-    return(list(contains=mContains, # fonction qui liste les objets présents dans le modèle (contains) et les extrait (getglobal),
+    return(list(contains=mContains, # fonction qui liste les objets presents dans le modele (contains) et les extrait (getglobal),
                 #doinside=evalICI,
-                #getparam=getparam, #fonction qui renvoie les paramètres du modèle pour vérification (getparam), et qui les modifie (setparam),
+                #getparam=getparam, #fonction qui renvoie les parametres du modele pour verification (getparam), et qui les modifie (setparam),
                 #setparam=print("reverifier setparam, en particulier ce qui doit etre recalcule une fois au debut de la simu"), #setparam,
                 GetAllForDebuggingPurposes=mGetAllForDebuggingPurposes,
                 setoptions=mCompletePARAMSIM,
@@ -40,19 +48,20 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
   if (inputsfromplatform) {
     #read simulation options from csv, declare formats as "platform"
     if (!is.null(userid)) {
-      csvcontent<-read.csv(normalizePath(paste(paste0("user_", userid), "inputplatform/SimulationOptions.csv", sep="/"))) #contains lat, lon, rotation, date
-      if (!dir.exists(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))) { dir.create(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))}
+      SimulationOptionspath<-normalizePath(paste(paste0("user_", userid), "inputplatform/SimulationOptions.csv")) 
+      if (!userid_fileonly) if (!dir.exists(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))) { dir.create(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))}
     } else {
-      csvcontent<-read.csv(normalizePath("inputplatform/SimulationOptions.csv")) #contains lat, lon, rotation, date
+      SimulationOptionspath<-normalizePath("inputplatform/SimulationOptions.csv")
     }
+    csvcontent<-read.csv(SimulationOptionspath) #one row of data with columns lat, lon, rotation, management, date (rotation and management are like 'Chickpea.Ghab2'_'MAIZE.bidule'_'WHEAT.Ble_Dur_1')
     modeloptions<-list(climateformat="D4Declicplatform",
                        cropformat="standardSSM",
                        soilformat="D4Declicplatform",
-                       managformat="standardSSM",
+                       managformat="D4Declicplatform",
                        Neffect=FALSE)
     
     startingDate<-as.Date(csvcontent$startingDate)
-    if (is.null(csvcontent$startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate")
+    if (is.null(csvcontent$startingDate)) stop(paste("SimulationOptions.csv for inputsfromplatform must contain a column with startingDate but file", SimulationOptionspath, "does not"))
     if (is.na(startingDate)) stop("SimulationOptions.csv for inputsfromplatform must contain a startingDate in the form yyyy-mm-dd")
     modeloptions$simustart<-startingDate
     if (is.null(csvcontent$lat)) stop("SimulationOptions.csv for inputsfromplatform must contain a column with lat")
@@ -67,8 +76,8 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
     crops<-lapply(strsplit(as.character(csvcontent$rotation), split="'_'"), gsub, pattern="'" , replacement="", fixed=TRUE)[[1]]
     modeloptions$cases$rotation<-list(crops)
     #use a standard crop management for each crop
-    standardmanagement<-c("ROTATION_BLE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "ROTATION_POISCHICHE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "Gorgan-RFD")
-    names(standardmanagement)<-c("WHEAT.Ble_Dur_1", "WHEAT.Ble_Tendre_1", "WHEAT.Ble_Tendre_2","Chickpea.Ghab2", "WHEAT.Avoine_Romani", "WHEAT.Cocorit", "MAIZE.bidule")
+    #standardmanagement<-c("ROTATION_BLE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "ROTATION_POISCHICHE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "Gorgan-RFD")
+    #names(standardmanagement)<-c("WHEAT.Ble_Dur_1", "WHEAT.Ble_Tendre_1", "WHEAT.Ble_Tendre_2","Chickpea.Ghab2", "WHEAT.Avoine_Romani", "WHEAT.Cocorit", "MAIZE.bidule")
     management<-standardmanagement[crops]
     modeloptions$cases$management<-list(unname(management))
   } else { #old method 
@@ -107,8 +116,9 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
                     graph3="outputplatform/graph3.jpg",
                     wholedata="outputplatform/wholedata.csv"
                     )
-  if (is.null(userid)) {
+  if (userid_fileonly) {
     filesexport<-lapply(filesexport, normalizePath)
+    if (!is.null(userid)) filesexport$wholedata<-gsub(pattern=".csv", replacement=paste0("_", userid,".csv"), x=filesexport$wholedata, fixed=TRUE)
   } else {
     filesexport<-lapply(filesexport, function(x) normalizePath(paste(paste0("user_", userid), x, sep="/"), mustWork = FALSE))
   } 
@@ -117,7 +127,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL){
   dynamiques<-mymodel$plot(c("iTASMin", "iTASMax", "iRSDS"),
                            col=c(iTASMin="blue", iTASMax="red", iRSDS="black"), whatcol="variables",
                            lty=c(iTASMin=1, iTASMax=1, iRSDS=2), whatlty="variables",
-                           pch=NA, main="Min and max temperature and solar radiation")
+                           pch=NA, main="Min and max temperature and solar radiation for simulation" )
   dev.off()
   #export a 2nd simple graph as  jpeg
   jpeg(filesexport$graph2, width=500, height = 400)
