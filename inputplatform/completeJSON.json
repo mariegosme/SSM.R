@@ -1,0 +1,6318 @@
+{
+  "CMP": [
+    {
+      "name": "Atkinson_2015_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2015_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 114,
+          "Fpdoy": 115,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 25.5215,
+          "STBLW": 0.103
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 13,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 115,
+          "amount": 19.9,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 114,
+          "amount": 2.286,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 178,
+          "amount": 2.826,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 189,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 192,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 197,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 209,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 211,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 226,
+          "amount": 3.834,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 234,
+          "amount": 4.302,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 239,
+          "amount": 4.068,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 245,
+          "amount": 4.068,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 255,
+          "amount": 3.06,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 12,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 115,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 179,
+          "amount": 15.7
+        },
+        {
+          "DAPorCBDorDOY": 190,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 198,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 210,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 212,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 227,
+          "amount": 21.3
+        },
+        {
+          "DAPorCBDorDOY": 235,
+          "amount": 23.9
+        },
+        {
+          "DAPorCBDorDOY": 240,
+          "amount": 22.6
+        },
+        {
+          "DAPorCBDorDOY": 246,
+          "amount": 22.6
+        },
+        {
+          "DAPorCBDorDOY": 256,
+          "amount": 17
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2016_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2016_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 115,
+          "Fpdoy": 116,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 34.9592,
+          "STBLW": 0.0939
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 17,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 116,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 178,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 180,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 184,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 192,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 195,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 199,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 203,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 208,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 218,
+          "amount": 3.695,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 220,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 224,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 229,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 232,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 235,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 238,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 243,
+          "amount": 3.6463,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 179,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 196,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 200,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 209,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 219,
+          "amount": 15.2
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 225,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 230,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 239,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 244,
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2017_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2017_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 113,
+          "Fpdoy": 114,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 37.8505,
+          "STBLW": 0.112
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 17,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 114,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 172,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 174,
+          "amount": 4.312,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 177,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 182,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 188,
+          "amount": 7.26,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 192,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 197,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 203,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 210,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 216,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 220,
+          "amount": 5.588,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 235,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 237,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 241,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 244,
+          "amount": 4.862,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 173,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 175,
+          "amount": 19.6
+        },
+        {
+          "DAPorCBDorDOY": 178,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 183,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 33
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 198,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 211,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 217,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 238,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 242,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 245,
+          "amount": 22.1
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2016_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2016_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 115,
+          "Fpdoy": 116,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 35.7429,
+          "STBLW": 0.0939
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 22,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 116,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 178,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 180,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 184,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 192,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 195,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 199,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 203,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 208,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 218,
+          "amount": 3.695,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 220,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 224,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 229,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 232,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 235,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 238,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 243,
+          "amount": 3.6463,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 18,
+          "DAPorCBD": 154,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 19,
+          "DAPorCBD": 168,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 20,
+          "DAPorCBD": 182,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 21,
+          "DAPorCBD": 196,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 22,
+          "DAPorCBD": 210,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 179,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 196,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 200,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 209,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 219,
+          "amount": 15.2
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 225,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 230,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 239,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 244,
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2017_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2017_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 113,
+          "Fpdoy": 114,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 37.6261,
+          "STBLW": 0.112
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 22,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 114,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 172,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 174,
+          "amount": 4.312,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 177,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 182,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 188,
+          "amount": 7.26,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 192,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 197,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 203,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 210,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 216,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 220,
+          "amount": 5.588,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 235,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 237,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 241,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 244,
+          "amount": 4.862,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 18,
+          "DAPorCBD": 158,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 19,
+          "DAPorCBD": 170,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 20,
+          "DAPorCBD": 184,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 21,
+          "DAPorCBD": 198,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 22,
+          "DAPorCBD": 212,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 173,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 175,
+          "amount": 19.6
+        },
+        {
+          "DAPorCBDorDOY": 178,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 183,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 33
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 198,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 211,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 217,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 238,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 242,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 245,
+          "amount": 22.1
+        }
+      ]
+    },
+    {
+      "name": "Mead_2015_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Mead_2015_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 137,
+          "Fpdoy": 138,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 30.2995,
+          "STBLW": 0.2803
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 3,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 138,
+          "amount": 17.936,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 211,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 224,
+          "amount": 0,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 212,
+          "amount": 27.9
+        },
+        {
+          "DAPorCBDorDOY": 225,
+          "amount": 31.8
+        }
+      ]
+    },
+    {
+      "name": "Mead_2016_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Mead_2016_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 128,
+          "Fpdoy": 129,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 32.8759,
+          "STBLW": 0.347
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 3,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 129,
+          "amount": 13.452,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 220,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 223,
+          "amount": 0,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 224,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Mead_2017_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Mead_2017_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 125,
+          "Fpdoy": 126,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 25.3901,
+          "STBLW": 0.2136
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 3,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 126,
+          "amount": 12.331,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 200,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 215,
+          "amount": 0,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 201,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 216,
+          "amount": 33
+        }
+      ]
+    },
+    {
+      "name": "Mead_2016_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Mead_2016_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 128,
+          "Fpdoy": 129,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 32.8759,
+          "STBLW": 0.347
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 8,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 129,
+          "amount": 13.452,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 220,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 223,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 162,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 174,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 196,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 210,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 224,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Mead_2017_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Mead_2017_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 125,
+          "Fpdoy": 126,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 26.7328,
+          "STBLW": 0.2136
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 8,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 126,
+          "amount": 12.331,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 200,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 215,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 157,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 170,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 198,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 212,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 201,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 216,
+          "amount": 33
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2015_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Saronville_2015_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 121,
+          "Fpdoy": 122,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 30.1065,
+          "STBLW": 0.2176
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 8,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 122,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 191,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 201,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 217,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 227,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 235,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 242,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 246,
+          "amount": 0.7123,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 7,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 192,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 202,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 228,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 243,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 247,
+          "amount": 17.8
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2016_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Saronville_2016_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 116,
+          "Fpdoy": 117,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 28.7363,
+          "STBLW": 0.167
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 10,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 117,
+          "amount": 16.815,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 169,
+          "amount": 0.7479,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 179,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 190,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 194,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 203,
+          "amount": 0.9622,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 209,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 217,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 227,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 235,
+          "amount": 0.6386,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 9,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 170,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 180,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 191,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 195,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 210,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 228,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 15.2
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2017_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Saronville_2017_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 112,
+          "Fpdoy": 113,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 29.5966,
+          "STBLW": 0.2683
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 6,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 113,
+          "amount": 5.6,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 176,
+          "amount": 0.6766,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 184,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 188,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 193,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 196,
+          "amount": 0.9656,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 5,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 177,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 194,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 197,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2016_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Saronville_2016_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 116,
+          "Fpdoy": 117,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 28.8135,
+          "STBLW": 0.167
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 15,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 117,
+          "amount": 16.815,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 169,
+          "amount": 0.7479,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 179,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 190,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 194,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 203,
+          "amount": 0.9622,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 209,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 217,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 227,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 235,
+          "amount": 0.6386,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 154,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 170,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 182,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 192,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 207,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 9,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 170,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 180,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 191,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 195,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 210,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 228,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 15.2
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2017_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Saronville_2017_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 112,
+          "Fpdoy": 113,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 29.493,
+          "STBLW": 0.2683
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 11,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 113,
+          "amount": 5.6,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 176,
+          "amount": 0.6766,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 184,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 188,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 193,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 196,
+          "amount": 0.9656,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 156,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 172,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 186,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 200,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 214,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 5,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 177,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 194,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 197,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2015_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2015_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 132,
+          "Fpdoy": 133,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 33.8542,
+          "STBLW": 0.3945
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 7,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 133,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 179,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 188,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 199,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 212,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 234,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 244,
+          "amount": 1.4885,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 180,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 200,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 213,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 235,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 245,
+          "amount": 22.9
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2016_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2016_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 133,
+          "Fpdoy": 134,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 34.9409,
+          "STBLW": 0.5364
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 5,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 134,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 205,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 217,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 228,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 232,
+          "amount": 1.9825,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 206,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 229,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 30.5
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2017_Zero-N_sow",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2017_Zero-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 144,
+          "Fpdoy": 145,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 33.0545,
+          "STBLW": 0.2525
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 5,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 145,
+          "amount": 23.541,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 180,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 185,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 232,
+          "amount": 1.651,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 242,
+          "amount": 1.651,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 186,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 243,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2016_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2016_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 133,
+          "Fpdoy": 134,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 35.2075,
+          "STBLW": 0.5364
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 10,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 134,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 205,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 217,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 228,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 232,
+          "amount": 1.9825,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 169,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 187,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 196,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 208,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 214,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 206,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 229,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 30.5
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2017_Full-N_sow",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2017_Full-N_sow",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 144,
+          "Fpdoy": 145,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 32.5828,
+          "STBLW": 0.2525
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 10,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 145,
+          "amount": 23.541,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 180,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 185,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 232,
+          "amount": 1.651,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 242,
+          "amount": 1.651,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 165,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 179,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 194,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 207,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 221,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 186,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 243,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2015_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2015_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 115,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 25.5215,
+          "STBLW": 0.193
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 13,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 115,
+          "amount": 19.9,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 114,
+          "amount": 2.286,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 178,
+          "amount": 2.826,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 189,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 192,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 197,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 209,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 211,
+          "amount": 3.654,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 226,
+          "amount": 3.834,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 234,
+          "amount": 4.302,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 239,
+          "amount": 4.068,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 245,
+          "amount": 4.068,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 255,
+          "amount": 3.06,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 12,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 115,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 179,
+          "amount": 15.7
+        },
+        {
+          "DAPorCBDorDOY": 190,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 198,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 210,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 212,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 227,
+          "amount": 21.3
+        },
+        {
+          "DAPorCBDorDOY": 235,
+          "amount": 23.9
+        },
+        {
+          "DAPorCBDorDOY": 240,
+          "amount": 22.6
+        },
+        {
+          "DAPorCBDorDOY": 246,
+          "amount": 22.6
+        },
+        {
+          "DAPorCBDorDOY": 256,
+          "amount": 17
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2016_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2016_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 116,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 34.9592,
+          "STBLW": 0.1761
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 17,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 116,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 178,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 180,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 184,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 192,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 195,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 199,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 203,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 208,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 218,
+          "amount": 3.695,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 220,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 224,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 229,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 232,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 235,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 238,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 243,
+          "amount": 3.6463,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 179,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 196,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 200,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 209,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 219,
+          "amount": 15.2
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 225,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 230,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 239,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 244,
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2017_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2017_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 114,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 37.8505,
+          "STBLW": 0.21
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 17,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 114,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 172,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 174,
+          "amount": 4.312,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 177,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 182,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 188,
+          "amount": 7.26,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 192,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 197,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 203,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 210,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 216,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 220,
+          "amount": 5.588,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 235,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 237,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 241,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 244,
+          "amount": 4.862,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 173,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 175,
+          "amount": 19.6
+        },
+        {
+          "DAPorCBDorDOY": 178,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 183,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 33
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 198,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 211,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 217,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 238,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 242,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 245,
+          "amount": 22.1
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2016_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2016_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 116,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 35.7429,
+          "STBLW": 0.1761
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 22,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 116,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 178,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 180,
+          "amount": 3.0872,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 184,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 192,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 195,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 199,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 203,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 208,
+          "amount": 4.327,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 218,
+          "amount": 3.695,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 220,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 224,
+          "amount": 5.2993,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 229,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 232,
+          "amount": 4.643,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 235,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 238,
+          "amount": 5.0563,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 243,
+          "amount": 3.6463,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 18,
+          "DAPorCBD": 154,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 19,
+          "DAPorCBD": 168,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 20,
+          "DAPorCBD": 182,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 21,
+          "DAPorCBD": 196,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 22,
+          "DAPorCBD": 210,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 179,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 12.7
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 196,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 200,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 209,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 219,
+          "amount": 15.2
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 225,
+          "amount": 21.8
+        },
+        {
+          "DAPorCBDorDOY": 230,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 19.1
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 239,
+          "amount": 20.8
+        },
+        {
+          "DAPorCBDorDOY": 244,
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "name": "Atkinson_2017_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Atkinson_2017_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 114,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 37.6261,
+          "STBLW": 0.21
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 22,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 114,
+          "amount": 20.2,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 172,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 174,
+          "amount": 4.312,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 177,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 182,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 188,
+          "amount": 7.26,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 192,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 197,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 203,
+          "amount": 3.916,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 210,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 216,
+          "amount": 6.71,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 220,
+          "amount": 5.588,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 235,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 237,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 16,
+          "DAPorCBD": 241,
+          "amount": 4.466,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 17,
+          "DAPorCBD": 244,
+          "amount": 4.862,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 18,
+          "DAPorCBD": 158,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 19,
+          "DAPorCBD": 170,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 20,
+          "DAPorCBD": 184,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 21,
+          "DAPorCBD": 198,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 22,
+          "DAPorCBD": 212,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 16,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 173,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 175,
+          "amount": 19.6
+        },
+        {
+          "DAPorCBDorDOY": 178,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 183,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 33
+        },
+        {
+          "DAPorCBDorDOY": 193,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 198,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 211,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 217,
+          "amount": 30.5
+        },
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 238,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 242,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 245,
+          "amount": 22.1
+        }
+      ]
+    },
+    {
+      "name": "Mead_2015_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Mead_2015_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 138,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 30.2995,
+          "STBLW": 0.8409
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 3,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 138,
+          "amount": 17.936,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 211,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 224,
+          "amount": 0,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 212,
+          "amount": 27.9
+        },
+        {
+          "DAPorCBDorDOY": 225,
+          "amount": 31.8
+        }
+      ]
+    },
+    {
+      "name": "Mead_2016_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Mead_2016_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 129,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 32.8759,
+          "STBLW": 1.041
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 3,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 129,
+          "amount": 13.452,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 220,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 223,
+          "amount": 0,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 224,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Mead_2017_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Mead_2017_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 126,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 25.3901,
+          "STBLW": 0.6408
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 3,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 126,
+          "amount": 12.331,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 200,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 215,
+          "amount": 0,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 201,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 216,
+          "amount": 33
+        }
+      ]
+    },
+    {
+      "name": "Mead_2016_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Mead_2016_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 129,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 32.8759,
+          "STBLW": 1.041
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 8,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 129,
+          "amount": 13.452,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 220,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 223,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 162,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 174,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 196,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 210,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 221,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 224,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Mead_2017_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Mead_2017_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 126,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 26.7328,
+          "STBLW": 0.6408
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 8,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 126,
+          "amount": 12.331,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 200,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 215,
+          "amount": 0,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 157,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 170,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 184,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 198,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 212,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 201,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 216,
+          "amount": 33
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2015_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Saronville_2015_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 122,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 30.1065,
+          "STBLW": 0.5441
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 8,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 122,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 191,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 201,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 217,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 227,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 235,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 242,
+          "amount": 0.7123,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 246,
+          "amount": 0.7123,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 7,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 192,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 202,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 228,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 243,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 247,
+          "amount": 17.8
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2016_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Saronville_2016_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 117,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 28.7363,
+          "STBLW": 0.3131
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 10,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 117,
+          "amount": 16.815,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 169,
+          "amount": 0.7479,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 179,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 190,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 194,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 203,
+          "amount": 0.9622,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 209,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 217,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 227,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 235,
+          "amount": 0.6386,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 9,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 170,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 180,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 191,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 195,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 210,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 228,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 15.2
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2017_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Saronville_2017_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 113,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 29.5966,
+          "STBLW": 0.8049
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 6,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 113,
+          "amount": 5.6,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 176,
+          "amount": 0.6766,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 184,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 188,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 193,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 196,
+          "amount": 0.9656,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 5,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 177,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 194,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 197,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2016_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Saronville_2016_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 117,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 28.8135,
+          "STBLW": 0.3131
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 15,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 117,
+          "amount": 16.815,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 169,
+          "amount": 0.7479,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 179,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 190,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 194,
+          "amount": 0.8529,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 203,
+          "amount": 0.9622,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 209,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 217,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 227,
+          "amount": 1.0672,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 235,
+          "amount": 0.6386,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 154,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 12,
+          "DAPorCBD": 170,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 13,
+          "DAPorCBD": 182,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 14,
+          "DAPorCBD": 192,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 15,
+          "DAPorCBD": 207,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 9,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 170,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 180,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 191,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 195,
+          "amount": 20.3
+        },
+        {
+          "DAPorCBDorDOY": 204,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 210,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 228,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 236,
+          "amount": 15.2
+        }
+      ]
+    },
+    {
+      "name": "Saronville_2017_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Saronville_2017_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 113,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 29.493,
+          "STBLW": 0.8049
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 11,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 113,
+          "amount": 5.6,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 176,
+          "amount": 0.6766,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 184,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 188,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 193,
+          "amount": 0.8705,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 196,
+          "amount": 0.9656,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 156,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 172,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 186,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 200,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 11,
+          "DAPorCBD": 214,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 5,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 177,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 185,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 194,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 197,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2015_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2015_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2015,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 133,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 33.8542,
+          "STBLW": 0.5917
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 7,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 133,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 179,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 188,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 199,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 212,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 234,
+          "amount": 1.4885,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 244,
+          "amount": 1.4885,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 180,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 189,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 200,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 213,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 235,
+          "amount": 22.9
+        },
+        {
+          "DAPorCBDorDOY": 245,
+          "amount": 22.9
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2016_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2016_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 134,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 34.9409,
+          "STBLW": 0.8046
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 5,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 134,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 205,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 217,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 228,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 232,
+          "amount": 1.9825,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 206,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 229,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 30.5
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2017_Zero-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2017_Zero-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 145,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 33.0545,
+          "STBLW": 0.3788
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 5,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 145,
+          "amount": 23.541,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 180,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 185,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 232,
+          "amount": 1.651,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 242,
+          "amount": 1.651,
+          "FracVol": 0
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 186,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 243,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2016_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2016_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2016,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 134,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 35.2075,
+          "STBLW": 0.8046
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 10,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 134,
+          "amount": 0,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 205,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 217,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 228,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 232,
+          "amount": 1.9825,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 169,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 187,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 196,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 208,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 214,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 206,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 218,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 229,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 30.5
+        }
+      ]
+    },
+    {
+      "name": "Smithfield_2017_Full-N_doy1",
+      "dfCode": [
+        {
+          "Code": "Smithfield_2017_Full-N_doy1",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 1,
+          "Fpdoy": 145,
+          "StopDAP": 365,
+          "SowTmp": "-",
+          "Pden": 32.5828,
+          "STBLW": 0.3788
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 10,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 145,
+          "amount": 23.541,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 180,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 3,
+          "DAPorCBD": 185,
+          "amount": 1.157,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 4,
+          "DAPorCBD": 232,
+          "amount": 1.651,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 5,
+          "DAPorCBD": 242,
+          "amount": 1.651,
+          "FracVol": 0
+        },
+        {
+          "NapplNumber": 6,
+          "DAPorCBD": 165,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 7,
+          "DAPorCBD": 179,
+          "amount": 87,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 8,
+          "DAPorCBD": 194,
+          "amount": 174,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 9,
+          "DAPorCBD": 207,
+          "amount": 260,
+          "FracVol": 10
+        },
+        {
+          "NapplNumber": 10,
+          "DAPorCBD": 221,
+          "amount": 260,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 4,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 181,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 186,
+          "amount": 17.8
+        },
+        {
+          "DAPorCBDorDOY": 233,
+          "amount": 25.4
+        },
+        {
+          "DAPorCBDorDOY": 243,
+          "amount": 25.4
+        }
+      ]
+    },
+    {
+      "name": "Rabat_NI",
+      "dfCode": [
+        {
+          "Code": "Rabat_NI",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2014,
+          "yrno": 1,
+          "SimDoy": 274,
+          "Fpdoy": 336,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 16.7,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 1,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 76,
+          "amount": 1,
+          "FracVol": 7
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 2,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 338,
+          "amount": 0
+        },
+        {
+          "DAPorCBDorDOY": 67,
+          "amount": 0
+        }
+      ]
+    },
+    {
+      "name": "Rabat_I",
+      "dfCode": [
+        {
+          "Code": "Rabat_I",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2014,
+          "yrno": 1,
+          "SimDoy": 274,
+          "Fpdoy": 336,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 16.7,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 1,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 76,
+          "amount": 1,
+          "FracVol": 7
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 20,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 338
+        },
+        {
+          "DAPorCBDorDOY": 65
+        },
+        {
+          "DAPorCBDorDOY": 68
+        },
+        {
+          "DAPorCBDorDOY": 69
+        },
+        {
+          "DAPorCBDorDOY": 70
+        },
+        {
+          "DAPorCBDorDOY": 71
+        },
+        {
+          "DAPorCBDorDOY": 72
+        },
+        {
+          "DAPorCBDorDOY": 75
+        },
+        {
+          "DAPorCBDorDOY": 76
+        },
+        {
+          "DAPorCBDorDOY": 96
+        },
+        {
+          "DAPorCBDorDOY": 97
+        },
+        {
+          "DAPorCBDorDOY": 98
+        },
+        {
+          "DAPorCBDorDOY": 99
+        },
+        {
+          "DAPorCBDorDOY": 100
+        },
+        {
+          "DAPorCBDorDOY": 103
+        },
+        {
+          "DAPorCBDorDOY": 104
+        },
+        {
+          "DAPorCBDorDOY": 105
+        },
+        {
+          "DAPorCBDorDOY": 106
+        },
+        {
+          "DAPorCBDorDOY": 107
+        },
+        {
+          "DAPorCBDorDOY": 110
+        }
+      ]
+    },
+    {
+      "name": "Bouznika_NI",
+      "dfCode": [
+        {
+          "Code": "Bouznika_NI",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2014,
+          "yrno": 1,
+          "SimDoy": 274,
+          "Fpdoy": 323,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 16.7,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 1,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 76,
+          "amount": 1,
+          "FracVol": 7
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 1,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 325
+        }
+      ]
+    },
+    {
+      "name": "Marchouche_2017",
+      "dfCode": [
+        {
+          "Code": "Marchouche_2017",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2017,
+          "yrno": 1,
+          "SimDoy": 243,
+          "Fpdoy": 356,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 20,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": {},
+      "waterdf": []
+    },
+    {
+      "name": "Marchouche_2018",
+      "dfCode": [
+        {
+          "Code": "Marchouche_2018",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2018,
+          "yrno": 1,
+          "SimDoy": 243,
+          "Fpdoy": 362,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 20,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 1,
+      "waterDatetype": 2,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 2,
+          "amount": 9
+        }
+      ]
+    },
+    {
+      "name": "beja_2008",
+      "dfCode": [
+        {
+          "Code": "beja_2008",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2008,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 332,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 14,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "beja_2009",
+      "dfCode": [
+        {
+          "Code": "beja_2009",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2009,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 323,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 14,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "beja_2010",
+      "dfCode": [
+        {
+          "Code": "beja_2010",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2010,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 329,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 14,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "beja_2011",
+      "dfCode": [
+        {
+          "Code": "beja_2011",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2011,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 339,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 14,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TH_2008_RF",
+      "dfCode": [
+        {
+          "Code": "TH_2008_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2008,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 343,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "KF_2008_RF",
+      "dfCode": [
+        {
+          "Code": "KF_2008_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2008,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 317,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TH_2009_RF",
+      "dfCode": [
+        {
+          "Code": "TH_2009_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2009,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 339,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TH_2009_100IR",
+      "dfCode": [
+        {
+          "Code": "TH_2009_100IR",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2009,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 339,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 1,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 81
+        },
+        {
+          "DAPorCBDorDOY": 89
+        },
+        {
+          "DAPorCBDorDOY": 97
+        },
+        {
+          "DAPorCBDorDOY": 105
+        },
+        {
+          "DAPorCBDorDOY": 113
+        }
+      ]
+    },
+    {
+      "name": "KF_2009_RF",
+      "dfCode": [
+        {
+          "Code": "KF_2009_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2009,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 333,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TH_2010_RF",
+      "dfCode": [
+        {
+          "Code": "TH_2010_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2010,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 343,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TH_2010_100IR",
+      "dfCode": [
+        {
+          "Code": "TH_2010_100IR",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2010,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 343,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 1,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 84
+        },
+        {
+          "DAPorCBDorDOY": 92
+        },
+        {
+          "DAPorCBDorDOY": 100
+        },
+        {
+          "DAPorCBDorDOY": 108
+        },
+        {
+          "DAPorCBDorDOY": 116
+        }
+      ]
+    },
+    {
+      "name": "KF_2010_RF",
+      "dfCode": [
+        {
+          "Code": "KF_2010_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2010,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 343,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TR_2011_RF",
+      "dfCode": [
+        {
+          "Code": "TR_2011_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2011,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 341,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TR_2011_100IR",
+      "dfCode": [
+        {
+          "Code": "TR_2011_100IR",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2011,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 341,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 1,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 114
+        },
+        {
+          "DAPorCBDorDOY": 122
+        },
+        {
+          "DAPorCBDorDOY": 130
+        },
+        {
+          "DAPorCBDorDOY": 138
+        },
+        {
+          "DAPorCBDorDOY": 146
+        }
+      ]
+    },
+    {
+      "name": "TH_2011_RF",
+      "dfCode": [
+        {
+          "Code": "TH_2011_RF",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2011,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 339,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 2,
+      "waterdf": []
+    },
+    {
+      "name": "TH_2011_100IR",
+      "dfCode": [
+        {
+          "Code": "TH_2011_100IR",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2011,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 339,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 1,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 99
+        },
+        {
+          "DAPorCBDorDOY": 107
+        },
+        {
+          "DAPorCBDorDOY": 115
+        },
+        {
+          "DAPorCBDorDOY": 123
+        },
+        {
+          "DAPorCBDorDOY": 131
+        }
+      ]
+    },
+    {
+      "name": "TH_2009_100IR_CBD",
+      "dfCode": [
+        {
+          "Code": "TH_2009_100IR_CBD",
+          "Description:": "TH_2009_100IR avec irrigation basée sur CBD avec l'approximation 1 DAP=0.5 CBD aux alentours de la floraison"
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2009,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 339,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 2,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 36
+        },
+        {
+          "DAPorCBDorDOY": 39.5
+        },
+        {
+          "DAPorCBDorDOY": 43
+        },
+        {
+          "DAPorCBDorDOY": 46.5
+        },
+        {
+          "DAPorCBDorDOY": 50
+        }
+      ]
+    },
+    {
+      "name": "TH_2010_100IR_CBD",
+      "dfCode": [
+        {
+          "Code": "TH_2010_100IR_CBD",
+          "Description:": "TH_2009_100IR avec irrigation basée sur CBD avec l'approximation 1 DAP=0.5 CBD aux alentours de la floraison"
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2010,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 343,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 2,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 36
+        },
+        {
+          "DAPorCBDorDOY": 39.5
+        },
+        {
+          "DAPorCBDorDOY": 43
+        },
+        {
+          "DAPorCBDorDOY": 46.5
+        },
+        {
+          "DAPorCBDorDOY": 50
+        }
+      ]
+    },
+    {
+      "name": "TH_2011_100IR_CBD",
+      "dfCode": [
+        {
+          "Code": "TH_2011_100IR_CBD",
+          "Description:": "TH_2009_100IR avec irrigation basée sur CBD avec l'approximation 1 DAP=0.5 CBD aux alentours de la floraison"
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2011,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 339,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 2,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 36
+        },
+        {
+          "DAPorCBDorDOY": 39.5
+        },
+        {
+          "DAPorCBDorDOY": 43
+        },
+        {
+          "DAPorCBDorDOY": 46.5
+        },
+        {
+          "DAPorCBDorDOY": 50
+        }
+      ]
+    },
+    {
+      "name": "TR_2011_100IR_CBD",
+      "dfCode": [
+        {
+          "Code": "TR_2011_100IR_CBD",
+          "Description:": "TH_2009_100IR avec irrigation basée sur CBD avec l'approximation 1 DAP=0.5 CBD aux alentours de la floraison"
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 0,
+          "Fyear": 2011,
+          "yrno": 1,
+          "SimDoy": 244,
+          "Fpdoy": 341,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 10,
+          "STBLW": 0
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": 3,
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 4,
+      "waterNumber": 5,
+      "waterDatetype": 2,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 36
+        },
+        {
+          "DAPorCBDorDOY": 39.5
+        },
+        {
+          "DAPorCBDorDOY": 43
+        },
+        {
+          "DAPorCBDorDOY": 46.5
+        },
+        {
+          "DAPorCBDorDOY": 50
+        }
+      ]
+    },
+    {
+      "name": "ROTATION_BLE",
+      "dfCode": [
+        {
+          "Code": "ROTATION_BLE",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 2007,
+          "yrno": 1,
+          "SimDoy": 20,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.2,
+          "Pden": 280,
+          "STBLW": 0.01
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 1,
+      "nitrogenDatetype": 1,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 1,
+          "amount": 5,
+          "FracVol": 7
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "ROTATION_BLE_IRRIGUE",
+      "dfCode": [
+        {
+          "Code": "ROTATION_BLE_IRRIGUE",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1981,
+          "yrno": 1,
+          "SimDoy": 116,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 280,
+          "STBLW": 0.6489
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 1,
+      "nitrogenDatetype": 1,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 1,
+          "amount": 5,
+          "FracVol": 7
+        }
+      ],
+      "waterLevel": 0.25,
+      "waterScenario": 1,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "ROTATION_POISCHICHE",
+      "dfCode": [
+        {
+          "Code": "ROTATION_POISCHICHE",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "Gorgan-RFD",
+      "dfCode": [
+        {
+          "Code": "Gorgan-RFD"
+        }
+      ],
+      "dfSowing": [
+        {
+          "yrno": 3,
+          "FixFind": 1,
+          "Fyear": 2005,
+          "Fpdoy": 175,
+          "Pden": 7,
+          "Lpdoy": 200,
+          "STBLW": 1
+        }
+      ],
+      "nitrogenScenario": 0,
+      "nitrogenNumber": 2,
+      "nitrogenDatetype": 2,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 1,
+          "amount": 2.3,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 10,
+          "amount": 3.45,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0.5,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "essai_bidon_irrigation_DAP",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_DAP",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 1,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 10,
+          "amount": 10
+        },
+        {
+          "DAPorCBDorDOY": 20,
+          "amount": 25
+        },
+        {
+          "DAPorCBDorDOY": 30,
+          "amount": 40
+        },
+        {
+          "DAPorCBDorDOY": 40,
+          "amount": 30
+        },
+        {
+          "DAPorCBDorDOY": 50,
+          "amount": 5
+        },
+        {
+          "DAPorCBDorDOY": 60,
+          "amount": 18
+        }
+      ]
+    },
+    {
+      "name": "essai_bidon_irrigation_DOY",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_DOY",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 289,
+          "amount": 10
+        },
+        {
+          "DAPorCBDorDOY": 296,
+          "amount": 25
+        },
+        {
+          "DAPorCBDorDOY": 303,
+          "amount": 40
+        },
+        {
+          "DAPorCBDorDOY": 1,
+          "amount": 30
+        },
+        {
+          "DAPorCBDorDOY": 8,
+          "amount": 5
+        },
+        {
+          "DAPorCBDorDOY": 15,
+          "amount": 18
+        }
+      ]
+    },
+    {
+      "name": "essai_bidon_irrigation_CBD",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_CBD",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 2,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 5,
+          "amount": 10
+        },
+        {
+          "DAPorCBDorDOY": 10,
+          "amount": 25
+        },
+        {
+          "DAPorCBDorDOY": 12,
+          "amount": 40
+        },
+        {
+          "DAPorCBDorDOY": 20,
+          "amount": 30
+        },
+        {
+          "DAPorCBDorDOY": 30,
+          "amount": 5
+        },
+        {
+          "DAPorCBDorDOY": 40,
+          "amount": 18
+        }
+      ]
+    },
+    {
+      "name": "essai_bidon_irrigation_CBDautoAmount",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_CBDautoAmount",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 4,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 5,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 10,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 12,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 20,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 30,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 40,
+          "amount": 1978
+        }
+      ]
+    }
+  ]
+}
