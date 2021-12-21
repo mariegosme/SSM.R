@@ -272,16 +272,8 @@ eReadManagement<-function(){
         liste$name<-NULL; 
         liste$dfCode<-liste$dfCode[[1]]
         liste$dfSowing<-liste$dfSowing[[1]]
-        liste$"nitrogenScenario"<-liste$"nitrogenScenario"[[1]]
-        liste$"nitrogenNumber"<-liste$"nitrogenNumber"[[1]]
-        liste$"nitrogenDatetype"<-liste$"nitrogenDatetype"[[1]]
-        liste$"waterLevel"<-liste$"waterLevel"[[1]]
-        liste$"waterScenario"<-liste$"waterScenario"[[1]]
-        liste$"waterNumber"<-liste$"waterNumber"[[1]]
-        liste$"waterDatetype"<-liste$"waterDatetype"[[1]]
         liste$"nitrogendf"<-liste$"nitrogendf"[[1]]
         liste$"waterdf"<-liste$"waterdf"[[1]]
-        
         return(liste)
       })
     } else  {
