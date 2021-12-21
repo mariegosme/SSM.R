@@ -257,12 +257,14 @@ eReadManagement<-function(){
       allmanag<-c(allmanag, toto)
     }
     } else if(PARAMSIM$managformat=="D4Declicplatform"){
-      if(!exists("USERID", envir=ICI)) {
+      if(exists("USERID", envir=ICI)) {
         if (dir.exists(paste(paste0("user_", USERID)))){
           path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/managementPlans.json", sep="/")) 
+          
         } else path<-normalizePath("inputplatform/managementPlans.json")
       } else path<-normalizePath("inputplatform/managementPlans.json")
       library(jsonlite)
+      print(paste("reading management plan from json", path))
       allmanag<-fromJSON(readLines(path))
     } else  {
       stop("Only standard SSM or D4Declicplatform formats are supported for crop management data")

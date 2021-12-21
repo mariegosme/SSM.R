@@ -1,0 +1,67 @@
+	{"name": "example_Wheat_irrigation_CBDautoAmount",
+      "dfCode":
+         {
+            "Code":"example_Wheat_irrigation_CBDautoAmount",
+            "Description:": "Example of wheat management with irrigation based on Cumulative Biological Day and amount automatically computed to fill "
+         }  ,
+      "dfSowing":
+         {
+            "FixFind":4,
+            "Fyear":1980,
+            "yrno":1,
+            "SimDoy":67,
+            "Fpdoy":288,
+            "Lpdoy":20,
+            "StopDAP":280,
+            "SowTmp":"-",
+            "SowWat":0.21,
+            "Pden":30,
+            "STBLW":1.7658
+         } ,
+      "nitrogenScenario": 2,
+      "nitrogenNumber":0,
+      "nitrogenDatetype": "-" ,
+      "nitrogendf":[
+         {
+            "NapplNumber":1,
+            "DAPorCBD":1,
+            "amount":15,
+            "FracVol":33
+         },
+         {
+            "NapplNumber":2,
+            "DAPorCBD":30,
+            "amount":30,
+            "FracVol":33
+         }
+      ],
+      "waterLevel":0 ,
+      "waterScenario":3 ,
+      "waterNumber":6 ,
+      "waterDatetype": 4 ,
+      "waterdf":
+         {
+            "DAPorCBDorDOY":5,
+            "amount":1978
+         },
+         {
+            "DAPorCBDorDOY":10,
+            "amount":1978
+         },
+         {
+            "DAPorCBDorDOY":12,
+            "amount":1978
+         },
+         {
+            "DAPorCBDorDOY":20,
+            "amount":1978
+         },
+         {
+            "DAPorCBDorDOY":30,
+            "amount":1978
+         },
+         {
+            "DAPorCBDorDOY":40,
+            "amount":1978
+         }    
+	}
