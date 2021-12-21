@@ -51,7 +51,7 @@ eReadClimate<-function(){
     stop("netCDF format not yet supported for climate")
     #do something, e.g. just open the metadata
   } else if (PARAMSIM$climateformat=="D4Declicplatform") {
-    if(!exists("USERID", envir=ICI)) {
+    if(exists("USERID", envir=ICI)) {
       if (dir.exists(paste(paste0("user_", USERID)))){
         path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/climates.csv", sep="/")) 
       } else path<-normalizePath("inputplatform/climates.csv")
@@ -111,7 +111,7 @@ eReadSoil<-function(){
     #other info in database: EXTR OC (organic carbon?), DULg, PO, e
     #missing info for SSM: "pSoilDryness", "iniWL", "pStones", "pOrganicN", "PFractionMineralizableN", "pInitialNitrateConcentration", "pInitialAmmoniumConcentration"
     ALLSOILS<-list()
-    if(!exists("USERID", envir=ICI)) {
+    if(exists("USERID", envir=ICI)) {
       if (dir.exists(paste(paste0("user_", USERID)))){
         path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/Soil.csv", sep="/")) 
       } else path<-normalizePath("inputplatform/Soil.csv")
@@ -266,6 +266,24 @@ eReadManagement<-function(){
       library(jsonlite)
       print(paste("reading management plan from json", path))
       allmanag<-fromJSON(readLines(path))
+      allmanag<-lapply(1:nrow(allmanag$CMP), function(i) return(as.list(allmanag$CMP[i,])))
+      names(allmanag)<-sapply(allmanag, function(liste) liste$name)
+      allmanag<-lapply(allmanag, function (liste) {
+        liste$name<-NULL; 
+        liste$dfCode<-liste$dfCode[[1]]
+        liste$dfSowing<-liste$dfSowing[[1]]
+        liste$"nitrogenScenario"<-liste$"nitrogenScenario"[[1]]
+        liste$"nitrogenNumber"<-liste$"nitrogenNumber"[[1]]
+        liste$"nitrogenDatetype"<-liste$"nitrogenDatetype"[[1]]
+        liste$"waterLevel"<-liste$"waterLevel"[[1]]
+        liste$"waterScenario"<-liste$"waterScenario"[[1]]
+        liste$"waterNumber"<-liste$"waterNumber"[[1]]
+        liste$"waterDatetype"<-liste$"waterDatetype"[[1]]
+        liste$"nitrogendf"<-liste$"nitrogendf"[[1]]
+        liste$"waterdf"<-liste$"waterdf"[[1]]
+        
+        return(liste)
+      })
     } else  {
       stop("Only standard SSM or D4Declicplatform formats are supported for crop management data")
     }

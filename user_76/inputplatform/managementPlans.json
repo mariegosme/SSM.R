@@ -1,11 +1,11 @@
-{
-   "example_rainfedWheat":{
+{"CMP":[
+   {"name": "example_rainfedWheat", 
       "dfCode":[
          {
             "Code":"example_rainfedWheat",
             "Description:": "Example of rainfed wheat management"
          }
-      ],
+	],
       "dfSowing":[
          {
             "FixFind":4,
@@ -21,15 +21,9 @@
             "STBLW":0.01
          }
       ],
-      "nitrogenScenario":[
-         2
-      ],
-      "nitrogenNumber":[
-         1
-      ],
-      "nitrogenDatetype":[
-         1
-      ],
+      "nitrogenScenario":[2],
+      "nitrogenNumber":[1],
+      "nitrogenDatetype":[1],
       "nitrogendf":[
          {
             "NapplNumber":1,
@@ -38,24 +32,15 @@
             "FracVol":7
          }
       ],
-      "waterLevel":[
-         0
-      ],
-      "waterScenario":[
-         2
-      ],
-      "waterNumber":[
-         0
-      ],
-      "waterDatetype":[
-         0
-      ],
-      "waterdf":[
-         
+      "waterLevel":[0],
+      "waterScenario":[2],
+      "waterNumber":[0],
+      "waterDatetype":[0],
+      "waterdf":[         
       ]
    },
-   "example_rainfedChickPea":{
-      "dfCode":[
+   {"name": "example_rainfedChickPea",
+          "dfCode":[
          {
             "Code":"example_rainfedChickPea",
             "Description:": "Example of rainfed wheat management"
@@ -103,8 +88,9 @@
       "waterdf":[
          
       ]
+   
    },
-   "example_Maize_fixed_irrigation":{
+   {"name": "example_Maize_fixed_irrigation",    
       "dfCode":[
          {
             "Code":"example_Maize_fixed_irrigation",
@@ -187,8 +173,9 @@
             "amount":18
          }
       ]
-   },
-   "example_Wheat_irrigation_DAP":{
+    
+	},
+   {"name": "example_Wheat_irrigation_DAP",
       "dfCode":[
          {
             "Code":"example_Wheat_irrigation_DAP",
@@ -260,8 +247,9 @@
             "amount":18
          }
       ]
+   
    },
-   "example_Wheat_irrigation_DOY":{
+   {"name": "example_Wheat_irrigation_DOY",
       "dfCode":[
          {
             "Code":"example_Wheat_irrigation_DOY",
@@ -333,8 +321,9 @@
             "amount":18
          }
       ]
+   
    },
-   "example_Wheat_irrigation_CBD":{
+   {"name": "example_Wheat_irrigation_CBD",
       "dfCode":[
          {
             "Code":"example_Wheat_irrigation_CBD",
@@ -406,8 +395,8 @@
             "amount":18
          }
       ]
-   },
-   "example_Wheat_irrigation_CBDautoAmount":{
+  },
+   {"name": "example_Wheat_irrigation_CBDautoAmount",
       "dfCode":[
          {
             "Code":"example_Wheat_irrigation_CBDautoAmount",
@@ -479,8 +468,8 @@
             "amount":1978
          }
       ]
-   },
-   "empty":{
+ },
+   {"name": "empty",    
       "dfCode":[
          {
             "Code":"empty",
@@ -528,5 +517,7 @@
       ],
       "waterdf":[
       ]
-   }
+
+}
+]
 }
