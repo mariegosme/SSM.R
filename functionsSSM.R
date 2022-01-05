@@ -557,31 +557,37 @@ rIrrigation<-function() {
   #### 2 rainfed: do nothing
   
   #### 3 fixed irrigation
-  irrigationnumberchecked<-ALLDAYDATA$sIrrigationNumber+1 #check if today is the day of the next irrigation (from alldaydata=>from yesterdays irrigation number)
-  thresholds<-mapply(function(df,rownum) return(df[rownum,"DAPorCBDorDOY"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterdf"), rownum=irrigationnumberchecked)
-  amounts<-mapply(function(df,rownum) return(df[rownum,"amount"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterdf"), rownum=irrigationnumberchecked)
-  waterdatetypes<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterDatetype") 
-  DAP<-length(ALLSIMULATEDDATA)-ALLDAYDATA$sLastSowing
-  CBD<-ALLDAYDATA$sBiologicalDaysSinceSowing
-  DOY<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
-  
-  irrigation3.1<-waterscenarios==3 & waterdatetypes==1 & DAP==thresholds # 1 DAP
-  cIrrigationWater[irrigation3.1]<-amounts[irrigation3.1]
-  sIrrigationNumber[irrigation3.1]<-sIrrigationNumber[irrigation3.1]+1
-  
-  irrigation3.2<-waterscenarios==3 & waterdatetypes==2 & CBD>=thresholds # 2 CBD
-  cIrrigationWater[irrigation3.2]<-amounts[irrigation3.2]
-  sIrrigationNumber[irrigation3.2]<-sIrrigationNumber[irrigation3.2]+1
-  
-  irrigation3.3<-waterscenarios==3 & waterdatetypes==3 & thresholds==DOY # 3 DOY
-  cIrrigationWater[irrigation3.3]<-amounts[irrigation3.3]
-  sIrrigationNumber[irrigation3.3]<-sIrrigationNumber[irrigation3.3]+1
-  
-  irrigation3.4<-waterscenarios==3 & waterdatetypes==4 & CBD>=thresholds # 3 CBD with automatic amount to fill to field capacity
-  amounts<-(apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="TTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE)
-            -apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="ATSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE))#TTSWRZ-ATSWRZ with water content from yesterday and root length from yesterday
-  cIrrigationWater[irrigation3.4]<-amounts[irrigation3.4]
-  sIrrigationNumber[irrigation3.4]<-sIrrigationNumber[irrigation3.4]+1
+  irrigation3<-waterscenarios==3
+  if(sum(irrigation3>0)){
+    irrigationnumberchecked<-ALLDAYDATA$sIrrigationNumber+1 #check if today is the day of the next irrigation (from alldaydata=>from yesterdays irrigation number)
+    print(str(lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterdf")))
+    print(str(irrigationnumberchecked))
+    thresholds<-mapply(function(df,rownum) return(df[rownum,"DAPorCBDorDOY"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterdf"), rownum=irrigationnumberchecked)
+    amounts<-mapply(function(df,rownum) return(df[rownum,"amount"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterdf"), rownum=irrigationnumberchecked)
+    waterdatetypes<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterDatetype") 
+    DAP<-length(ALLSIMULATEDDATA)-ALLDAYDATA$sLastSowing
+    CBD<-ALLDAYDATA$sBiologicalDaysSinceSowing
+    DOY<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
+    
+    irrigation3.1<-waterscenarios==3 & waterdatetypes==1 & DAP==thresholds # 1 DAP
+    cIrrigationWater[irrigation3.1]<-amounts[irrigation3.1]
+    sIrrigationNumber[irrigation3.1]<-sIrrigationNumber[irrigation3.1]+1
+    
+    irrigation3.2<-waterscenarios==3 & waterdatetypes==2 & CBD>=thresholds # 2 CBD
+    cIrrigationWater[irrigation3.2]<-amounts[irrigation3.2]
+    sIrrigationNumber[irrigation3.2]<-sIrrigationNumber[irrigation3.2]+1
+    
+    irrigation3.3<-waterscenarios==3 & waterdatetypes==3 & thresholds==DOY # 3 DOY
+    cIrrigationWater[irrigation3.3]<-amounts[irrigation3.3]
+    sIrrigationNumber[irrigation3.3]<-sIrrigationNumber[irrigation3.3]+1
+    
+    irrigation3.4<-waterscenarios==3 & waterdatetypes==4 & CBD>=thresholds # 3 CBD with automatic amount to fill to field capacity
+    amounts<-(apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="TTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE)
+              -apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="ATSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE))#TTSWRZ-ATSWRZ with water content from yesterday and root length from yesterday
+    cIrrigationWater[irrigation3.4]<-amounts[irrigation3.4]
+    sIrrigationNumber[irrigation3.4]<-sIrrigationNumber[irrigation3.4]+1
+    
+  }
   
   #update computed and state variable
   ALLDAYDATA[,c("cIrrigationWater", "sIrrigationNumber")]<<-data.frame(cIrrigationWater, sIrrigationNumber)

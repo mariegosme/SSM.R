@@ -51,7 +51,7 @@ eReadClimate<-function(){
     stop("netCDF format not yet supported for climate")
     #do something, e.g. just open the metadata
   } else if (PARAMSIM$climateformat=="D4Declicplatform") {
-    if(!exists("USERID", envir=ICI)) {
+    if(exists("USERID", envir=ICI)) {
       if (dir.exists(paste(paste0("user_", USERID)))){
         path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/climates.csv", sep="/")) 
       } else path<-normalizePath("inputplatform/climates.csv")
@@ -111,7 +111,7 @@ eReadSoil<-function(){
     #other info in database: EXTR OC (organic carbon?), DULg, PO, e
     #missing info for SSM: "pSoilDryness", "iniWL", "pStones", "pOrganicN", "PFractionMineralizableN", "pInitialNitrateConcentration", "pInitialAmmoniumConcentration"
     ALLSOILS<-list()
-    if(!exists("USERID", envir=ICI)) {
+    if(exists("USERID", envir=ICI)) {
       if (dir.exists(paste(paste0("user_", USERID)))){
         path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/Soil.csv", sep="/")) 
       } else path<-normalizePath("inputplatform/Soil.csv")
@@ -242,12 +242,14 @@ eReadManagement<-function(){
       dfSowing<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+2):(startManag[i]+3), cols=1:11)
       nitrogenScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=2, colNames=FALSE)[1,1]
       nitrogenNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=2, colNames=FALSE)[1,1]
+      if(is.null(nitrogenNumber)) nitrogenNumber<-0
       nitrogenDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=2, colNames=FALSE)[1,1]
       nitrogendf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+nitrogenNumber), cols=1:4)
       names(nitrogendf)<-c("NapplNumber", "DAPorCBD", "amount", "FracVol")
       waterLevel<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=7, colNames=FALSE)[1,1]
       waterScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=6, colNames=FALSE)[1,1]
       waterNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=6, colNames=FALSE)[1,1]
+      if(is.null(waterNumber)) waterNumber<-0
       waterDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=6, colNames=FALSE)[1,1]
       waterdf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+waterNumber), cols=5:6)
       names(waterdf)<-c("DAPorCBDorDOY", "amount")
@@ -257,13 +259,25 @@ eReadManagement<-function(){
       allmanag<-c(allmanag, toto)
     }
     } else if(PARAMSIM$managformat=="D4Declicplatform"){
-      if(!exists("USERID", envir=ICI)) {
+      if(exists("USERID", envir=ICI)) {
         if (dir.exists(paste(paste0("user_", USERID)))){
           path<-normalizePath(paste(paste0("user_", USERID), "inputplatform/managementPlans.json", sep="/")) 
+          
         } else path<-normalizePath("inputplatform/managementPlans.json")
       } else path<-normalizePath("inputplatform/managementPlans.json")
       library(jsonlite)
+      print(paste("reading management plan from json", path))
       allmanag<-fromJSON(readLines(path))
+      allmanag<-lapply(1:nrow(allmanag$CMP), function(i) return(as.list(allmanag$CMP[i,])))
+      names(allmanag)<-sapply(allmanag, function(liste) liste$name)
+      allmanag<-lapply(allmanag, function (liste) {
+        liste$name<-NULL; 
+        liste$dfCode<-liste$dfCode[[1]]
+        liste$dfSowing<-liste$dfSowing[[1]]
+        liste$"nitrogendf"<-liste$"nitrogendf"[[1]]
+        liste$"waterdf"<-liste$"waterdf"[[1]]
+        return(liste)
+      })
     } else  {
       stop("Only standard SSM or D4Declicplatform formats are supported for crop management data")
     }

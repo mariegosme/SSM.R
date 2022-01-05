@@ -1,0 +1,390 @@
+{
+  "CMP": [
+    {
+      "name": "ROTATION_BLE",
+      "dfCode": [
+        {
+          "Code": "ROTATION_BLE",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 2007,
+          "yrno": 1,
+          "SimDoy": 20,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.2,
+          "Pden": 280,
+          "STBLW": 0.01
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 1,
+      "nitrogenDatetype": 1,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 1,
+          "amount": 5,
+          "FracVol": 7
+        }
+      ],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "ROTATION_BLE_IRRIGUE",
+      "dfCode": [
+        {
+          "Code": "ROTATION_BLE_IRRIGUE",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1981,
+          "yrno": 1,
+          "SimDoy": 116,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.3,
+          "Pden": 280,
+          "STBLW": 0.6489
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 1,
+      "nitrogenDatetype": 1,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 1,
+          "amount": 5,
+          "FracVol": 7
+        }
+      ],
+      "waterLevel": 0.25,
+      "waterScenario": 1,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "ROTATION_POISCHICHE",
+      "dfCode": [
+        {
+          "Code": "ROTATION_POISCHICHE",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "Gorgan-RFD",
+      "dfCode": [
+        {
+          "Code": "Gorgan-RFD"
+        }
+      ],
+      "dfSowing": [
+        {
+          "yrno": 3,
+          "FixFind": 1,
+          "Fyear": 2005,
+          "Fpdoy": 175,
+          "Pden": 7,
+          "Lpdoy": 200,
+          "STBLW": 1
+        }
+      ],
+      "nitrogenScenario": 0,
+      "nitrogenNumber": 2,
+      "nitrogenDatetype": 2,
+      "nitrogendf": [
+        {
+          "NapplNumber": 1,
+          "DAPorCBD": 1,
+          "amount": 2.3,
+          "FracVol": 2
+        },
+        {
+          "NapplNumber": 2,
+          "DAPorCBD": 10,
+          "amount": 3.45,
+          "FracVol": 10
+        }
+      ],
+      "waterLevel": 0.5,
+      "waterScenario": 2,
+      "waterNumber": 0,
+      "waterDatetype": 0,
+      "waterdf": []
+    },
+    {
+      "name": "essai_bidon_irrigation_DAP",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_DAP",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 1,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 10,
+          "amount": 10
+        },
+        {
+          "DAPorCBDorDOY": 20,
+          "amount": 25
+        },
+        {
+          "DAPorCBDorDOY": 30,
+          "amount": 40
+        },
+        {
+          "DAPorCBDorDOY": 40,
+          "amount": 30
+        },
+        {
+          "DAPorCBDorDOY": 50,
+          "amount": 5
+        },
+        {
+          "DAPorCBDorDOY": 60,
+          "amount": 18
+        }
+      ]
+    },
+    {
+      "name": "essai_bidon_irrigation_DOY",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_DOY",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 3,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 289,
+          "amount": 10
+        },
+        {
+          "DAPorCBDorDOY": 296,
+          "amount": 25
+        },
+        {
+          "DAPorCBDorDOY": 303,
+          "amount": 40
+        },
+        {
+          "DAPorCBDorDOY": 1,
+          "amount": 30
+        },
+        {
+          "DAPorCBDorDOY": 8,
+          "amount": 5
+        },
+        {
+          "DAPorCBDorDOY": 15,
+          "amount": 18
+        }
+      ]
+    },
+    {
+      "name": "essai_bidon_irrigation_CBD",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_CBD",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 2,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 5,
+          "amount": 10
+        },
+        {
+          "DAPorCBDorDOY": 10,
+          "amount": 25
+        },
+        {
+          "DAPorCBDorDOY": 12,
+          "amount": 40
+        },
+        {
+          "DAPorCBDorDOY": 20,
+          "amount": 30
+        },
+        {
+          "DAPorCBDorDOY": 30,
+          "amount": 5
+        },
+        {
+          "DAPorCBDorDOY": 40,
+          "amount": 18
+        }
+      ]
+    },
+    {
+      "name": "essai_bidon_irrigation_CBDautoAmount",
+      "dfCode": [
+        {
+          "Code": "essai_bidon_irrigation_CBDautoAmount",
+          "Description:": 0
+        }
+      ],
+      "dfSowing": [
+        {
+          "FixFind": 4,
+          "Fyear": 1980,
+          "yrno": 1,
+          "SimDoy": 67,
+          "Fpdoy": 288,
+          "Lpdoy": 20,
+          "StopDAP": 280,
+          "SowTmp": "-",
+          "SowWat": 0.21,
+          "Pden": 30,
+          "STBLW": 1.7658
+        }
+      ],
+      "nitrogenScenario": 2,
+      "nitrogenNumber": 0,
+      "nitrogenDatetype": "-",
+      "nitrogendf": [],
+      "waterLevel": 0,
+      "waterScenario": 3,
+      "waterNumber": 6,
+      "waterDatetype": 4,
+      "waterdf": [
+        {
+          "DAPorCBDorDOY": 5,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 10,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 12,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 20,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 30,
+          "amount": 1978
+        },
+        {
+          "DAPorCBDorDOY": 40,
+          "amount": 1978
+        }
+      ]
+    }
+  ]
+} 

@@ -12,7 +12,7 @@ Sys.setlocale(category = "LC_TIME", locale = "C") #on other systems
 #' @param userid sequential number of the user. If NULL( the default), the input and outputs are not specific for one given user and are overwritten
 #' @param userid_fileonly should the user id be used only to name the wholedata_n.csv file (the default, n is replaced by userid) or should we have a folder with both input and outputs specific for a user?
 runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL, userid_fileonly=TRUE){
-  setup<-function(userid=NULL) 
+  setup<-function() 
   {
     #setup= fonction qui cree un objet "modele", contenant ses fonctions de manipulation, a partir du chemin du dossier qui contient le code du modele et le fichier excel des variables
     ICI<-environment()
@@ -48,7 +48,7 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL, us
   if (inputsfromplatform) {
     #read simulation options from csv, declare formats as "platform"
     if (!is.null(userid)) {
-      SimulationOptionspath<-normalizePath(paste(paste0("user_", userid), "inputplatform/SimulationOptions.csv")) 
+      SimulationOptionspath<-normalizePath(paste(paste0("user_", userid), "inputplatform/SimulationOptions.csv", sep="/")) 
       if (!userid_fileonly) if (!dir.exists(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))) { dir.create(normalizePath(paste(paste0("user_", userid), "outputplatform", sep="/")))}
     } else {
       SimulationOptionspath<-normalizePath("inputplatform/SimulationOptions.csv")
@@ -78,7 +78,8 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL, us
     #use a standard crop management for each crop
     #standardmanagement<-c("ROTATION_BLE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "ROTATION_POISCHICHE", "ROTATION_BLE_IRRIGUE", "ROTATION_BLE_IRRIGUE", "Gorgan-RFD")
     #names(standardmanagement)<-c("WHEAT.Ble_Dur_1", "WHEAT.Ble_Tendre_1", "WHEAT.Ble_Tendre_2","Chickpea.Ghab2", "WHEAT.Avoine_Romani", "WHEAT.Cocorit", "MAIZE.bidule")
-    management<-standardmanagement[crops]
+    #management<-standardmanagement[crops]
+    management<-lapply(strsplit(as.character(csvcontent$management), split="'_'"), gsub, pattern="'" , replacement="", fixed=TRUE)[[1]]
     modeloptions$cases$management<-list(unname(management))
   } else { #old method 
     #read the model options from excel file (currently general options contains only simustart)
@@ -162,3 +163,4 @@ runModelD4DECLIC<-function(NbDaysToRun, inputsfromplatform=TRUE, userid=NULL, us
 #toto<-runModelD4DECLIC(10)
 #toto<-runModelD4DECLIC(700, userid=2)
 #toto<-runModelD4DECLIC(10, inputsfromplatform=TRUE)
+toto<-runModelD4DECLIC(10, inputsfromplatform=TRUE, userid=76, userid_fileonly=FALSE)
