@@ -20,7 +20,8 @@
           "SowTmp": "-",
           "SowWat": 0.2,
           "Pden": 280,
-          "STBLW": 0.01
+          "STBLW": 0.01,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 2,
@@ -60,7 +61,8 @@
           "SowTmp": "-",
           "SowWat": 0.3,
           "Pden": 280,
-          "STBLW": 0.6489
+          "STBLW": 0.6489,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 2,
@@ -100,7 +102,8 @@
           "SowTmp": "-",
           "SowWat": 0.21,
           "Pden": 30,
-          "STBLW": 1.7658
+          "STBLW": 1.7658,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 2,
@@ -128,7 +131,8 @@
           "Fpdoy": 175,
           "Pden": 7,
           "Lpdoy": 200,
-          "STBLW": 1
+          "STBLW": 1,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 0,
@@ -174,7 +178,8 @@
           "SowTmp": "-",
           "SowWat": 0.21,
           "Pden": 30,
-          "STBLW": 1.7658
+          "STBLW": 1.7658,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 2,
@@ -232,7 +237,8 @@
           "SowTmp": "-",
           "SowWat": 0.21,
           "Pden": 30,
-          "STBLW": 1.7658
+          "STBLW": 1.7658,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 2,
@@ -290,7 +296,8 @@
           "SowTmp": "-",
           "SowWat": 0.21,
           "Pden": 30,
-          "STBLW": 1.7658
+          "STBLW": 1.7658,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 2,
@@ -348,7 +355,8 @@
           "SowTmp": "-",
           "SowWat": 0.21,
           "Pden": 30,
-          "STBLW": 1.7658
+          "STBLW": 1.7658,
+          "NSTBLCON": 5
         }
       ],
       "nitrogenScenario": 2,

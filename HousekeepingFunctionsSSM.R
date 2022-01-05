@@ -53,7 +53,7 @@ fCreateDay<-function(dateday){
   df<-cbind(data.frame(iDate=dateday),
             as.data.frame(lapply(types, function(x) return(do.call(x, list(nrow(PARAMSIM$cases)))))))
   rownames(df)<-rownames(PARAMSIM$cases)
- #initialize all variables as their default values
+  #initialize all variables as their default values
   df[,setdiff(names(df), "iDate")]<-lapply(setdiff(names(df), "iDate"), function(x) VARIABLEDEFINITIONS[x, "defaultInitialvalue"])
   df[,names(types)[types=="numeric"]]<-lapply(df[,names(types)[types=="numeric"]],as.numeric)
   return(df)
@@ -68,9 +68,9 @@ rCreateDay0<-function() {
   df<-fCreateDay(PARAMSIM$simustart-1)
   df$sCropCult<-sapply(PARAMSIM$cases$rotation,"[[", 1)
   df$sManagement<-sapply(PARAMSIM$cases$management,"[[", 1)
-  df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
+  df$sStubbleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
   df$cCycleEndType<-factor("not yet", levels=c("normal", "low LAI", "not sowed", "stopDAP", "killed by flood", "not yet"))
-    
+  
   #commented out now that crop management has been coded 
   # if(FALSE) {
   #   df$sLastSowing<-0
@@ -86,10 +86,61 @@ rCreateDay0<-function() {
   #   df$sRootFrontDepth<-200
   # }
   
-    #initialisation of soil water
-  df[,paste("sWater", 1:10, sep=".")]<-lapply(1:10, function(x) fExtractSoilParameter(paramname="iniWL", layer=x)*fExtractSoilParameter(paramname="pLayerThickness", layer=x))
-
-
+  ##### achille's additions for initialisation of soil nitrogen
+  
+  ncases <- nrow(PARAMSIM$cases) # number of cases
+  nlayers <- fExtractSoilParameter("pNLayer") # number of layers
+  
+  # ---- initialization of soil water ----
+  df[,paste("sWater", 1:10, sep=".")]<- lapply(
+    1:10, function(x) 
+      fExtractSoilParameter(paramname="pInitialWater", layers=x)*fExtractSoilParameter(paramname="pLayerThickness", layers=x))
+  
+  
+  # ---- initialization of soil nitrogen ----
+  
+  # -- compute soilMass for each layer (to compute initial values) --
+  soilMasses <- fComputeSoilMass(
+    fExtractSoilParameter(paramname="pLayerThickness", layers=Inf),
+    fExtractSoilParameter(paramname="pSoilBulkDensity", layers=Inf),
+    fExtractSoilParameter(paramname="pCoarseSoilFraction", layers=Inf))
+  
+  # -- initialization of MNORG --
+  df[,paste("sMineralizableN", 1:10, sep=".")] <- fComputeMineralizableN(
+    soilMasses,
+    fExtractSoilParameter(paramname="pInitialOrgNPercentage", layers=Inf),
+    fExtractSoilParameter(paramname="pFractionMineralizableN",layers=Inf)
+  )
+  
+  # -- initialization of NSOL --
+  df[,paste("sSolubleN", 1:10, sep=".")] <- fComputeInitialSolubleN(
+    soilMasses,
+    fExtractSoilParameter(paramname="pInitialNO3Concentration", layers=Inf),
+    fExtractSoilParameter(paramname="pInitialNH4Concentration", layers=Inf)
+  )
+  
+  # -- initialization of NCON --
+  df[,paste("sSolubleNConcentration", 1:10, sep=".")] <- fComputeNConcentration(
+    df[,paste("sSolubleN", 1:10, sep=".")],
+    df[,paste("sWater", 1:10, sep=".")]
+  )
+  
+  # -- initialization of NAVL and NORG
+  for (case in 1:ncases) {
+    df[case,paste("sAvailableUptakeN", 1:nlayers[case], sep=".")] <- 0
+    df[case,paste("sOrganicN", 1:nlayers[case], sep=".")] <- 0
+  }
+  # SNAVL is initialized at 0 thanks to its default value in excel = 0
+  
+  # ---- initialization of residues module ----
+  # NRES, RESW, NSTBL,
+  df[,paste("sResiduesWeight", 1:nlayers[case], sep=".")] <- fExtractSoilParameter(paramname="pInitialResiduesWeight", layers=Inf)
+  df[,paste("sResiduesNitrogen", 1:nlayers[case], sep=".")] <- df[,paste("sResiduesWeight", 1:nlayers[case], sep=".")] *
+    fExtractSoilParameter(paramname="pInitialResiduesNCon", layers=Inf)
+  df$sStubbleNitrogen <- df$sStubbleWeight *
+    sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$NSTBLCON)
+  # sTotalCumulatedMinFromRes initialzed at 0 thanks to its default value in Excel
+  ##### end of Achille's initialisation
   
   ALLSIMULATEDDATA<<-list(df) #list of data.frames from the previous timesteps (here: day 0)
   return()

@@ -323,3 +323,171 @@ if(FALSE){
                            pch="") 
   
 }
+# checking nitrogen module (Achille's simulations: won't work on Marie's computer)
+if (FALSE) {
+  # pour les couleurs:
+  # réparties sur le spectre: rainbow(n)
+  # contigues: heat.colors(n)
+  dynamiques<-mymodel$plot("cSoilTemp", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("cSoilTempOnDenitrification", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("cSoilTempOnMineralization", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  dynamiques<-mymodel$plot("cTotalSolubleN", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("sSolubleN", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sSolubleN", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  dynamiques<-mymodel$plot("sCumulatedNMineralization", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cNMineralization", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cNMineralization", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cMoistureOnMineralization", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cMoistureOnMineralization", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  
+  cols<-1:2 ; names(cols)<-paste("sMineralizableN", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sMineralizableN", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("sAvailableUptakeN", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("sAvailableUptakeN", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  dynamiques<-mymodel$plot("sTotalAvailableUptakeN", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cNSoilUptake", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cNSoilUptake", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="",
+  )
+  
+  cols<-1:2 ; names(cols)<-paste("cActualTranspirableWater", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cActualTranspirableWater", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  cols<-1:2 ; names(cols)<-paste("cFractionTranspirableWater", 1:2, sep=".")
+  dynamiques<-mymodel$plot(paste("cFractionTranspirableWater", 1:2, sep="."), 
+                           lty=c(Meknes=1,
+                                 Turgutlu=2,
+                                 SidiKacem=3,
+                                 Mauguio=4,
+                                 Bizerte=5),
+                           whatlty="cases", 
+                           whatcol="variables", 
+                           col=cols, 
+                           pch="")
+  
+  dynamiques<-mymodel$plot("cFractionTranspirableWater.1", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+  
+  
+  dynamiques<-mymodel$plot("cFractionTranspirableWater.2", 
+                           col=c(Meknes="green",
+                                 Turgutlu="red",
+                                 SidiKacem="blue",
+                                 Mauguio="yellow",
+                                 Bizerte="purple"),
+                           whatcol="cases", lty=1, pch="")
+}

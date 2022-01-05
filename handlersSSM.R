@@ -12,7 +12,10 @@ mOnetimestep<-function(){
   rUpdateDMProduction()
   rUpdateDMDistribution() 
   rUpdateRootDepth()
+  #rUpdatePlantNitrogen()
   rUpdateWaterBudget()
+  rUpdateSurfaceResidues()
+  #rUpdateSoilNitrogen()
   
   #at the end of the timestep, adds the new day at the end of the list of all variables
   ALLSIMULATEDDATA <<- c(ALLSIMULATEDDATA, list(ALLDAYDATA))
@@ -55,7 +58,7 @@ mPlotDynamics<-function(variablestoplot=NULL, casestoplot=NULL,
   
   if (is.null(col)) { #col not provided but whatcol provided: generate col, whatcol not provided: all black
     if (whatcol=="cases") {col<-matrix(rep(rainbow(start=0, end=5/6,n=length(casestoplot)), times=length(variablestoplot)), ncol=length(variablestoplot)) ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot } else 
-      if (whatcol=="variables") {col<-matrix(rep(rainbow(start=0, end=5/6, n=length(varaiblestoplot)), each=length(casestoplot)), ncol=length(variablestoplot))  ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot  } else 
+      if (whatcol=="variables") {col<-matrix(rep(rainbow(start=0, end=5/6, n=length(variablestoplot)), each=length(casestoplot)), ncol=length(variablestoplot))  ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot  } else 
       {col<-matrix(rep("black", length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot }
   } else #col provided
     if (length(col)==1) { col<-matrix(rep(col, length(variablestoplot)*length(casestoplot)), ncol=length(variablestoplot))  ; colnames(col)<-variablestoplot ; rownames(col)<-casestoplot  } else #col provided and length>1

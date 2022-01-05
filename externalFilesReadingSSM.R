@@ -107,9 +107,11 @@ eReadSoil<-function(){
     }
   } else if(PARAMSIM$soilformat=="D4Declicplatform"){
     translationssoil<-c("SAT", "DUL", "LL", "DRAINF", "REF_BULK")
-    names(translationssoil)<-c("pSaturation", "pFieldCapacity", "pWiltingPoint", "pDrainedFraction", "pSoilBulkDensity")
+    names(translationssoil)<-c("pSaturation", "pFieldCapacity", "pWiltingPoint", "pSoilDrainageFactor", "pSoilBulkDensity")
     #other info in database: EXTR OC (organic carbon?), DULg, PO, e
-    #missing info for SSM: "pSoilDryness", "iniWL", "pStones", "pOrganicN", "PFractionMineralizableN", "pInitialNitrateConcentration", "pInitialAmmoniumConcentration"
+    #missing info for SSM: "pSoilDryness", "pInitialWater", "pCoarseSoilFraction", 
+    #"pInitialOrgNPercentage", "pFractionMineralizableN", "pInitialNO3Concentration", "pInitialNH4Concentration"
+    #pInitialResiduesWeight 
     ALLSOILS<-list()
     if(exists("USERID", envir=ICI)) {
       if (dir.exists(paste(paste0("user_", USERID)))){
@@ -128,16 +130,16 @@ eReadSoil<-function(){
       ALLSOILS$pDrainLayer<-2
     
     ALLSOILS$pSoilAlbedo<-csvcontent$salb
-    ALLSOILS$U<-6 #explication d'Helene: U est un parametre qui ne sert que lorsqu'on active l'option de calcul de l'evaporation selon la formule de Ritchie (evaporation en 2 temps, "semethod=1" dans le code, je crois et dans ce cas-la, on le fixe toujours a 6 (U indique une nombre de jours necessaires depuis la derniere pluie pour la transition  entre les deux stades d'evaporation si je me souviens bien)
+    ALLSOILS$pU<-6 #explication d'Helene: U est un parametre qui ne sert que lorsqu'on active l'option de calcul de l'evaporation selon la formule de Ritchie (evaporation en 2 temps, "semethod=1" dans le code, je crois et dans ce cas-la, on le fixe toujours a 6 (U indique une nombre de jours necessaires depuis la derniere pluie pour la transition  entre les deux stades d'evaporation si je me souviens bien)
     ALLSOILS$pSoilCurveNumber<-csvcontent$cn
     ALLSOILS$pVPDcoef<-0.75 # A coefficient to calculate VPD; 0.65 for humid and subhumid climates and 0.75 for arid and semi-arid climates
-    ALLSOILS$paramlayers<-array(0, dim=c(1, 14, 10), 
+    ALLSOILS$paramlayers<-array(0, dim=c(1, 16, 10), 
                                 dimnames=list(case="sim1", 
                                               variable=c("Layer#", "pLayerThickness", "pSaturation", "pFieldCapacity",
-                                                         "pWiltingPoint", "pSoilDryness", "iniWL", "pDrainedFraction",
-                                                         "pStones", "pSoilBulkDensity", "pOrganicN", 
-                                                         "PFractionMineralizableN", "pInitialNitrateConcentration",
-                                                         "pInitialAmmoniumConcentration"), layer=1:10))
+                                                         "pWiltingPoint", "pSoilDryness", "pInitialWater", "pSoilDrainageFactor",
+                                                         "pCoarseSoilFraction", "pSoilBulkDensity", "pInitialOrgNPercentage", 
+                                                         "pFractionMineralizableN", "pInitialNO3Concentration",
+                                                         "pInitialNH4Concentration", "pInitialResiduesWeight", "pInitialResiduesNCon"), layer=1:10))
     ALLSOILS$paramlayers[1,"pLayerThickness",1]<-topsoildepth
     ALLSOILS$paramlayers[1,"pLayerThickness",2]<-subsoilthickness
     ALLSOILS$paramlayers[1,"Layer#",1]<-1
@@ -145,20 +147,23 @@ eReadSoil<-function(){
     ALLSOILS$paramlayers[1,names(translationssoil),1]<-unname(unlist(csvcontent[,tolower(paste("T_", translationssoil,sep=""))]))
     ALLSOILS$paramlayers[1,names(translationssoil),2]<-unname(unlist(csvcontent[,tolower(paste("S_", translationssoil,sep=""))]))
     for (n in 1:2) { #the other parameters are fixed until I understand how to compute them from soil data
-      ALLSOILS$paramlayers[1,"pSoilDryness",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n]/3 #explication d'Helene: ADRY est fixe par defaut egal  à LL/3 en l'absence de donnees permettant de faire mieux (meme si dans les sols tres argileux a fentes de retrait cela  peut etre significativement  faux)
-      ALLSOILS$paramlayers[1,"iniWL",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n] #explication d'Helene: iWL est le stock d'eau au demarrage de la simulation... donc ca depend de quand tu demarres la simulation. En general en Mediterranee, on demarre les simulations le 30 aout avec un sol vide (iwL=LL)
-      ALLSOILS$paramlayers[1,"pStones",n]<-0 #explication d'Helene: FG...ne peut pas se deduire de la base de donnees avec cette base la (HSWD). Soit tu le fixes ce parametre à 0 (en considerant que les valeurs de %A,%L et %L fournies dans la bd sont pour la totalite du sol, soit tu le fixes à une valeur constante (e.g; 0.15 si tu as de bonnes raisons de penser que cela sera plus representatif que 0). Dans certaines bases de donnees, %S est divise en deux sous categories "sables grossiers"/"coarse sands" et "sables fins/fine sands" dans ce cas, j'utilise le premier pour definir FG et l'autre pour definir %S et par ricochet SAT, DUL, EXT  etc.
-      ALLSOILS$paramlayers[1,"pOrganicN",n]<-0.02 #explication d'Helene: NORG se calcule a partir de MO avec l'approximation NO=MO/20 (d'apres la composition moyenne de la matiere organique du sol)
-      ALLSOILS$paramlayers[1,"PFractionMineralizableN",n]<-0.1 #explication d'Helene: FMIN est souvent fixé à 0.1, voire 0.01 dans les couches profondes du sols (d'apres plusieurs estimations faites a partir de mesures dans le sols mediterraneens)
-      ALLSOILS$paramlayers[1,"pInitialAmmoniumConcentration",n]<-0 #explication d'Helene: cf ci-dessous
+      ALLSOILS$paramlayers[1,"pSoilDryness",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n]/3 #explication d'Helene: ADRY est fixe par defaut egal  a LL/3 en l'absence de donnees permettant de faire mieux (meme si dans les sols tres argileux a fentes de retrait cela  peut etre significativement  faux)
+      ALLSOILS$paramlayers[1,"pInitialWater",n]<-ALLSOILS$paramlayers[1,"pWiltingPoint",n] #explication d'Helene: iWL est le stock d'eau au demarrage de la simulation... donc ca depend de quand tu demarres la simulation. En general en Mediterranee, on demarre les simulations le 30 aout avec un sol vide (iwL=LL)
+      ALLSOILS$paramlayers[1,"pCoarseSoilFraction",n]<-0 #explication d'Helene: FG...ne peut pas se deduire de la base de donnees avec cette base la (HSWD). Soit tu le fixes ce parametre a 0 (en considerant que les valeurs de %A,%L et %L fournies dans la bd sont pour la totalite du sol, soit tu le fixes a une valeur constante (e.g; 0.15 si tu as de bonnes raisons de penser que cela sera plus representatif que 0). Dans certaines bases de donnees, %S est divise en deux sous categories "sables grossiers"/"coarse sands" et "sables fins/fine sands" dans ce cas, j'utilise le premier pour definir FG et l'autre pour definir %S et par ricochet SAT, DUL, EXT  etc.
+      ALLSOILS$paramlayers[1,"pInitialOrgNPercentage",n]<-0.02 #explication d'Helene: NORG se calcule a partir de MO avec l'approximation NO=MO/20 (d'apres la composition moyenne de la matiere organique du sol)
+      ALLSOILS$paramlayers[1,"pFractionMineralizableN",n]<-0.1 #explication d'Helene: FMIN est souvent fixe a 0.1, voire 0.01 dans les couches profondes du sols (d'apres plusieurs estimations faites a partir de mesures dans le sols mediterraneens)
+      ALLSOILS$paramlayers[1,"pInitialNH4Concentration",n]<-0 #explication d'Helene: cf ci-dessous
+      ALLSOILS$paramlayers[1,"pInitialResiduesWeight",n]<-0 # explication: nouveau parametre ajoute par Achille, il faudra trouver des valeurs initiales raisonables
+      ALLSOILS$paramlayers[1,"pInitialResiduesNCon",n]<-200 # explication: nouveau parametre ajoute par Achille, il faudra trouver des valeurs initiales raisonables
+      
     }
     #explication d'Helene: NO3- et NH4+ ne sont pas lisibles dans une base de donnees non plus car hautement variables. Quand je n'ai pas d'info, je mets NH4+=0 et je me concentre sur le NO3-,. Selon le systeme de culture, j'estime qu'il est d'environ 20 a 50 kg de N residuel au semi, dont les 2/3 dans la couche superieure du sol. Je fais la conversion en utilisant la densite apparente pour trouver la valeur en g N. g-1 sol.
     #we suppose that the residual nitrate concentration is 35 kgN/ha, 2/3 of which is in the top layer
     #35 kg over whole soil => 23.3 in top layer (this doesn't make sense to use a constant proportion if the layer thickness is not the same but whatever), and 11.7 in bottom layer
     #23.3 kg N = 23.3*4.4268 kg NO3 = 23.3*4.4268 *10e6 mg
     #soil volume = 100*100*100*100*Pthick cm3 => soil weight = 10e8*Pthick * BulkDensity g (=>10e5*Pthick*bulkDens kg)
-    ALLSOILS$paramlayers[1,"pInitialNitrateConcentration",1]<-(23.3*4.4268)/(ALLSOILS$paramlayers[1,"pSoilBulkDensity",1]*ALLSOILS$paramlayers[1,"pLayerThickness",1])*10 
-    ALLSOILS$paramlayers[1,"pInitialNitrateConcentration",2]<-(11.7*4.4268)/(ALLSOILS$paramlayers[1,"pSoilBulkDensity",2]*ALLSOILS$paramlayers[1,"pLayerThickness",2])*10
+    ALLSOILS$paramlayers[1,"pInitialNO3Concentration",1]<-(23.3*4.4268)/(ALLSOILS$paramlayers[1,"pSoilBulkDensity",1]*ALLSOILS$paramlayers[1,"pLayerThickness",1])*10 
+    ALLSOILS$paramlayers[1,"pInitialNO3Concentration",2]<-(11.7*4.4268)/(ALLSOILS$paramlayers[1,"pSoilBulkDensity",2]*ALLSOILS$paramlayers[1,"pLayerThickness",2])*10
     
     for (n in 3:10) {
       ALLSOILS$paramlayers[1,"Layer#",n]<-n
@@ -239,7 +244,14 @@ eReadManagement<-function(){
     allmanag<-list()
     for (i in 1:length(startManag)){
       dfCode<-read.xlsx(pathtoExcel, sheet=1, rows=startManag[i]:(startManag[i]+1), cols=1:3)
-      dfSowing<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+2):(startManag[i]+3), cols=1:11)
+      dfSowing<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+2):(startManag[i]+3), cols=1:12)
+      # ----------Achille 24 / 08 / 2021 Added variables for tillage module----------
+      tillageScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=9, colNames=FALSE)[1,1]
+      tillageTotalNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=9, colNames=FALSE)[1,1]
+      tillageDatetype<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+7), cols=9, colNames=FALSE)[1,1]
+      tillagedf<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+9):(startManag[i]+9+tillageTotalNumber), cols=8:10)
+      names(tillagedf) <- c("DAPorCBD", "frac", "tillageNumber")
+      # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
       nitrogenScenario<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+5), cols=2, colNames=FALSE)[1,1]
       nitrogenNumber<-read.xlsx(pathtoExcel, sheet=1, rows=(startManag[i]+6), cols=2, colNames=FALSE)[1,1]
       if(is.null(nitrogenNumber)) nitrogenNumber<-0

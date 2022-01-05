@@ -11,7 +11,7 @@ fComputePAR<-function(globalradiation, CoefPAR) {
 }
 
 fComputeTemp<-function(tasmax,tasmin) {
-  return(cTemp = (tasmax+tasmin)/2)
+  return((tasmax+tasmin)/2)
 
 }
 
@@ -54,8 +54,8 @@ fComputeCrownTemperature<-function(sSnow,iTASMax,iTASMin){
   sSnow<-pmin(15, sSnow)
   TcrownMin<-iTASMin
   TcrownMax<-iTASMax
-  TcrownMin[iTASMin < 0 & sSnow > 0]<- 2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
-  TcrownMax[iTASMax < 0 & sSnow > 0]<- 2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2)
+  TcrownMin[iTASMin < 0 & sSnow > 0]<- 2 + iTASMin * (0.4 + 0.0018 * (sSnow - 15) ^ 2)[iTASMin < 0 & sSnow > 0]
+  TcrownMax[iTASMax < 0 & sSnow > 0]<- 2 + iTASMax * (0.4 + 0.0018 * (sSnow - 15) ^ 2)[iTASMin < 0 & sSnow > 0]
   return((TcrownMin + TcrownMax) / 2)
 }
 
@@ -225,11 +225,11 @@ fFindWater<-function(layers, df, what=c("ATSW", "TTSW", "FTSW", "WL", "WLUL", "W
   WLUL<-fExtractSoilParameter(paramname="pFieldCapacity", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at field capacity
   WLST<-fExtractSoilParameter(paramname="pSaturation", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE)*fExtractSoilParameter(paramname="pLayerThickness", layers=layers, whichcases= whichcases, keepcasesasrows = TRUE) #amount of water at saturation
   if (what=="ATSW") {
-    result<-(WL-WLLL)*weights
+    result<-pmax(0, WL-WLLL)*weights
   } else if (what=="TTSW") {
     result<-(WLUL-WLLL)*weights
   } else if (what=="FTSW") {
-    result<-((WL-WLLL)/(WLUL-WLLL))*weights
+    result<-(pmax(0,WL-WLLL)/(WLUL-WLLL))*weights
     ###### icicici issue #4 not yet solved "FTSWRZ=ATSWRZ/TTSWRZ instead of FTSWRZ=sum(FTSW*weights)" i don't remember what I meant....
   } else if (what=="WLUL") {
     result<-WLUL*weights
@@ -280,16 +280,15 @@ fComputeRunoff<-function(vectorRain,
 #' @param calb crop albedo
 #' @param ket canopy extinction coefficient
 #' @param etlai LAI used for PET calculation (takes into account senesced leaves still attached to the plant and/or on the soil)
-#' @param salb #soil albedo
+#' @param salb soil albedo
 #' @return vector of PET (one element per case)
-#' @examples
 fComputePETsimplifiedPenman<-function(tmax, tmin, srad, calb, ket, etlai, salb) {
   td = 0.6 * tmax + 0.4 * tmin
   albedo = calb * (1 - exp(-ket * etlai)) + salb * exp(-ket * etlai)
   eeq = srad * (0.004876 - 0.004374 * albedo) * (td + 29)
   pet = eeq * 1.1
-  pet[tmax > 34]<- eeq * ((tmax - 34) * 0.05 + 1.1)
-  pet[tmax < 5]<- eeq * 0.01 * exp(0.18 * (tmax + 20))
+  pet[tmax > 34]<- eeq * ((tmax - 34) * 0.05 + 1.1)[tmax > 34]
+  pet[tmax < 5]<- eeq * 0.01 * exp(0.18 * (tmax + 20))[tmax < 5]
   return(pet)
 }
 
@@ -319,6 +318,354 @@ fVariablesForSowing<-function(whichcases=TRUE, what=c("cumuRain5days", "temp", "
     return(apply(fFindWater(layers=Inf, df=ALLDAYDATA[whichcases,, drop=FALSE], what="ATSW"),1,sum, na.rm=TRUE))
   } else stop("function fVariablesForSowing cannot compute", what)
 }
+
+######## beginning Achille's functions
+
+
+#' KN factor for mineralization computation
+#' 
+#' Computes the KN factor that models the response
+#' of the mineralization process to soil temperature
+#' 
+#' @param soilTemp soil temperature
+#' Can be a single value or a vector/matrix of different values.
+#' In the model, soil temp is actually a vector (one value for each case, no
+#' differentiation depending on soil layer)
+#' 
+#' @return computed KN based on soil temperature
+#' Return value is of the same structure as input
+#' 
+fComputeKNforMineralization <- function(soilTemp){
+  # icicici /!\ Hard-coded parameters in a quite obscure equation
+  # Clarification of the equation would be welcome for code transparency
+  return(24 * exp(17.753 - 6350.5/(soilTemp + 273)) / 168)
+  ##       ######  #######                     ###
+  # soilTemp likely converted from degrees to Kelvin with "+ 273"
+}
+
+#' RN factor for mineralization computation
+#' 
+#' Computes the RN factor that models the response
+#' of the mineralization process to soil moisture
+#' 
+#' @param fractionTranspirableSoilWater Fraction of transpirable soil water
+#' Can either be a single numeric value, for a specific case and layer
+#' A vector, for different layers OR different cases
+#' A matrix, as returned by fFindWater
+#' 
+#' @return computed RN based on soil moisture
+#' Returned object has the same structure as given input (single value, vector, or matrix)
+#' Returns NA if input is NA
+#' In the simulation, input and return are matrices (cases x layers)
+#' 
+#' @examples
+#' \dontshow{
+#' FTSWs <- matrix(c(0.1231773, 0.1250420, 0.1250420,
+#'                   0.2000000, 0.2000000, 0.2000000,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA,
+#'                   NA, NA, NA),
+#'                  nrow = 3,
+#'                  dimnames=c("case1","case2","case3"),
+#'                           paste("FTSW", 1:10, sep="."))
+#' }
+#' FTSWs
+#' fComputeRNforMineralization(FTSWs["case2", "FTSW.1"])
+#' fComputeRNforMineralization(FTSWs["case1",])
+#' fComputeRNforMineralization(FTSWs)
+#' 
+fComputeRNforMineralization <- function(FTSW) {
+  if (is.data.frame(FTSW)) {FTSW <- as.matrix(FTSW)}
+  
+  return(ifelse(FTSW<0.9,
+                1.111*FTSW,
+                pmax(0,10-10*FTSW)))
+}
+
+
+#' Computation of N mineralization (NMIN, g.m-2)
+#' 
+#' Computes the daily amount of net mineralization in a given soil based of
+#' the available bank of mineralizable N, concentration of soluble N in the soil,
+#' and computed RN and KN factors for mineralization
+#' 
+#' @param mineralizableN Amount of organic N readily mineralizable (MNORG)  (a matrix of values for each case x layer)
+#' @param solubleNconcentration Concentration of soluble N in the soil solution (NCON) (a matrix of values for each case x layer)
+#' @param RN Factor of soil temperature on mineralization (a matrix of values for each case x layer)
+#' @param KN Factor of soil moisture on mineralization (generally a vector of each cases's single value)
+#' 
+#' @return Net mineralization amount (NMIN, g.m-2) for the given soil
+#' In the simulation, structure is a (cases x layers) matrix
+#' Function can also return vector or single value depending on the input
+#' 
+fComputeNMineralization <- function(mineralizableN, solubleNconcentration, RN, KN) {
+  return(pmax(mineralizableN * RN * (1 - exp(-KN)) * (0.0002 - solubleNconcentration) / 0.0002,
+              0))
+}
+
+
+
+#' Compute soluble N concentration in a soil
+#'
+#' @param solubleNAmount amount of soluble N in a soil (generally a matrix for each case x layer)
+#' @param waterContent amount of water in the soil (generally a matrix for each case x layer)
+#'
+#' @return the corresponding concentration in g(N).g-1(H2O)
+#' Generally a matrix for each case x layer
+#' 
+fComputeNConcentration <- function (solubleNAmount, waterContent) {
+  #           g.m-2              mm3.mm-2
+  return (solubleNAmount / (waterContent*1000)) # g.g-1 
+}
+
+#' Computation of N dowwnard movement in a soil
+#' 
+#' Computes the amount of soluble N that drains out a given layer into the layer below because of water downward flux
+#' If that layer is the last of the system, then it represents the N leaching out the system (into the environment)
+#' The model considers that at very-low concentration, N drainage is non-existent
+#' The threshold accounting for this limitation is the minCon argument, defaulted to 0.000001 mg.L-1... or g.g-1 icicici ?
+#' 
+#' @param solubleNAmount the amount of soluble N present in the soil solution (NSOL, g.m-2)
+#' @param waterDrainage the amount of water drained out the layer into the layer below (FLOUT, g.m-2)
+#' @param waterContent the amount of water present in the current layer (WL, g.m-2)
+#' @param minCon minimum concentration threshold below which N drainage is likely non-existent (defaulted to 0.000001 mg.L-1 icicici g.g-1 ?)
+#' @param solubleNConcentration the concentration of soluble N in the current layer soil solution (NCON, g.g-1)
+#' 
+#' @return Amount of N drained out and below the layer which corresponding inputs were given (NOUT, g.m-2)
+#' In the simulation, returns a matrix with given inputs being (cases x layers) matrices
+#' But it can also return a vector, or single value, depending on the input structure
+#'
+fComputeNDrainage <- function(solubleNAmount, waterDrainage, waterContent, solubleNConcentration, minCon = 0.000001) {
+  if (is.data.frame(solubleNAmount)) {
+    solubleNAmount <- as.matrix(solubleNAmount)
+  }
+  
+  if (is.data.frame(waterDrainage)) {
+    waterDrainage <- as.matrix(waterDrainage)
+  }
+  
+  if (is.data.frame(waterContent)) {
+    waterContent <- as.matrix(waterContent)
+  }
+  
+  if (is.data.frame(solubleNConcentration)) {
+    solubleNConcentration <- as.matrix(solubleNConcentration)
+  }
+  
+  return(ifelse(solubleNConcentration <= minCon,
+                0,
+                solubleNAmount * ( waterDrainage / (waterContent+waterDrainage) )
+  )
+  )
+}
+
+#' XNCON computation for denitrification
+#' 
+#' When computing denitrification, soluble N concentration in the layer is not directly used
+#' Instead, it is limited to a maximum threshold since further increase has limited to no effect
+#' This threshold is set to 0.0004 mg.L-1 ICICICI g.g-1 ? by default (as in the model documentation)
+#' This function returns the NCON for a specific layer which specific NCON has been given for input
+#' 
+#' @param solubleNConcentration soluble N concentration of the layer (NCON)
+#' Single value, vector, or matrix/data.frame (for each case x layer)
+#' @param threshold concentration threshold over which further increase has little to no effect on process (default = 0.0004 mg.L-1) icicici g.g-1
+#' 
+#' @return pmax(solubleNConcentration, threshold) (XNCON, mg.L-1) icicici g.g-1 ?
+#' Return value is of the same structure as solubleNConcentration input
+#' 
+fComputeXNCONforDenit <- function(solubleNConcentration, threshold=0.0004) {
+  return(pmax(solubleNConcentration, threshold))
+}
+
+
+#' KDNIT factor computation for denitrification
+#' 
+#' Computes the KDNIT factor modeling the effect of soil temperature on the denitrification process
+#' 
+#' @param soilTemp the soil temperature
+#' Either a single numeric value, or a vector or matrix/data.frame (for each case x layer)
+#' 
+#' @return computed KDNIT factor for computation of N denitrification
+#' 
+fComputeKDNIT <- function (soilTemp) {
+  # icicici /!\ Hard-coded parameters results in an obscure code line
+  # Clarification would be welcome
+  return (6 * exp(0.07735 * soilTemp - 6.593))
+}
+
+#' N denitrification in a given layer
+#' 
+#' Computes the net amount of N that's denitrified in the soil each day
+#' 
+#' @param fractionTranspirableWater fraction of transpirable soil water in the soil (FTSW)
+#' Generally a (case x layer) matrix/df
+#' @param KDNIT the KDNIT rate factor modeling the effect of soil temperature on denitrification
+#' Generally a vector, with a value for each case
+#' @param effectiveNConcentration effective soluble N concentration in the layer, limited to a maximum threshold (default=0.0004 mg.L-1) icicici g.g-1
+#' Generally a (case x layer) matrix/df
+#' @param waterContent the amount of water in the giver layer (mm)
+#' Generally a (case x layer) matrix/df
+#' @param waterFactor icicicicici /!\ Supposedly /!\ the fraction of the day where there's enough water for denitrification (FTSW > 1)
+#' Generally a (case x layer) matrix/df
+#' 
+#' @return computed amount of N denitrification in the layer (g.m-2)
+#' 
+fComputeNDenitrification <- function (fractionTranspirableWater, KDNIT, effectiveNConcentration, waterContent, waterFactor = 1) {
+  if (is.data.frame(fractionTranspirableWater)) {
+    fractionTranspirableWater <- as.matrix(fractionTranspirableWater)
+  }
+  
+  if (is.data.frame(effectiveNConcentration)) {
+    effectiveNConcentration <- as.matrix(effectiveNConcentration)
+  }
+  
+  if (is.data.frame(waterContent)) {
+    waterContent <- as.matrix(waterContent)
+  }
+  
+  return (ifelse(fractionTranspirableWater>1, # if FTSW > 1
+                 effectiveNConcentration * (1 - exp(-KDNIT)) * waterContent * 1000 * waterFactor,
+                 #                                               * 1000 used for unit conversion
+                 0)) # else, no N denitrification
+}
+
+#' Computation of N removal by uptake
+#' 
+#' Computes the amount of N absorbed out of the soil by the plant roots (uptake)
+#' 
+#' @param layerAvailableSoilN soil layer N ressources that crop has access to (NAVL, g.m-2)
+#' Generally a (case x layer) matrix/df
+#' @param totalAvailableSoilN whole soil N ressources that crop has access to (SNAVL, g.m-2)
+#' Generally a vector, with a value for each case (the sum of each layer's value for that case)
+#' @param plantNUptake the crop's demand in N uptake (NUP, g.m-2)
+#' Generally a vector, with a value for each case (corresponding to the crop present on that case)
+#' @param plantNFixation the crop's air nitrogen fixation (BNF, g.m-2, 0 for non-legume crops)
+#' Generally a vector, with a value for each case (corresponding to the crop present on that case) 
+#' 
+#' @return Amount of N loss by plant uptake in the soil (NU, g.m-2)
+#' Same structure as layerAvailableSoilN: generally a (case x layer) matrix
+#' 
+fComputeNRemovalByUptake <- function (layerAvailableSoilN, totalAvailableSoilN, plantNUptake, plantNFixation) {
+  return ( layerAvailableSoilN / (totalAvailableSoilN + 0.000001) * (plantNUptake - plantNFixation) )
+}
+
+#' Computation of soluble N amount in the soil (NSOL, g.m-2)
+#' 
+#' @param soilMass soil mass (SOILML, g.m-2) computed from bulk density BDL, coarse fraction FG and layer thickness DLYER
+#' Generally a (case x layer) matrix/df
+#' @param ppmNO3L ppm concentration of NO3 nitrate in the layer
+#' Same structure as soilMass
+#' @param ppmNH4L ppm concentration of NH4 nitrate in the layer
+#' Same structure as soilMass
+#' 
+#' @return the amount of soluble N (NO3+NH4) in the given layer (g (of N) .m-2)
+#' Structure is the same as the inputs: generally a (case x layer) matrix/df
+#' 
+fComputeInitialSolubleN <- function (soilMass, ppmNO3L, ppmNH4L) {
+  # icicicic /!\ hard-coded parameters
+  NO3L <- ppmNO3L * (14/62) * 0.000001 * soilMass
+  NH4L <- ppmNH4L * (14/18) * 0.000001 * soilMass
+  #                 ???????  unit conv.?
+  return (NO3L + NH4L)
+}
+
+#' Computation of soil mass (SOILML, g.m-2)
+#' 
+#' @param layerThickness the depth/thickness of the soil layer(s) (DLYER, mm)
+#' Generally a (case x layer) matrix/df
+#' @param bulkDensity bulk density of the layer(s) (BDL, g.cm-3)
+#' Same structure as layerThickness
+#' @param coarseFraction the fraction of gross particles (>2mm) in the soil (FG)
+#' Same structure as layerThickness
+#' 
+#' @return computed soil mass (SOILML, g.m-2)
+#' Return value has the same structure as inputs: generally a (case x layer) matrix/df
+#' 
+fComputeSoilMass <- function (layerThickness, bulkDensity, coarseFraction) {
+  return (layerThickness * bulkDensity * (1-coarseFraction) * 1000)
+}
+
+#' Initialization of the mineralizable N bank in the soil
+#' 
+#' Used once to initialize the simulation
+#' 
+#' @param soilMass soil mass of the layer (SOILML, g m-2)
+#' Generally a (case x layer) matrix/df
+#' @param organicNPercentage percentage of organic N in the soil total mass (NORGP)
+#' Same structure as soilMass
+#' @param FMIN estimate fraction of organic N that's mineralizable (FMIN)
+#' Same structure as soilMass
+#' 
+#' @return amount of N that's readily available for mineralization in the soil
+#' That is, the "mineralizable N bank/balance" of the soil
+#' Return value has the same structure as inputs: generally a (case x layer) matrix/df
+#' 
+fComputeMineralizableN <- function (soilMass, organicNPercentage, FMIN) {
+  return (organicNPercentage * 0.01 * soilMass * FMIN)
+} 
+# icicicici
+# Function used only at initialization of simulation, is really worth saving as a function?
+
+#' Computation of available N for crop uptake in the soil
+#'
+#' @param NCON soluble N concentration (gN.g-1H20)
+#' Generally a (case x layer) matrix/df
+#' @param ATSW actual transpirable soil water (mm)
+#' Same structure as NCON
+#' @param RLYER root depth into the layer (mm)
+#' Same structure as NCON
+#' @param DLYER layer thickness (mm)
+#' Same structure as NCON
+#'
+#' @return available N for crop uptake in soil layer (NAVL, g.m-2)
+#' Return value has the same structure as inputs: generally a (case x layer) matrix/df
+#' 
+fComputeNAVL <- function(NCON, ATSW, RLYER, DLYER) {
+  return(pmax(NCON - 0.000001, 0) * 1000 * ATSW  * (RLYER / DLYER))
+  #           peut ???e < 0
+  #           ...d'où le "pmax"
+}
+
+fComputeWaterOnDecomp <- function (FTSW) {
+  return(
+    #ifelse(WL < WLLL, 0,
+    #       ifelse(WL <= WLUL,
+    #              WL / WLUL,
+    #              1))
+    pmin(FTSW, 1)
+  )
+  # /!\ JUST USE pmin(FTSW1, 1) instead ??
+}
+
+fComputeContactOnDecomp <- function (STBLW) {
+  return(ifelse(STBLW <= 0.15, 1,
+                ifelse(STBLW <= 0.3,
+                       1 + (STBLW-0.15) * (0.46 - 1) / (0.3 - 0.15),
+                       0.46)))
+}
+
+fComputeTempOnDecomp <- function (TMP) {
+  return((TMP / 20) ^ 2)
+}
+
+fComputeCNOnDecomp <- function (CNRS) {
+  return(exp(-0.693 * (CNRS - 25) / 25))
+  # icicici Hard-coded parameters /!\
+}
+
+fComputeCNRatio <- function (RESW, NRES, NSOL) {
+  return(RESW * 0.4 / (NRES + NSOL / 1000))
+  #         hard-coded              g to kg
+  #             ^
+  # probably gravimetric proportion of carbon
+}
+###### end Achille's functions
+
 ################################ procedures
 
 #####Weather module
@@ -333,6 +680,11 @@ rWeatherDay<-function(){
   sSnow<-ALLDAYDATA$sSnow + ALLDAYDATA$iPr -  cPrCorrected #if temp<=1, prcorrected = 0 and all rain is snow ; if temp>1, cPrCorrected = iPr-snowmelt so snowmelt=ipr - cPr
   #warning: this equation for sSnow is true only if the temperature threshold for snowmelt is the same as the temperature threshold for snowing
   ALLDAYDATA[,c("cSnowMelt","cPrCorrected","sSnow")]<<-data.frame(cSnowMelt,cPrCorrected,sSnow)
+  ############ Save temperature ##################
+  cTemp<-fComputeTemp(tasmax=ALLDAYDATA$iTASMax,
+                      tasmin=ALLDAYDATA$iTASMin)
+  ALLDAYDATA$cTemp <<- cTemp
+  ################################################
 }
 
 
@@ -451,7 +803,7 @@ rSowing<-function(){
                             "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth"
                           ), "name"],
       c("sCrop", "sCultivar", "sGrowthStageNumber", "sGrowthStage", "sDurationStage", 
-        "sBiologicalDay", "sPlantdensity", "sStubleWeight", "sRootFrontDepth")
+        "sBiologicalDay", "sPlantdensity", "sStubbleWeight", "sRootFrontDepth")
     )
     numericvariables<-variablestoinitialize[VARIABLEDEFINITIONS[variablestoinitialize,"typeR"]=="numeric"]
     df[,variablestoinitialize]<-VARIABLEDEFINITIONS[variablestoinitialize, "defaultInitialvalue"]
@@ -514,7 +866,9 @@ rHarvesting<-function(){
     variablestoinitialize<-VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable"
                           & VARIABLEDEFINITIONS$module %in% c(
                             "rUpdateManagement",  "rUpdateStresses", "rUpdatePhenology", "rUpdateLAI",
-                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth", "PlantN" #icicici when it's coded, rename this module with a procedure name
+                            "rUpdateDMProduction", "rUpdateDMDistribution", "rUpdateRootDepth", 
+                            "rFertilization", "rIrrigation", "rTillage",
+                            "PlantN" #icicici when it's coded, rename this module with a procedure name
                           ), "name"]
     #check which one we kep:
     #setdiff(VARIABLEDEFINITIONS[VARIABLEDEFINITIONS$typeinthemodel == "stateVariable","name"], variablestoinitialize)
@@ -530,8 +884,8 @@ rHarvesting<-function(){
     df$sCropNum<-nextnum
     df$sCropCult<-mapply("[", rotations, nextnum)
     df$sManagement<-mapply("[", PARAMSIM$cases$management[whoharvests], nextnum)
-    #initialize sStubleWeight (necessary for soil evaporation during the fallow period)
-    df$sStubleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
+    #initialize sStubbleWeight (necessary for soil evaporation during the fallow period)
+    df$sStubbleWeight<-sapply(ALLMANAGEMENTS[df$sManagement], function(x) x$dfSowing$STBLW) #because it is necessary before sowing so it cannot be initialized at sowing like the other variables
     ALLDAYDATA[whoharvests,names(df)]<<-df
   }
 }
@@ -541,6 +895,7 @@ rIrrigation<-function() {
   cIrrigationWater<-rep(VARIABLEDEFINITIONS["cIrrigationWater", "defaultInitialvalue"], nrow(ALLDAYDATA))
   sIrrigationNumber<-ALLDAYDATA$sIrrigationNumber
   waterscenarios<-sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterScenario") 
+  totalIrrigationNumber <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "waterNumber")
   #codes of water management: 0 = potential production (soil water not necessary to compute), 1 = automated irrigation to keep soil water above a certain threshold, 2: rainfed (no irrigation), 3 fixed according to data frame
   
   #### 0 (potential production: do nothing
@@ -569,15 +924,15 @@ rIrrigation<-function() {
     CBD<-ALLDAYDATA$sBiologicalDaysSinceSowing
     DOY<-as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
     
-    irrigation3.1<-waterscenarios==3 & waterdatetypes==1 & DAP==thresholds # 1 DAP
+    irrigation3.1<-waterscenarios==3 & waterdatetypes==1 & DAP==thresholds & irrigationnumberchecked<=totalIrrigationNumber # 1 DAP
     cIrrigationWater[irrigation3.1]<-amounts[irrigation3.1]
     sIrrigationNumber[irrigation3.1]<-sIrrigationNumber[irrigation3.1]+1
     
-    irrigation3.2<-waterscenarios==3 & waterdatetypes==2 & CBD>=thresholds # 2 CBD
+    irrigation3.2<-waterscenarios==3 & waterdatetypes==2 & CBD>=thresholds & irrigationnumberchecked<=totalIrrigationNumber # 2 CBD
     cIrrigationWater[irrigation3.2]<-amounts[irrigation3.2]
     sIrrigationNumber[irrigation3.2]<-sIrrigationNumber[irrigation3.2]+1
     
-    irrigation3.3<-waterscenarios==3 & waterdatetypes==3 & thresholds==DOY # 3 DOY
+    irrigation3.3<-waterscenarios==3 & waterdatetypes==3 & thresholds==DOY & irrigationnumberchecked<=totalIrrigationNumber # 3 DOY
     cIrrigationWater[irrigation3.3]<-amounts[irrigation3.3]
     sIrrigationNumber[irrigation3.3]<-sIrrigationNumber[irrigation3.3]+1
     
@@ -594,16 +949,102 @@ rIrrigation<-function() {
   return()
 }
 
+rFertilization <- function() {
+  applicationAmount <- rep(VARIABLEDEFINITIONS["cNApplication", "defaultInitialvalue"], nrow(ALLDAYDATA))
+  volatilizationAmount <- rep(VARIABLEDEFINITIONS["cNVolatilization", "defaultInitialvalue"], nrow(ALLDAYDATA))
+  applicationNumber <- ALLDAYDATA$sNApplicationNumber
+  nitrogenScenarios <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "nitrogenScenario") 
+  totalNApplications <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "nitrogenNumber")
+  
+  #### 0 Non N-limited conditions (nitrogen balance is not of interest)
+  
+  #### 2 N-limited conditions (nitrogen balance is considered)
+  applicationNumberChecked <- ALLDAYDATA$sNApplicationNumber+1 #check if today is the day of the next application (from alldaydata=>from yesterdays irrigation number)
+  thresholds <- mapply(function(df,rownum) return(df[rownum,"DAPorCBD"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "nitrogendf"), rownum=applicationNumberChecked)
+  amounts <- mapply(function(df,rownum) return(df[rownum,"amount"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "nitrogendf"), rownum=applicationNumberChecked)
+  fracVolatilizations <- mapply(function(df,rownum) return(df[rownum,"FracVol"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "nitrogendf"), rownum=applicationNumberChecked)
+  
+  nitrogenDateTypes <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "nitrogenDatetype") 
+  DAP <- length(ALLSIMULATEDDATA) - ALLDAYDATA$sLastSowing
+  CBD <- ALLDAYDATA$sBiologicalDaysSinceSowing
+  DOY <- as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
+  
+  application3.1<-nitrogenScenarios==2 & nitrogenDateTypes==1 & DAP==thresholds & applicationNumberChecked <= totalNApplications # 1 DAP
+  applicationAmount[application3.1] <- amounts[application3.1]
+  volatilizationAmount[application3.1] <- fracVolatilizations[application3.1] * amounts[application3.1]
+  applicationNumber[application3.1] <- applicationNumber[application3.1]+1
+  
+  application3.2<-nitrogenScenarios==2 & nitrogenDateTypes==2 & CBD>=thresholds & applicationNumberChecked <= totalNApplications # 2 CBD
+  applicationAmount[application3.2] <- amounts[application3.2]
+  volatilizationAmount[application3.2] <- fracVolatilizations[application3.2]/100 * amounts[application3.2]
+  applicationNumber[application3.2]<-applicationNumber[application3.2]+1
+  
+  
+  application3.3<-nitrogenScenarios==2 & nitrogenDateTypes==3 & thresholds==DOY & applicationNumberChecked <= totalNApplications# 3 DOY
+  applicationAmount[application3.3]<-amounts[application3.3]
+  volatilizationAmount[application3.3] <- fracVolatilizations[application3.3] * amounts[application3.3]
+  applicationNumber[application3.3]<-applicationNumber[application3.3]+1
+  
+  #update computed and state variable
+  ALLDAYDATA[,c("cNApplication", "cNVolatilization", "sNApplicationNumber")] <<- data.frame(applicationAmount,
+                                                                                            volatilizationAmount,
+                                                                                            applicationNumber)
+  ALLDAYDATA$sCumulatedNApplication <<- ALLDAYDATA$sCumulatedNApplication +
+    applicationAmount
+  ALLDAYDATA$sCumulatedNVolatilization <<- ALLDAYDATA$sCumulatedNVolatilization +
+    volatilizationAmount
+  return()
+}
+
+rTillage <- function() {
+  tillageFrac <- rep(VARIABLEDEFINITIONS["cResiduesTillageFraction", "defaultInitialvalue"], nrow(ALLDAYDATA))
+  tillageWeight <- rep(VARIABLEDEFINITIONS["cResiduesTillageWeight", "defaultInitialvalue"], nrow(ALLDAYDATA))
+  tillageNumber <- ALLDAYDATA$sNApplicationNumber
+  tillageScenarios <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillageScenario") 
+  totalNumberTillages <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillageTotalNumber")
+  
+  #### 0 No tillage considered
+  
+  #### 1 Tillage is considered
+  tillageNumberChecked <- ALLDAYDATA$sNApplicationNumber+1 #check if today is the day of the next application (from alldaydata=>from yesterdays irrigation number)
+  thresholds <- mapply(function(df,rownum) return(df[rownum,"DAPorCBD"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillagedf"), rownum=applicationNumberChecked)
+  frac <- mapply(function(df,rownum) return(df[rownum,"frac"]), df=lapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillagedf"), rownum=applicationNumberChecked)
+  
+  tillageDateTypes <- sapply(ALLMANAGEMENTS[ALLDAYDATA$sManagement], "[[", "tillageDatetype") 
+  DAP <- length(ALLSIMULATEDDATA) - ALLDAYDATA$sLastSowing
+  CBD <- ALLDAYDATA$sBiologicalDaysSinceSowing
+  DOY <- as.POSIXlt(ALLDAYDATA$iDate[1])$yday+1
+  
+  tillage3.1<-tillageScenarios==1 & tillageDateTypes==1 & DAP==thresholds & tillageNumberChecked <= totalNumberTillages # 1 DAP
+  tillageFrac[tillage3.1] <- frac[tillage3.1]
+  tillageNumber[tillage3.1] <- tillageNumber[tillage3.1]+1
+  
+  tillage3.2<-tillageScenarios==1 & tillageDateTypes==2 & CBD>=thresholds & tillageNumberChecked <= totalNumberTillages # 2 CBD
+  tillageFrac[tillage3.2] <- frac[tillage3.2]
+  tillageNumber[tillage3.2]<-tillageNumber[tillage3.2]+1
+  
+  
+  tillage3.3<-tillageScenarios==1 & tillageDateTypes==3 & thresholds==DOY & tillageNumberChecked <= totalNumberTillages# 3 DOY
+  tillageFrac[tillage3.3] <- frac[tillage3.3]
+  tillageNumber[tillage3.3] <- tillageNumber[tillage3.3]+1
+  
+  #update computed and state variable
+  ALLDAYDATA[,c("cResiduesTillageFraction", "sTillageNumber")] <<- data.frame(tillageFrac,
+                                                                              tillageNumber)
+  return()
+}
+
+
+
 rUpdateManagement<-function(){
   #print("Updating crops according to crop management")
   #DOY<-as.POSIXlt(ALLDAYDATA[1,"iDate"])$yday+1
-  #whosows
   rFindWhoSows() #writes the current date into ALLDAYDATA$sLastSowing
   rSowing() #initialize crop variables
   rSetParamsFromCrops() #assign the crop parameters according to the crop present (i.e. do it again fro crops that are just sowed today, but we need it for the other cases as well)
   rFindWhoHarvests() #writes the current date into ALLDAYDATA$sLastHarvest
   rHarvesting()
-  #whofertilizes
+  rFertilization()
   rIrrigation()
 }
 
@@ -611,9 +1052,30 @@ rUpdateManagement<-function(){
 #do it now because they are used by several modules
 rUpdateStresses<-function(){
   sFloodDuration<-ALLDAYDATA$sFloodDuration
-  cFTSWrootZone<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
+  #cFTSWrootZone<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
   ###icicicici this is computed three times, once here and once in waterbudget, because we decided not to save layer-related soil variables, except water content, and once in rIrrigation to compute FTSWRZ for irrigating or not
   #### and we need it now just to compute AROOT, because in the code, AROOT from last time step is used to compute WUUR before updating aroot, don't know why
+  ##### icicici Achille changed this computation, check if it has been changed in the 3 other places where it is used
+  ### /!\ icicicici Achille Aug 18 2021 - Changed cFTSWrootZone computation
+  #       to be a properly weighted mean for FTSW in the whole root zone
+  RLYER <- fFindRLYER(layers=Inf, df=ALLDAYDATA)
+  FTSW <- fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots = F)
+  
+  # sum using weighted.mean
+  #cFTSWrootZone <- vector(length=5)
+  #for (case in 1:nrow(ALLDAYDATA)) {
+  #  cFTSWrootZone[case] <- weighted.mean(x=FTSW[case,], w=RLYER[case,])
+  #}
+  
+  # computed "manually"
+  cFTSWrootZone <- apply(FTSW * RLYER, 1, sum, na.rm=TRUE) / apply(RLYER, 1, sum, na.rm=TRUE)
+  cFTSWrootZone[is.na(cFTSWrootZone)] <- 0
+  
+  # Old computation :
+  #cFTSWrootZone<-apply(fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=TRUE), 1, sum, na.rm=TRUE) #FTSWRZ
+  ### end Achille's correction-----------------------------------------------------------------
+  
+  
   rootLength_L<-fFindRLYER(Inf, ALLDAYDATA) #RLYER
   FTSW_L<-fFindWater(layers=Inf, df=ALLDAYDATA, what="FTSW", weightedbyroots=FALSE) #FTSW(l)
   waterStressTranspiration_L<-pmax(pmin(FTSW_L/ALLDAYDATA$pThresholdWaterStressGrowth, 1),0 ) #RT(L)
@@ -836,10 +1298,17 @@ rUpdateLAI<-function(){
   #LAIMainstem (i.e.between bdBLG and bdTLM)
   cCoefWaterstressLeafArea<-ALLDAYDATA$cCoefWaterstressLeafArea
   daily_increase_node_number <- ALLDAYDATA$sThermalUnit / ALLDAYDATA$pPhyllochron 
+  
+  ### Achille - August 3 2021
+  MSNN_increase_filter <- applyfilters("LAI_Mainstem")
+  daily_increase_node_number[!(MSNN_increase_filter)] <- 0
+  ### Not sure this is relevant... it doesn't fix LAI going too high anyway...
+  
   sMainstemNodeNumber[!is.na(daily_increase_node_number)] <- (ALLDAYDATA$sMainstemNodeNumber  + daily_increase_node_number)[!is.na(daily_increase_node_number)]
   leaf_area_yesterday<-ALLDAYDATA$sPlantLeafArea
   LAI_yesterday<-ALLDAYDATA$sLAI
   toto<-ALLDAYDATA$pcoefPlantLeafNumberNode * sMainstemNodeNumber ^ ALLDAYDATA$pExpPlantLeafNumberNode
+  #Achille's remark: # toto= leaf_area_now. Leaf area is a: a * x ^ b function of MSNN, if MSNN stops increasing... specific leaf area is not accounted for ?
   sPlantLeafArea[!is.na(toto)] <- toto[!is.na(toto)]
   
   #Mainstem
@@ -881,6 +1350,7 @@ rUpdateLAI<-function(){
         cultivars_startsenescence<-paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")[startsenescence]
         durationOtherstages<-numeric()
         for (cr in unique(cultivars_startsenescence)) { #for each cultivar, we will find the duration of remaining stages after the current one
+          # icicicicic achille's question: shouldn't it be for each case/crop ? rather than each unique cultivar ?
           currentstageNumber<-ALLDAYDATA$sGrowthStageNumber[startsenescence & paste(ALLDAYDATA$sCrop,ALLDAYDATA$sCultivar, sep=".")==cr][1] #they are all the same, because the filter for senescence is defined at the crop-cultivar level
           durationstages<-ALLCROPS[cr, "thresholds"][[1]]
           if(is.finite(durationstages[length(durationstages)])) warning(paste("leaf senescence (in the case where PARAMSIM$Neffect is FALSE) expects that the vector of thresholds for the different stages of the crops ends with a 'fake' last stage with length Inf. It is not the case for crop", cr,"so the last stage is not included in senescence" ))
@@ -1156,7 +1626,7 @@ rUpdateWaterBudget<-function(){
   cPET<-fComputePETsimplifiedPenman(tmax=ALLDAYDATA[,"iTASMax"], 
                                    tmin=ALLDAYDATA[,"iTASMin"], 
                                    srad=ALLDAYDATA[,"iRSDS"], 
-                                   calb=canopyExtinctionCoefficient, 
+                                   calb=cropAlbedo, 
                                    ket=canopyExtinctionCoefficient, 
                                    etlai=etlai , salb=fExtractSoilParameter("pSoilAlbedo"))
   #compute soil evaporation
@@ -1164,8 +1634,8 @@ rUpdateWaterBudget<-function(){
   cPotentialSoilEvaporation[cPET > minimalSoilEvaporation & cPotentialSoilEvaporation<minimalSoilEvaporation]<-minimalSoilEvaporation
   #modify to take into account the effect of mulch 
   #icicic this equation has hard-coded parameters
-  #cPotentialSoilEvaporation <- cPotentialSoilEvaporation * (1.5 - 0.2 * log((100 * ALLDAYDATA$sStubleWeight))) #old version of SSM.xlsx
-  cPotentialSoilEvaporation <- cPotentialSoilEvaporation * exp(-0.22 * ALLDAYDATA$sStubleWeight/10) #(Salado and sinclair 2013)
+  #cPotentialSoilEvaporation <- cPotentialSoilEvaporation * (1.5 - 0.2 * log((100 * ALLDAYDATA$sStubbleWeight))) #old version of SSM.xlsx
+  cPotentialSoilEvaporation <- cPotentialSoilEvaporation * exp(-0.22 * ALLDAYDATA$sStubbleWeight/10) #(Salado and sinclair 2013)
   
   #real soil evaporation 
   cActualSoilEvaporation<-cPotentialSoilEvaporation
@@ -1189,17 +1659,17 @@ rUpdateWaterBudget<-function(){
   #distribute soil evaporation in different soil layers
   soilEvaporation_L<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
   WLAD_L<-fExtractSoilParameter("pSoilDryness", layers=Inf)*fExtractSoilParameter("pLayerThickness", layers=Inf)
-  DRAINF_L<-fExtractSoilParameter("pDrainedFraction", layers=Inf)
+  DRAINF_L<-fExtractSoilParameter("pSoilDrainageFactor", layers=Inf)
   toBeEvaporated<-cActualSoilEvaporation #TSE
   for (l in 1:10) {
-    evapHere<-pmax(0, pmin(toBeEvaporated, (sWater[,l]-WLAD_L[l])*DRAINF_L[l]))
+    evapHere<-pmax(0, pmin(toBeEvaporated, (sWater[,l]-WLAD_L[,l])*DRAINF_L[,l])) # changed [l] to [,l] icicici 16/7 achille
     soilEvaporation_L[,l]<-evapHere
     toBeEvaporated<-pmax(0, toBeEvaporated-evapHere)
   }
   soilEvaporation_L[is.na(soilEvaporation_L)] <-0
   
   #water budget
-  FLOUT<-pmax((sWater - WLUL_L)*fExtractSoilParameter(paramname="pDrainedFraction", Inf), 0) #flow of water downward
+  FLOUT<-pmax((sWater - WLUL_L)*fExtractSoilParameter(paramname="pSoilDrainageFactor", Inf), 0) #flow of water downward
   FLIN<-matrix(0, nrow=nrow(PARAMSIM$cases), ncol=10)
   FLIN[,1]<-rain + cIrrigationWater - cRunoff
   FLIN[,2:10]<-FLOUT[,1:9]
@@ -1210,12 +1680,15 @@ rUpdateWaterBudget<-function(){
   cDrain<-FLOUT[cbind(1:nrow(FLOUT), drainLayer)]
   #update water content in each layer of soil and everything else
   ALLDAYDATA[,c(paste("sWater", 1:10, sep="."), 
+                paste("cDownwardWaterFlux", 1:10, sep="."),
                 "cRunoff",
                 "cPET",
                 "cPotentialSoilEvaporation",
                 "sDaysSinceStage2evaporation",
                 "cActualSoilEvaporation",
-                "cTranspiration", "cDrain")]<<-cbind(as.data.frame(sWater), data.frame(
+                "cTranspiration", "cDrain")]<<-cbind(as.data.frame(sWater), 
+                                                     as.data.frame(FLOUT),
+                                                     data.frame(
                   cRunoff,
                   cPET,
                   cPotentialSoilEvaporation,
@@ -1224,6 +1697,451 @@ rUpdateWaterBudget<-function(){
                   cTranspiration, cDrain
                 ))
 }
+
+####### Achille's procedures:
+
+rUpdateSurfaceResidues <- function () {
+  
+  STBLW <- ALLDAYDATA$sStubbleWeight # ??? units ?
+  TMP   <- ALLDAYDATA$cTemp
+  FTSW1 <- fFindWater(what="FTSW", df=ALLDAYDATA, layers=1)
+  NSTBL <- ALLDAYDATA$sStubbleNitrogen
+  NSOL1 <- ALLDAYDATA$sSolubleN.1
+  CRESTIL <- ALLDAYDATA$sCumulatedTillageWeight
+  
+  
+  # --- Surface residues decomposition simulation ---
+  
+  # TEST: is there mulch ?
+  stub <- STBLW > 0
+  
+  if (any(stub)) {
+    
+    decompWaterCoef   <- pmin(FTSW1[stub], 1)
+    
+    decompTempCoef    <- fComputeTempOnDecomp(TMP[stub])
+    
+    CNRS <- fComputeCNRatio(STBLW[stub], NSTBL[stub], NSOL1[stub])
+    decompNCoef       <- fComputeCNOnDecomp(CNRS)
+    
+    decompContactCoef <- fComputeContactOnDecomp(STBLW[stub])
+    
+    DECOMPSTBL <- STBLW[stub] *
+      0.05 * # hard-coded icicicici (it's the maximum potential decomposition rate for cellulose)
+      pmin(decompWaterCoef, decompTempCoef) *
+      decompNCoef *
+      decompContactCoef
+    
+    STBLW[stub] <- STBLW[stub] - DECOMPSTBL
+    
+    neg <- STBLW < 0
+    
+    DECOMPSTBL[neg] <- DECOMPSTBL[neg] - STBLW[neg]
+    STBLW[neg]      <- 0
+    
+  }
+  
+  # --- Tillage event ---
+  
+  FRACTIL <- ALLDAYDATA$cResiduesTillageFraction # found in rTillage
+  RESTIL <- FRACTIL / 100 * STBLW
+  STBLW <- STBLW - RESTIL
+  
+  CRESTIL <- CRESTIL + RESTIL
+  
+  
+  # Update into ALLDAYDATA
+  ALLDAYDATA[c("sStubbleWeight",
+               "cStubbleDecomp",
+               "cWaterOnSurfDecomp",
+               "cTempOnDecomp",
+               "cContactOnSurfDecomp",
+               "cCNRatioOnSurfDecomp", 
+               "cResiduesTillageWeight",
+               "sCumulatedTillageWeight")] <<- c(STBLW,
+                                                 DECOMPSTBL,
+                                                 decompWaterCoef,
+                                                 decompTempCoef,
+                                                 decompContactCoef,
+                                                 decompNCoef,
+                                                 RESTIL,
+                                                 CRESTIL)
+}
+
+
+rUpdateSoilNitrogen <- function () {
+  # ----------------------------------------   SOIL NITROGEN MODULE
+  
+  NLYER <- fExtractSoilParameter("pNLayer") # number of layers
+  NCASE <- nrow(PARAMSIM$cases) # number of cases
+  
+  # --------------- EACH DAY ---------------
+  soilTemp <- pmin(ALLDAYDATA$cTemp, 35)
+  
+  WLs <- ALLDAYDATA[,paste("sWater", 1:10, sep=".")]
+  FLOUTs <- ALLDAYDATA[,paste("cDownwardWaterFlux", 1:10, sep=".")]
+  
+  # get value of NSOL from the end of the previous timestep's soil nitrogen module
+  NSOLs <- ALLDAYDATA[,paste("sSolubleN", 1:10, sep=".")]
+  
+  # Since water content may have changed in module rUpdateWaterBudget,
+  # need to re-compute concentration compared to previous timestep
+  #NCONs <- fComputeNConcentration(NSOLs, WLs)
+  NCONs <- ALLDAYDATA[,paste("sSolubleNConcentration", 1:10, sep=".")]
+  # ACTUALLY, IT MAKES MORE SENSE TO LOOK AT CONCENTRATION FROM THE END OF PREVIOUS TIMESTEP
+  # SINCE WATER AND NITROGEN PROCESSES OCCUR AT THE SAME TIME IN REALITY, NOT SEQUENTIALLY LIKE IN THE CODE
+  
+  # Update it into ALLDAYDATA
+  #icicici problem: it's concentration from AFTER updating the water but BEFORE
+  # updating the change in nitrogen balance
+  # what value should we keep into ALLDAYDATA, value at the beginning of the nitrogen module ?
+  # or value that's changed after execution of the soil nitrogen module ? (resulting of change in NSOL..)
+  # ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:10, sep="."))] <<- NCONs
+  
+  # ---- N net mineralization of decomposed soil organic matter ----
+  # COMPUTING NET N MINERALIZATION FOR EACH LAYER (NMINs)
+  
+  KNs <- fComputeKNforMineralization(soilTemp) # value of KNs for each case
+  # save effect of soil temp on mineralization
+  
+  FTSWs <- fFindWater(what="FTSW", df=ALLDAYDATA, layers=Inf) # matrix of FTSW (each layer in each case)
+  colnames(FTSWs) <- paste("FTSW", 1:10, sep=".")
+  
+  RNs <- fComputeRNforMineralization(FTSWs) # matrix of RNs (each layer in each case)
+  colnames(RNs) <- paste("RN", 1:10, sep=".")
+  
+  
+  MNORGs <- ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] # Get mineralizable
+  # organic N content from each layer
+  
+  NMINs <- fComputeNMineralization(MNORGs, NCONs, RNs, KNs) # Compute net amount of N
+  colnames(NMINs) <- paste("NMineralization", 1:10, sep=".")
+  # mineralization for each layer and case
+  
+  MNORGs <- MNORGs - NMINs # Withdraw mineralization from mineralizable N bank
+  
+  # ---- N decomposition of buried organic matter ----
+  
+  FMIN <- fExtractSoilParameter(paramname="pFractionMineralizableN", layers=Inf)
+  
+  RESW <- ALLDAYDATA[,paste("sResiduesWeight",   1:10, sep=".")]
+  NRES <- ALLDAYDATA[,paste("sResiduesNitrogen", 1:10, sep=".")]
+  
+  CNFRESHMIN <- ALLDAYDATA$sTotalCumulatedMinFromRes
+  
+  
+  # Incorporation of residues in the top soil layer in case of tillage
+  
+  RESTIL <- ALLDAYDATA$cResiduesTillageWeight
+  NSTBL  <- ALLDAYDATA$sStubbleNitrogen
+  STBLW  <- ALLDAYDATA$sStubbleWeight
+  
+  NRES[,1][STBLW > 0] <- NRES[,1] + RESTIL * NSTBL / STBLW
+  # avoid dividing by zero
+  # NSTBL and STBLW have to be mutually up to date,
+  # that is their values must date from the same moment
+  
+  RESW[,1] <- RESW[,1] + RESTIL
+  
+  
+  
+  # Decomposition of belowground residue (roots + tilled stubble in layer 1)
+  
+  TMP <- ALLDAYDATA$cTemp
+  FTSW <- fFindWater(what="FTSW", layers=Inf, df=ALLDAYDATA)
+  
+  decompTempCoef <- fComputeTempOnDecomp(TMP) # vector for each case
+  # decompTempCoef <- ALLDAYDATA$cTempOnDecomp # computed in rUpdateSurfaceResidues
+  
+  decompWaterCoef <- fComputeWaterOnDecomp(FTSWs) # layer x case matrix/df
+  
+  CNRS <- fComputeCNRatio(RESW, NRES, NSOLs) # layer x case matrix/df
+  decompCNCoef <- fComputeCNOnDecomp(CNRS) # layer x case matrix/df
+  
+  
+  DECOMPRES <- RESW *
+    0.05 *
+    pmin(decompWaterCoef, decompTempCoef) *
+    decompCNCoef
+  
+  neg <- (RESW - DECOMPRES) < 0
+  
+  DECOMPRES[neg] <- RESW[neg]
+  
+  RESW <- RESW - DECOMPRES
+  
+  
+  
+  # Mineralization and immobilization of N frow belowground residues
+  ## Layer 1:Mineralization of decomposed surface residues and buried residues
+  
+  NBLGNET    <- as.data.frame(cbind(matrix(nrow=NCASE, ncol=NLYER, data=0),
+                                    matrix(nrow=NCASE, ncol=10-NLYER, data=NA)))
+  
+  NDECOMPNET <- as.data.frame(cbind(matrix(nrow=NCASE, ncol=NLYER, data=0),
+                                    matrix(nrow=NCASE, ncol=10-NLYER, data=NA)))
+  
+  is.res <- NRES[,1] > 0
+  
+  if(any(is.res)) {
+    NBLGNET[,1][is.res] <- DECOMPRES[,1][is.res] *
+      0.4 *
+      (1 / (0.4 * RESW[,1][is.res] / NRES[,1][is.res]) - 0.042) *
+      1000                      # 0.042 = 1/24: if C/N > 24 --> immobilization
+    NRES[,1][is.res] <- NRES[,1][is.res] - NBLGNET[,1][is.res] / 1000
+    
+    is.neg <- NRES[,1][is.res] < 0
+    
+    # limit conditions to avoid negative N content in fresh organic pool
+    if (any(is.neg)) {
+      NBLGNET[,1][is.res][is.neg] <- NBLGNET[,1][is.res][is.neg] + NRES[,1][is.res][is.neg] * 1000
+      NRES[,1][is.res][is.neg] <- 0
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+  }
+  
+  NRES[,1][!(is.res)] <- 0
+  
+  # # #
+  
+  DECOMPSTBL <- ALLDAYDATA$cStubbleDecomp
+  NSURFNET   <- ALLDAYDATA$cNFromSurfDecomp
+  #NSURFNET   <- rep(0, NCASE)
+  
+  is.stbl <- NSTBL > 0
+  
+  if (any(is.stbl)) {
+    NSURFNET[is.stbl] = DECOMPSTBL[is.stbl] *
+      0.4 *
+      (1 / (0.4 * STBLW / NSTBL) - 0.042) *
+      1000
+    NSTBL[is.stbl] = NSTBL[is.stbl] - NSURFNET[is.stbl] / 1000
+    
+    is.neg <- NSTBL[is.stbl] < 0
+    
+    # limit conditions to avoid negative N content in stubble
+    if (any(is.neg)) {
+      NSURFNET[is.stbl][is.neg] <- NSURFNET[is.stbl][is.neg] + NSTBL[is.stbl][is.neg] * 1000
+      NSTBL[is.stbl][is.neg] <- 0
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+  }
+  
+  NSTBL[!(is.stbl)] <- 0
+  
+  ####
+  NDECOMPNET[,1] <- NBLGNET[,1] + NSURFNET
+  ####
+  
+  
+  ## Subsequent layers: Mineralization of decomposed buried residues only (roots)
+  
+  is.res <- NRES > 0 & !(is.na.data.frame(NRES))
+  is.res[,1] <- FALSE
+  
+  if (any(is.res)) {
+    NBLGNET[is.res] <- DECOMPRES[is.res] *
+      0.4 *
+      (1 / (0.4 * RESW[is.res] / NRES[is.res]) - 0.042) *
+      1000 # 0.042=1/24 : if C/N > 24 --> immobilization
+    NDECOMPNET[is.res] <- NBLGNET[is.res]
+    NRES[is.res] <- NRES[is.res] - NDECOMPNET[is.res] / 1000
+    
+    is.neg <- NRES[is.res] < 0
+    
+    if (any(is.neg)) {
+      NDECOMPNET[is.res][is.neg] <- NDECOMPNET[is.res][is.neg] +
+        NRES[is.res][is.neg] * 1000
+      NRES[is.res][is.neg] <- 0
+    }
+  }
+  
+  # NDECOMPNET[!(is.res) & !(is.na.data.frame(NDECOMPNET))] <- 0
+  
+  
+  # Organization of N
+  
+  is.decomp <-  NDECOMPNET > 0
+  
+  if (any(is.decomp)) {
+    MNORGs <- MNORGs + FMIN * (0.2 * NDECOMPNET)
+    # MNORGs : mineralizable N pool from OM
+    NFRESHMIN <- 0.8 * NDECOMPNET
+    # 0.2 : 0.8 proportion from APSIM
+  }
+  
+  
+  ###
+  CNFRESHMIN <- CNFRESHMIN + apply(X=NFRESHMIN, FUN=sum, MARGIN=1)
+  #                                     sums over rows          ^
+  #for (case in 1:NCASE) {
+  #  CNFRESHMIN[case,] <- CNFRESHMIN[case,] + sum(NFRESHMIN[case,])
+  #}
+  ###
+  
+  # ---- N application & volatilization ----
+  # Amount of application & volatilization extracted from management plans
+  # in rFertilization module
+  NFERT <- cbind(ALLDAYDATA$cNApplication,
+                 matrix(0, nrow=NCASE, ncol=NLYER-1),
+                 matrix(NA, nrow=NCASE, ncol=10-NLYER))
+  NVOL <- cbind(ALLDAYDATA$cNVolatilization,
+                matrix(0, nrow=NCASE, ncol=NLYER-1),
+                matrix(NA, nrow=NCASE, ncol=10-NLYER))
+  
+  
+  # ---- N downward movement ----
+  NOUTs <- fComputeNDrainage(NSOLs, FLOUTs, WLs, NCONs)
+  colnames(NOUTs) <- paste("downwardNFlux", 1:10, sep=".")
+  
+  
+  # ---- N denitrification ----
+  DENIT_MAX_DEPTH <- 250 #icicici to put into general parameters /!\ hard-coded
+  DLYERs <- fExtractSoilParameter(paramname="pLayerThickness", layers=Inf)
+  
+  dnitLayers <- vector()
+  for (case in 1:NCASE) {
+    dnitLayers <- c(dnitLayers,
+                    length(which((cumsum(DLYERs[case,]) - DLYERs[case,]) < DENIT_MAX_DEPTH))
+    )# icicic Hard-coded parameters  
+  }
+  
+  # It is assumed no denitrification occurs in layers below 250 mm
+  # That gives us the number of layers which upper limit is located above 250mm underground
+  # We now observe denitrification only in those layers
+  
+  XNCONs <- matrix(ncol = 10,
+                   nrow = NCASE)
+  
+  for (case in 1:NCASE) {
+    XNCONs[case,] <- c(fComputeXNCONforDenit(NCONs[case,1:dnitLayers[case]]),
+                       rep(0, NLYER[case] - dnitLayers[case]),
+                       rep(NA, 10 - NLYER[case])
+    )
+  }
+  
+  KDNITs <- fComputeKDNIT(soilTemp) # One value for each case
+  
+  NDNITs <- fComputeNDenitrification(FTSWs, KDNITs, XNCONs, WLs)
+  # waterFactor ? icicici see changelog about WFNDNIT  
+  # Computes for the *dnitLayers* first layers of the soil, then fills the NLYER-long vector
+  # with zeros for the other layers
+  
+  # icicici optimization:
+  # set default value of cNDenitrification to 0 so that we don't have to set values of other
+  # layers to 0 at every timestep, and we can only look at the first *dnitLayers* layers
+  # that way, cNDenitrification stays at 0 in the layers where denitrification doesn't occur
+  # without the program having to do anything
+  
+  RLYERs <- fFindRLYER(Inf, ALLDAYDATA)
+  
+  # ---- N removal by plant uptake ----
+  #NUP <- ALLDAYDATA$cDemandNAccumulation # vector for each case
+  NUP <- rep(0.045, NCASE)
+  #BNF <- ALLDAYDATA$cBiologicalNFixation # vector for each case
+  BNF <- rep(0.008, NCASE)
+  
+  NAVLs <- ALLDAYDATA[,paste("sAvailableUptakeN", 1:10, sep=".")]
+  SNAVL <- ALLDAYDATA$sTotalAvailableUptakeN
+  
+  NUs <- fComputeNRemovalByUptake(NAVLs, SNAVL, NUP, BNF)
+  colnames(NUs) <- paste("NSoilUptake", 1:10, sep=".")
+  
+  
+  # ---- soluble N balance ----
+  NINs <- matrix(ncol=10,
+                 nrow=NCASE,
+                 dimnames= list(rownames(NOUTs),
+                                paste("drainedNIncome", 1:10, sep="."))
+  )
+  for (case in 1:NCASE) {
+    NINs[case,] <- c(0,
+                     NOUTs[case,1:NLYER[case]-1],
+                     rep(NA, 10 - NLYER[case])
+    )
+  }
+  # righ-shift NOUTs and first element set to 0
+  # represents the income in N via drainage from the upper layer
+  
+  NSOLs <- (NSOLs
+            + NINs
+            + NMINs
+            + NFERT
+            - NVOL
+            - NOUTs
+            - NDNITs
+            - NUs)
+  NSOLs[NSOLs<0] <- 0
+  # NSOLs can't be negative
+  
+  NCONs <- fComputeNConcentration(NSOLs, WLs)
+  # new value of NCONs, after variation of N balance in the soil
+  
+  ATSWs <- fFindWater(what="ATSW", layer=Inf, df=ALLDAYDATA)
+  #RLYERs <- ALLDAYDATA[,c(paste("sRootDepthInsideLayer", 1:10, sep="."))]
+  NAVLs <- fComputeNAVL(NCONs, ATSWs, RLYERs, DLYERs)
+  
+  # ---- SAVE INTO ALLDAYDATA ----
+  ALLDAYDATA$cSoilTemp <<- soilTemp
+  
+  # - N mineralization -
+  ALLDAYDATA[,paste("cNMineralization", 1:10, sep=".")] <<- NMINs
+  ALLDAYDATA[,paste("sMineralizableN", 1:10, sep=".")] <<- MNORGs
+  ALLDAYDATA$cSoilTempOnMineralization <<- KNs
+  ALLDAYDATA[,paste("cMoistureOnMineralization", 1:10, sep=".")] <<- RNs
+  
+  # - Decomposition of buried OM -
+  #NRES, RESW, NFRESHMIN, CNFRESHMIN, NDECOMPNET, NSURFNET, DECOMPRES, NSTBL
+  ALLDAYDATA[,paste("sResiduesNitrogen", 1:10, sep=".")] <<- NRES
+  ALLDAYDATA[,paste("sResiduesWeight",   1:10, sep=".")] <<- RESW
+  ALLDAYDATA[,paste("cMinFromResidues",  1:10, sep=".")] <<- NFRESHMIN
+  ALLDAYDATA$sTotalCumulatedMinFromRes <<- CNFRESHMIN
+  ALLDAYDATA[,paste("cNFromDecomposition", 1:10, sep=".")] <<- NDECOMPNET
+  ALLDAYDATA$cNFromSurfDecomp <<- NSURFNET
+  ALLDAYDATA[,paste("cResiduesDecomposition", 1:10, sep=".")] <<- DECOMPRES
+  ALLDAYDATA$sStubbleNitrogen <<- NSTBL
+  
+  # - N downward flux -
+  ALLDAYDATA[,paste("cDownwardNFlux", 1:10, sep=".")] <<- NOUTs
+  
+  # - N denitrification -
+  ALLDAYDATA[,paste("cNDenitrification", 1:10, sep=".")] <<- NDNITs
+  ALLDAYDATA$cSoilTempOnDenitrification <<- KDNITs
+  
+  # - N removal by plant uptake -
+  ALLDAYDATA[,paste("cNSoilUptake", 1:10, sep=".")] <<- NUs
+  
+  ### DEBUGGING WATER BUDGET ###
+  ALLDAYDATA[,paste("cActualTranspirableWater", 1:10, sep=".")] <<- ATSWs
+  ALLDAYDATA[,paste("cFractionTranspirableWater", 1:10, sep=".")] <<- FTSWs
+  ###---###---###---###---###---
+  
+  # - Updating soluble N balance -
+  ALLDAYDATA[,c(paste("sSolubleNConcentration", 1:10, sep="."))] <<- NCONs
+  ALLDAYDATA[,c(paste("sSolubleN", 1:10, sep="."))] <<- NSOLs
+  ALLDAYDATA[,c(paste("sAvailableUptakeN", 1:10, sep="."))] <<- NAVLs
+  
+  # - for each case loop -
+  for (case in 1:NCASE) {
+    ALLDAYDATA[case,"sTotalAvailableUptakeN"] <<- sum(NAVLs[case,], na.rm = TRUE)
+    ALLDAYDATA[case,"cTotalSolubleN"] <<- sum(NSOLs[case,], na.rm = TRUE)
+    
+    totalNDenit <- sum(NDNITs[case,], na.rm = TRUE)
+    ALLDAYDATA[case,"cTotalNDenitrification"] <<- totalNDenit
+    ALLDAYDATA[case,"sCumulatedNDenitrification"] <<- ALLDAYDATA[case,"sCumulatedNDenitrification"] + 
+      totalNDenit
+    
+    NLEACH <- NOUTs[case,NLYER[case]]
+    ALLDAYDATA[case,"cNLeaching"] <<- NLEACH
+    ALLDAYDATA[case,"sCumulatedNLeaching"] <<- ALLDAYDATA[case,"sCumulatedNLeaching"] + NLEACH
+    
+    totalNMin <- sum(NMINs[case,], na.rm = TRUE)
+    ALLDAYDATA[case,"cTotalNMineralization"] <<- totalNMin
+    ALLDAYDATA[case,"sCumulatedNMineralization"] <<- ALLDAYDATA[case,"sCumulatedNMineralization"] +
+      totalNMin
+  }
+}
+##### end achille's procedures
 
 ##### some output functions specific to SSM
 
